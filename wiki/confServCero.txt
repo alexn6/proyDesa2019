@@ -1,0 +1,10 @@
+dsp de instalar apache
+
+- Cambiar permisos a la carpeta /var/www/html
+ => sudo chown -R www-data:www-data /var/www
+
+- Nos aseguramos también que nuestro usuario pertenezca al mismo grupo
+ => sudo usermod -a -G www-data usuario
+
+- Asignamos los permisos adecuados
+ => sudo chmod -R 775 /var/www/html

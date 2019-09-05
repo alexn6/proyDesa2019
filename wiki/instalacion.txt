@@ -1,0 +1,27 @@
+// instalacion global -> desde consola del directorio del proyecto
+
+// descargar y ejecutar el archivo
+* curl -sS https://getcomposer.org/installer | php
+// esto para instalarlo de forma global
+* mv composer.phar /usr/local/bin/composer
+// hecerlo de manera local(en el directorio)
+
+##################################################################
+######################## apache2 #################################
+https://phoenixnap.com/kb/how-to-install-lamp-stack-on-ubuntu
+##################################################################
+
+1- Instalar composer de manera global
+ => curl -sS https://getcomposer.org/installer | php
+    mv composer.phar /usr/local/bin/composer
+
+2 - Crear estructura inicial del proyecto
+ => composer create-project symfony/website-skeleton nombre-proyecto
+
+3 - Instalacion de bundles(dependencias) para el serv web
+ => composer require --dev symfony/web-server-bundle
+
+4 - Iniciar servidor (dentro del directorio del proyecto en una terminal)
+ => php bin/console server:start
+
+

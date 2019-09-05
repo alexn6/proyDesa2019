@@ -1,0 +1,8 @@
+#index:
+#    path: /
+#    controller: App\Controller\DefaultController::index
+
+testService:
+    # Matches /blog exactly
+    path: /testSrvProy
+    controller: App\Controller\testControllerSPT::respTestSrvTorneos
