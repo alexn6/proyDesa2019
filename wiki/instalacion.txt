@@ -24,4 +24,8 @@ https://phoenixnap.com/kb/how-to-install-lamp-stack-on-ubuntu
 4 - Iniciar servidor (dentro del directorio del proyecto en una terminal)
  => php bin/console server:start
 
-
+4.1 - Permitir el acceso al servidor de afuera
+ => php bin/console server:start ip_public:port_open
+	
+	port_open seria un puerto abierto del servidor
+	ip_public: ip publica del servidor
