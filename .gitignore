@@ -32,3 +32,8 @@
 ###> carpeta local de guia ###
 /wiki
 ##############################
+
+###> archivos lock ###
+composer.lock
+symfony.lock
+##############################

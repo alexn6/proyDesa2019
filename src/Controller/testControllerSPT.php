@@ -7,16 +7,28 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
+use App\Entity\Usuario;
+
 class testControllerSPT extends AbstractController
 {
+
+
   /**
    * name es solo para sermapeada en el archivo de config
-  * @Route("/testSrvProy", name="testService")
+  * @Route("/api/testUsers", name="testService")
   */
   public function respTestSrvTorneos()
   {
-    $response = new JsonResponse(array('Funciona' => 'al toque'));
-    //$response = new Response('<html><body>Lucky number: Resp del controller </body></html>');
+
+    $repository=$this->getDoctrine()->getRepository(Usuario::class);
+    $users=$repository->findall();
+
+    // hacemos el string serializable
+    $users = $this->get('serializer')->serialize($users, 'json');
+
+    $response = new Response($users);
+    $response->headers->set('Content-Type', 'application/json');
+
     return $response;
   }
 }

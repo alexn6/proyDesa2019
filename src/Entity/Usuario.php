@@ -17,6 +17,11 @@ class Usuario
      * @ORM\Column(type="integer")
      */
     private $id;
+
+    /**
+     * @ORM\Column(type="string", length=127, unique=true)
+     */
+    private $nombreUsuario;
     
     /**
      * @ORM\Column(type="string", length=127)
@@ -51,6 +56,18 @@ class Usuario
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getNombreUsuario(): ?string
+    {
+        return $this->nombre;
+    }
+
+    public function setNombreUsuario(string $nombreUsuario): self
+    {
+        $this->nombreUsuario = $nombreUsuario;
+
+        return $this;
     }
 
     public function getNombre(): ?string

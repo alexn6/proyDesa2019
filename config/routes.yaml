@@ -2,7 +2,30 @@
 #    path: /
 #    controller: App\Controller\DefaultController::index
 
+# testService:
+#     path: /testSrvProy
+#     controller: App\Controller\testControllerSPT::respTestSrvTorneos
+
 testService:
     # Matches /blog exactly
-    path: /testSrvProy
+    path: /api/users
     controller: App\Controller\testControllerSPT::respTestSrvTorneos
+
+# ###############################################################
+# ########################### deportes ##########################
+
+serviceSport:
+    path: /api/sports
+    controller: App\Controller\DeporteController::allSports
+
+# ###############################################################
+# ########################### usuarios ##########################
+serviceUser:
+    path: /api/all-users
+    controller: App\Controller\UsuarioController::getUsers
+
+# ###############################################################
+# ########################### competencias ######################
+serviceCompetition:
+    path: /api/existcompetition
+    controller: App\Controller\CompetenciaController::existCompetition
