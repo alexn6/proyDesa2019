@@ -29,3 +29,9 @@ serviceUser:
 serviceCompetition:
     path: /api/existcompetition
     controller: App\Controller\CompetenciaController::existCompetition
+
+# ###############################################################
+# ################# tipos de organizaciones ######################
+serviceTypeOrg:
+    path: /api/typesorg
+    controller: App\Controller\TipoOrganizacionController::typesOrg
