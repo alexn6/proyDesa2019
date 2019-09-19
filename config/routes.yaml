@@ -2,15 +2,6 @@
 #    path: /
 #    controller: App\Controller\DefaultController::index
 
-# testService:
-#     path: /testSrvProy
-#     controller: App\Controller\testControllerSPT::respTestSrvTorneos
-
-testService:
-    # Matches /blog exactly
-    path: /api/users
-    controller: App\Controller\testControllerSPT::respTestSrvTorneos
-
 # ###############################################################
 # ########################### deportes ##########################
 
@@ -21,10 +12,10 @@ serviceSport:
 # ###############################################################
 # ########################### usuarios ##########################
 serviceUser:
-    path: /api/all-users
+    path: /api/users
     controller: App\Controller\UsuarioController::getUsers
 srvCrearUsuario:
-    path: /api/users
+    path: /api/user
     controller: App\Controller\UsuarioController::create
 
 # ###############################################################

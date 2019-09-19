@@ -38,6 +38,7 @@ class CompetenciaController extends AbstractFOSRestController
     ]);
 
     $response = new Response($competitions);
+    $response->setStatusCode(Response::HTTP_OK);
     $response->headers->set('Content-Type', 'application/json');
 
     return $response;
@@ -59,7 +60,6 @@ class CompetenciaController extends AbstractFOSRestController
         $nombreCompetencia = $request->get('competencia');
         // var_dump($nombreCompetencia);
         
-        //$competition = $repository->findOneBy(['nombre' => 'comp13']);
         $competition = $repository->findOneBy(['nombre' => $nombreCompetencia]);
   
         if (!$competition) {
@@ -72,6 +72,7 @@ class CompetenciaController extends AbstractFOSRestController
         $respJson = json_encode($respJson);
   
         $response = new Response($respJson);
+        $response->setStatusCode(Response::HTTP_OK);
         $response->headers->set('Content-Type', 'application/json');
   
         return $response;

@@ -51,6 +51,7 @@ class TipoOrganizacionController extends AbstractFOSRestController
     // $allTypes = $this->get('serializer')->serialize($allTypes, 'json');
 
     $response = new Response($typesJson);
+    $response->setStatusCode(Response::HTTP_OK);
     $response->headers->set('Content-Type', 'application/json');
 
     return $response;
