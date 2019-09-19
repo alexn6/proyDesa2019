@@ -23,6 +23,9 @@ serviceSport:
 serviceUser:
     path: /api/all-users
     controller: App\Controller\UsuarioController::getUsers
+srvCrearUsuario:
+    path: /api/users
+    controller: App\Controller\UsuarioController::create
 
 # ###############################################################
 # ########################### competencias ######################

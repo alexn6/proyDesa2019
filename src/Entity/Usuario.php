@@ -4,12 +4,13 @@ namespace App\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UsuarioRepository")
  */
-class Usuario
+class Usuario implements UserInterface
 {
     /**
      * @ORM\Id
@@ -60,7 +61,7 @@ class Usuario
 
     public function getNombreUsuario(): ?string
     {
-        return $this->nombre;
+        return $this->nombreUsuario;
     }
 
     public function setNombreUsuario(string $nombreUsuario): self
@@ -148,5 +149,37 @@ class Usuario
 
         return $this;
     }
+
+    ########################### UserInterface ###########################
+    #####################################################################
+
+    public function getUsername()
+    {
+        return $this->nombreUsuario;
+    }
+
+    public function getSalt()
+    {
+        // podrías necesitar un verdadero salt dependiendo del encoder
+        // ver la sección salt debajo
+        return null;
+    }
+
+    public function getPassword()
+    {
+        return $this->pass;
+    }
+
+    public function getRoles()
+    {
+        return array('ROLE_USER');
+    }
+
+    public function eraseCredentials()
+    {
+    }
+
+    #####################################################################
+    #####################################################################
 
 }

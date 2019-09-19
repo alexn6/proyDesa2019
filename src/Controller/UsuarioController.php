@@ -7,6 +7,8 @@ namespace App\Controller;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\Entity\Usuario;
@@ -17,6 +19,15 @@ use App\Entity\Usuario;
  */
 class UsuarioController extends AbstractFOSRestController
 {
+
+  /**
+     * @param UserPasswordEncoderInterface $passwordEncoder
+     */
+    public function __construct(UserPasswordEncoderInterface $passwordEncoder)
+    {
+        $this->passwordEncoder = $passwordEncoder;
+    }
+
   /**
    * name es solo para sermapeada en el archivo de config
   * @Route("/api/users", name="serviceUser")
@@ -54,5 +65,71 @@ class UsuarioController extends AbstractFOSRestController
     $response->headers->set('Content-Type', 'application/json');
 
     return $response;
+  }
+
+  /**
+     * Lista de todos los deportes.
+     * @Rest\Post("/users"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function create(Request $request){
+      $repository=$this->getDoctrine()->getRepository(Usuario::class);
+
+      // recuperamos los datos del body y pasamos a un array
+      $dataUserRequest = json_decode($request->getContent());      
+
+      $nombreUsuario = $dataUserRequest->usuario;
+      $correo = $dataUserRequest->correo;
+      
+      $respJson = (object) null;
+      $statusCode;
+
+      // controlamos que el nombre de usuario este disponible
+      $usuario = $repository->findOneBy(['nombreUsuario' => $nombreUsuario]);
+      if($usuario){
+        $respJson->success = false;
+        $statusCode = Response::HTTP_BAD_REQUEST;
+        $respJson->messaging = "El nombre de usuario esta en uso";
+      }
+
+      // controlamos que el correo no este en uso
+      $usuario_correo = $repository->findOneBy(['correo' => $correo]);
+      if($usuario_correo){
+        $respJson->success = false;
+        $statusCode = Response::HTTP_BAD_REQUEST;
+        $respJson->messaging = "El correo esta en uso por una cuenta existente";
+      }
+
+      if((!$usuario)&&(!$usuario_correo)){
+        // creamos el usuario
+        $usuarioCreate = new Usuario();
+        $usuarioCreate->setNombre($dataUserRequest->usuario);
+        $usuarioCreate->setApellido($dataUserRequest->apellido);
+        $usuarioCreate->setNombreUsuario($nombreUsuario);
+        $usuarioCreate->setCorreo($correo);
+        $usuarioCreate->setPass($dataUserRequest->pass);
+
+        // encriptamos la contraseña
+        $passHash = $this->passwordEncoder->encodePassword($usuarioCreate, $usuarioCreate->getNombre());
+        $usuarioCreate->setPass($passHash);
+
+        $em = $this->getDoctrine()->getManager();
+        $em->persist($usuarioCreate);
+        $em->flush();
+
+        $statusCode = Response::HTTP_CREATED;
+
+        $respJson->success = true;
+        $respJson->messaging = "Creacion exitosa";
+      }
+      
+      $respJson = json_encode($respJson);
+
+      $response = new Response($respJson);
+      $response->headers->set('Content-Type', 'application/json');
+      $response->setStatusCode($statusCode);
+
+      return $response;
   }
 }
