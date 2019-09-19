@@ -20,6 +20,8 @@ use App\Entity\Usuario;
 class UsuarioController extends AbstractFOSRestController
 {
 
+  private $passwordEncoder;
+
   /**
      * @param UserPasswordEncoderInterface $passwordEncoder
      */
