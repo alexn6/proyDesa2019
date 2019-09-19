@@ -39,7 +39,7 @@ class Usuario
     private $correo;
 
     /**
-     * @ORM\Column(type="string", length=127)
+     * @ORM\Column(type="string", length=255)
      */
     private $pass;
 
