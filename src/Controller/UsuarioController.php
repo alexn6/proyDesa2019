@@ -69,7 +69,7 @@ class UsuarioController extends AbstractFOSRestController
   }
 
   /**
-     * Lista de todos los deportes.
+     * Crea un usuario.
      * @Rest\Post("/user"), defaults={"_format"="json"})
      * 
      * @return Response
