@@ -9,6 +9,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\Utils\GeneratorEncuentro;
+use App\Entity\Competencia;
+use App\Entity\UsuarioCompetencia;
 
  /**
  * Usuario controller
@@ -106,11 +108,135 @@ class GeneradorEncuentroController extends AbstractFOSRestController
     }
 
 
-    // private function getCompetitors($competitorsJson){
-    //     $competitors = array();
-    //     foreach ($competitorsJson as $k=>$v){
-    //         array_push($competitors, $v);
-    //     }
-    //     return $competitors;
-    // }
+    /**
+     * 
+     * @Rest\Get("/league-single-id")
+     * 
+     * @return Response
+     */
+    public function generateMatchesLeagueSingleByCompetition(Request $request){
+        $nameCompetition = $request->get('competencia');
+        $repository = $this->getDoctrine()->getRepository(Competencia::class);
+        $repositoryUsComp = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+
+        $respJson = (object) null;
+        $statusCode;
+       
+        // vemos si recibimos algun parametro
+        if(!empty($nameCompetition)){
+            $competition = $repository->findOneBy(['nombre' => $nameCompetition]);
+
+            if(empty($competition)){
+                $respJson->matches = NULL;
+                $statusCode = Response::HTTP_BAD_REQUEST;
+                $respJson->msg = "La competencia no existe o fue eliminada";
+            }
+            else{
+                $idCompetencia = $competition->getId();
+                // recuperamos los usuario_competencia de una competencia
+                $participantes = $repositoryUsComp->findParticipanteByCompetencia($idCompetencia);
+    
+                if(count($participantes) < 2){
+                    $respJson->matches = NULL;
+                    $statusCode = Response::HTTP_BAD_REQUEST;
+                    $respJson->msg = "No cuenta con suficientes participantes para crear la competencia";
+                }
+                else{
+                    $nombre_participantes = array();
+                    foreach ($participantes as &$valor) {
+                        array_push($nombre_participantes, $valor['nombreUsuario']);
+                    }
+    
+                    $matchesCompetition = $this->generator::ligaSingle($nombre_participantes);
+    
+                    $statusCode = Response::HTTP_OK;
+                    $respJson->msg = "Generacion realizada con exito";
+                    $respJson->matches = $matchesCompetition;
+                }
+    
+                // var_dump($participantes);
+    
+                $statusCode = Response::HTTP_OK;
+            }
+        }
+        else{
+            $respJson->matches = NULL;
+            $respJson->msg = "Solicitud mal formada";
+            $statusCode = Response::HTTP_BAD_REQUEST;
+        }
+
+        $respJson = json_encode($respJson);
+
+        $response = new Response($respJson);
+        $response->setStatusCode($statusCode);
+        $response->headers->set('Content-Type', 'application/json');
+
+        return $response;
+    }
+
+    /**
+     * 
+     * @Rest\Get("/league-double-id")
+     * 
+     * @return Response
+     */
+    public function generateMatchesLeagueDoubleByCompetition(Request $request){
+        $nameCompetition = $request->get('competencia');
+        $repository = $this->getDoctrine()->getRepository(Competencia::class);
+        $repositoryUsComp = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+
+        $respJson = (object) null;
+        $statusCode;
+       
+        // vemos si recibimos algun parametro
+        if(!empty($nameCompetition)){
+            $competition = $repository->findOneBy(['nombre' => $nameCompetition]);
+
+            if(empty($competition)){
+                $respJson->matches = NULL;
+                $statusCode = Response::HTTP_BAD_REQUEST;
+                $respJson->msg = "La competencia no existe o fue eliminada";
+            }
+            else{
+                $idCompetencia = $competition->getId();
+                // recuperamos los usuario_competencia de una competencia
+                $participantes = $repositoryUsComp->findParticipanteByCompetencia($idCompetencia);
+    
+                if(count($participantes) < 2){
+                    $respJson->matches = NULL;
+                    $statusCode = Response::HTTP_BAD_REQUEST;
+                    $respJson->msg = "No cuenta con suficientes participantes para crear la competencia";
+                }
+                else{
+                    $nombre_participantes = array();
+                    foreach ($participantes as &$valor) {
+                        array_push($nombre_participantes, $valor['nombreUsuario']);
+                    }
+    
+                    $matchesCompetition = $this->generator::ligaDouble($nombre_participantes);
+    
+                    $statusCode = Response::HTTP_OK;
+                    $respJson->msg = "Generacion realizada con exito";
+                    $respJson->matches = $matchesCompetition;
+                }
+    
+                // var_dump($participantes);
+    
+                $statusCode = Response::HTTP_OK;
+            }
+        }
+        else{
+            $respJson->matches = NULL;
+            $respJson->msg = "Solicitud mal formada";
+            $statusCode = Response::HTTP_BAD_REQUEST;
+        }
+
+        $respJson = json_encode($respJson);
+
+        $response = new Response($respJson);
+        $response->setStatusCode($statusCode);
+        $response->headers->set('Content-Type', 'application/json');
+
+        return $response;
+    }
 }
