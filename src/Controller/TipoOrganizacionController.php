@@ -22,10 +22,14 @@ class TipoOrganizacionController extends AbstractFOSRestController
   */
   public function typesOrg()
   {
+    
+    $repository=$this->getDoctrine()->getRepository(TipoOrganizacion::class);
+    $typesorg=$repository->findall();
 
-    $typesJson = '[{"id":1,"nombre":"Eliminatorias","descripcion":"Encuentro eliminatorios de un solo enfrentamiento"},{"id":2,"nombre":"Liga Single","descripcion":"Competencia en la que se enfrentan todos los competidores contra todos donde el que se encuentra 1ro en la tabla es el ganador."},{"id":3,"nombre":"Liga Vuelta","descripcion":"Competencia en la que se enfrentan todos los competidores contra todos, dos rondas donde el que se encuentra 1ro en la tabla es el ganador."}]';
+    // hacemos el string serializable , controlamos las autoreferencias
+    $typesorg = $this->get('serializer')->serialize($typesorg, 'json');
    
-    $response = new Response($typesJson);
+    $response = new Response($typesorg);
     $response->setStatusCode(Response::HTTP_OK);
     $response->headers->set('Content-Type', 'application/json');
 

@@ -9,7 +9,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\Entity\UsuarioCompetencia;
-//use App\Entity\Usuario;
 
  /**
  * Participante controller
@@ -25,7 +24,6 @@ class ParticipanteController extends AbstractFOSRestController
      */
     public function getCompetitors(){
         $repository=$this->getDoctrine()->getRepository(UsuarioCompetencia::class);
-        //$repository=$this->getDoctrine()->getRepository(Usuario::class);
         $competitors=$repository->findall();
 
         //var_dump($competitors);

@@ -29,25 +29,6 @@ class UsuarioController extends AbstractFOSRestController
     }
 
   /**
-   * name es solo para sermapeada en el archivo de config
-  * @Route("/api/users", name="serviceUser")
-  */
-/*   public function allUsers()
-  {
-    $repository=$this->getDoctrine()->getRepository(Usuario::class);
-    $users=$repository->findall();
-
-    // hacemos el string serializable
-    $users = $this->get('serializer')->serialize($users, 'json');
-
-    // $response = new Response($users);
-    $response = new Response("algo de users");
-    $response->headers->set('Content-Type', 'application/json');
-
-    return $response;
-  } */
-
-  /**
      * Lista de todos los deportes.
      * @Rest\Get("/users"), defaults={"_format"="json"})
      * 
@@ -57,10 +38,7 @@ class UsuarioController extends AbstractFOSRestController
     $repository=$this->getDoctrine()->getRepository(Usuario::class);
     $users=$repository->findall();
 
-    // var_dump($users);
-
     // hacemos el string serializable , controlamos las autoreferencias
-    // $users = $this->get('serializer')->serialize($users, 'json');
     $users = $this->get('serializer')->serialize($users, 'json', [
       'circular_reference_handler' => function ($object) {
         return $object->getId();
