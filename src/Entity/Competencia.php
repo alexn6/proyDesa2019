@@ -49,6 +49,12 @@ class Competencia
     private $categoria;
 
     /**
+     * Una competencia tiene un solo tipo de organizacion
+     * @ORM\OneToOne(targetEntity="App\Entity\TipoOrganizacion")
+     */
+    private $organizacion;
+
+    /**
      * @ORM\OneToMany(targetEntity="App\Entity\UsuarioCompetencia", mappedBy="competencia")
      */
     private $usuarioscompetencias;
@@ -150,6 +156,18 @@ class Competencia
                 $usuarioscompetencia->setCompetencia(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getOrganizacion(): ?TipoOrganizacion
+    {
+        return $this->organizacion;
+    }
+
+    public function setOrganizacion(?TipoOrganizacion $organizacion): self
+    {
+        $this->organizacion = $organizacion;
 
         return $this;
     }
