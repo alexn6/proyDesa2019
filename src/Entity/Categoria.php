@@ -38,15 +38,17 @@ class Categoria
      */
     private $deporte;
 
-     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Competencia", mappedBy="categoria")
-     */
-    private $competencia;
+    // private $deporte;
 
-    public function __construct()
-    {
-        $this->competencia = new ArrayCollection();
-    }
+    //  /**
+    //  * @ORM\OneToMany(targetEntity="App\Entity\Competencia", mappedBy="categoria")
+    //  */
+    // private $competencia;
+
+    // public function __construct()
+    // {
+    //     $this->competencia = new ArrayCollection();
+    // }
 
     public function getId(): ?int
     {
@@ -101,35 +103,43 @@ class Categoria
         return $this;
     }
 
-    /**
-     * @return Collection|Competencia[]
-     */
-    public function getCompetencia(): Collection
-    {
-        return $this->competencia;
-    }
+    // /**
+    //  * @return ArrayCollection
+    //  */
+    // public function getCompetencia()
+    // {
+    //     return $this->competencia;
+    // }
 
-    public function addCompetencium(Competencia $competencium): self
-    {
-        if (!$this->competencia->contains($competencium)) {
-            $this->competencia[] = $competencium;
-            $competencium->setCategoria($this);
-        }
+    // /**
+    //  * @return Collection|Competencia[]
+    //  */
+    // public function getCompetencia(): Collection
+    // {
+    //     return $this->competencia;
+    // }
 
-        return $this;
-    }
+    // public function addCompetencium(Competencia $competencium): self
+    // {
+    //     if (!$this->competencia->contains($competencium)) {
+    //         $this->competencia[] = $competencium;
+    //         $competencium->setCategoria($this);
+    //     }
 
-    public function removeCompetencium(Competencia $competencium): self
-    {
-        if ($this->competencia->contains($competencium)) {
-            $this->competencia->removeElement($competencium);
-            // set the owning side to null (unless already changed)
-            if ($competencium->getCategoria() === $this) {
-                $competencium->setCategoria(null);
-            }
-        }
+    //     return $this;
+    // }
 
-        return $this;
-    }
+    // public function removeCompetencium(Competencia $competencium): self
+    // {
+    //     if ($this->competencia->contains($competencium)) {
+    //         $this->competencia->removeElement($competencium);
+    //         // set the owning side to null (unless already changed)
+    //         if ($competencium->getCategoria() === $this) {
+    //             $competencium->setCategoria(null);
+    //         }
+    //     }
+
+    //     return $this;
+    // }
 
 }

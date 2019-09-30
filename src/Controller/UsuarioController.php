@@ -57,9 +57,16 @@ class UsuarioController extends AbstractFOSRestController
     $repository=$this->getDoctrine()->getRepository(Usuario::class);
     $users=$repository->findall();
 
+    // var_dump($users);
 
     // hacemos el string serializable , controlamos las autoreferencias
-    $users = $this->get('serializer')->serialize($users, 'json');
+    // $users = $this->get('serializer')->serialize($users, 'json');
+    $users = $this->get('serializer')->serialize($users, 'json', [
+      'circular_reference_handler' => function ($object) {
+        return $object->getId();
+      },
+      'ignored_attributes' => ['usuarioscompetencias', 'roles', 'password', 'pass', 'salt']
+    ]);
 
     $response = new Response($users);
     $response->setStatusCode(Response::HTTP_OK);

@@ -38,9 +38,13 @@ class Competencia
      */
     private $max_competidores;
 
+    // /**
+    //  * Una competencia tiene una sola categoria
+    //  * @ORM\OneToOne(targetEntity="App\Entity\Categoria", inversedBy="competencia")
+    //  */
     /**
      * Una competencia tiene una sola categoria
-     * @ORM\OneToOne(targetEntity="App\Entity\Categoria", inversedBy="competencia")
+     * @ORM\OneToOne(targetEntity="App\Entity\Categoria")
      */
     private $categoria;
 

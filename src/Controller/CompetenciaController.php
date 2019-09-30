@@ -34,10 +34,23 @@ class CompetenciaController extends AbstractFOSRestController
     $competitions = $this->get('serializer')->serialize($competitions, 'json', [
       'circular_reference_handler' => function ($object) {
         return $object->getId();
-      }
+      },
+      'ignored_attributes' => ['usuarioscompetencias', '__initializer__', '__cloner__', '__isInitialized__']
     ]);
 
-    $response = new Response($competitions);
+    // Convert JSON string to Array
+    $array_comp = json_decode($competitions, true);
+    // var_dump($someArray);
+    //var_dump($competitions);
+
+    foreach ($array_comp as &$valor) {
+      $valor['categoria']['deporte'] = $valor['categoria']['deporte']['nombre'];
+    }
+
+    $array_comp = json_encode($array_comp);
+
+    // $response = new Response($competitions);
+    $response = new Response($array_comp);
     $response->setStatusCode(Response::HTTP_OK);
     $response->headers->set('Content-Type', 'application/json');
 
@@ -77,4 +90,8 @@ class CompetenciaController extends AbstractFOSRestController
   
         return $response;
     }
+
+    // ########################################################
+    // ################### funciones auxiliares ################
+    
 }

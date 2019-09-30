@@ -28,6 +28,16 @@ class Deporte
      */
     private $categorias;
 
+    // /**
+    //  * Many Deportes have Many Categorias.
+    //  * @ORM\ManyToMany(targetEntity="App\Entity\Categoria")
+    //  * @ORM\JoinTable(name="deporte_categoria",
+    //  *      joinColumns={@ORM\JoinColumn(name="deporte_id", referencedColumnName="id")},
+    //  *      inverseJoinColumns={@ORM\JoinColumn(name="categoria_id", referencedColumnName="id", unique=true)}
+    //  *      )
+    //  */
+    // private $categorias;
+
     public function __construct()
     {
         $this->categorias = new ArrayCollection();
@@ -50,10 +60,18 @@ class Deporte
         return $this;
     }
 
+    // /**
+    //  * @return Collection|Categoria[]
+    //  */
+    // public function getCategorias(): Collection
+    // {
+    //     return $this->categorias;
+    // }
+
     /**
-     * @return Collection|Categoria[]
+     * @return ArrayCollection
      */
-    public function getCategorias(): Collection
+    public function getCategorias()
     {
         return $this->categorias;
     }
