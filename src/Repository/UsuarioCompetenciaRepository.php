@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\UsuarioCompetencia;
 use App\Entity\Usuario;
+use App\Entity\Competencia;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
@@ -78,6 +79,46 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
                 AND uc.competencia = :idCompetencia
             ')->setParameter('rol', "participante")
             ->setParameter('idCompetencia', $idCompetencia);
+
+        return $query->execute();
+    }
+
+    // recuperamos el nombre de los usuarios de una competencia
+    public function findCompetitionsByUser($idUsuario)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            '   SELECT c.nombre, cat.nombre categoria, org.nombre tipoorganizacion
+                FROM App\Entity\Competencia c
+                INNER JOIN App\Entity\UsuarioCompetencia uc
+                WITH uc.competencia = c.id
+                INNER JOIN App\Entity\Categoria cat
+                WITH c.categoria = cat.id
+                INNER JOIN App\Entity\TipoOrganizacion org
+                WITH c.organizacion = org.id
+                AND uc.usuario = :idUsuario
+            ')->setParameter('idUsuario', $idUsuario);
+
+        return $query->execute();
+    }
+
+    // recuperamos el nombre de los usuarios de una competencia
+    public function findCompetitionsFollowByUser($idUsuario)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            '   SELECT c.nombre, cat.nombre categoria, org.nombre tipo_organizacion
+                FROM App\Entity\Competencia c
+                INNER JOIN App\Entity\UsuarioCompetencia uc
+                WITH uc.competencia = c.id
+                INNER JOIN App\Entity\Categoria cat
+                WITH c.categoria = cat.id
+                INNER JOIN App\Entity\TipoOrganizacion org
+                WITH c.organizacion = org.id
+                AND uc.usuario = :idUsuario
+                AND uc.rol = :rolUser
+            ')->setParameter('idUsuario', $idUsuario)
+            ->setParameter('rolUser', "seguidor");
 
         return $query->execute();
     }

@@ -17,7 +17,7 @@ use App\Entity\UsuarioCompetencia;
 class ParticipanteController extends AbstractFOSRestController
 {
     /**
-     * Lista de todos los deportes.
+     * Devuelve toda la info de la tabla usuariocompetencia
      * @Rest\Get("/competitors"), defaults={"_format"="json"})
      * 
      * @return Response
