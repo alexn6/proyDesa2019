@@ -81,4 +81,37 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
 
         return $response;
     }
+
+    /**
+     * Devuelve todas las competencias de un usuario
+     * @Rest\Get("/competitors-competition"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function getCompetitorsByCompetition(Request $request){
+        $repository = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+        
+        $respJson = (object) null;
+
+        $idCompetencia = $request->get('idCompetencia');
+        // vemos si recibimos algun parametro
+        if(!empty($idCompetencia)){
+            $respJson->competitors = $repository->findParticipanteByCompetencia($idCompetencia);
+            $statusCode = Response::HTTP_OK;
+        }
+        else{
+            $respJson->competitors = NULL;
+            $statusCode = Response::HTTP_BAD_REQUEST;
+        }
+
+        $respJson = json_encode($respJson);
+
+        // var_dump($respJson);
+
+        $response = new Response($respJson);
+        $response->setStatusCode($statusCode);
+        $response->headers->set('Content-Type', 'application/json');
+
+        return $response;
+    }
 }
