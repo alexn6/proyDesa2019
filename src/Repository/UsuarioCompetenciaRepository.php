@@ -118,7 +118,7 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
                 AND uc.usuario = :idUsuario
                 AND uc.rol = :rolUser
             ')->setParameter('idUsuario', $idUsuario)
-            ->setParameter('rolUser', "seguidor");
+            ->setParameter('rolUser', "SEGUIDOR");
 
         return $query->execute();
     }

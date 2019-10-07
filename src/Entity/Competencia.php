@@ -34,6 +34,16 @@ class Competencia
     private $fecha_fin;
 
     /**
+     * @ORM\Column(type="string", length=127)
+     */
+    private $ciudad;
+
+    /**
+     * @ORM\Column(type="string", length=127)
+     */
+    private $genero;
+
+    /**
      * @ORM\Column(type="integer")
      */
     private $max_competidores;
@@ -168,6 +178,30 @@ class Competencia
     public function setOrganizacion(?TipoOrganizacion $organizacion): self
     {
         $this->organizacion = $organizacion;
+
+        return $this;
+    }
+
+    public function getCiudad(): ?string
+    {
+        return $this->ciudad;
+    }
+
+    public function setCiudad(string $ciudad): self
+    {
+        $this->ciudad = $ciudad;
+
+        return $this;
+    }
+
+    public function getGenero(): ?string
+    {
+        return $this->genero;
+    }
+
+    public function setGenero(string $genero): self
+    {
+        $this->genero = $genero;
 
         return $this;
     }

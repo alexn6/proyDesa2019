@@ -62,7 +62,7 @@ class NotificacionController extends AbstractFOSRestController
         $URL  = "https://fcm.googleapis.com/fcm/send";  //API URL of FCM
     
         $API_ACCESS_KEY_SERVER = 'AAAA9P-hCPk:APA91bHBrbHBDxwmtD6RdwK-MvyxV17WUmqsyHV5VTOgTL5hfTbUiiBV2x88Ywqj0Y51di-VaDB7CS2ihHns1Hjj5l-DAcrDseJaWommLVR47y2vMO9Iw4nRYgKTtc77J0ej8nF2QYjr'; // YOUR_FIREBASE_API_KEY
-        // $TOKEN_DEVICE = 'dmh4eGmxmII:APA91bG6lFOmg-8yxZIoP9CDdfBB_qh9TIlLZ8_SePAJ6fM1f7x_KyvoTjUJST2qKqT1-f15vy2dxQvWVbGN7sS3jasK_O6_7cHPgtWVMFrU0b7_2epC39oGtwNG_a51JbhJoPDwHDEu';
+        //$TOKEN_DEVICE = 'fOYrDHi4IKQ:APA91bEb_W4aV9AsWQO5clEOJhjhLW362IMyvYAZtOXR4JU--zuwNTfAwrf9Pb3Zg_TWbUek7ctn2bulMOYjL_1c2B4T6f2Rk9fy2qM-x09kx9iR7KsbnVV_Teea-lMwtOZwERAbvloD';
         $TOKEN_DEVICE = $tokenDev;
 
         $notif = (object) null;

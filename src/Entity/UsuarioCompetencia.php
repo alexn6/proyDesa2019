@@ -33,6 +33,11 @@ class UsuarioCompetencia
     /**
      * @ORM\Column(type="string", length=127)
      */
+    private $alias;
+
+    /**
+     * @ORM\Column(type="string", length=127)
+     */
     private $rol;
 
     public function getRol(): ?string
@@ -74,5 +79,17 @@ class UsuarioCompetencia
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getAlias(): ?string
+    {
+        return $this->alias;
+    }
+
+    public function setAlias(string $alias): self
+    {
+        $this->alias = $alias;
+
+        return $this;
     }
 }
