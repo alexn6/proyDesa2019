@@ -70,7 +70,7 @@ class UsuarioController extends AbstractFOSRestController
   
         // recuperamos los datos del body y pasamos a un array
         $dataUserRequest = json_decode($request->getContent());      
-        var_dump($dataUserRequest);
+        // var_dump($dataUserRequest);
 
         $nombreUsuario = $dataUserRequest->usuario;
         $correo = $dataUserRequest->correo;

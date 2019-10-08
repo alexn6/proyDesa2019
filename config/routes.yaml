@@ -31,12 +31,6 @@ serviceTypeOrg:
     controller: App\Controller\TipoOrganizacionController::typesOrg
 
 # ###############################################################
-# ################# participantes ######################
-serviceCompetitors:
-    path: /api/competitors
-    controller: App\Controller\ParticipanteController::getCompetitors
-
-# ###############################################################
 # ################# s ######################
 serviceCompetitions:
     path: /api/competitions
