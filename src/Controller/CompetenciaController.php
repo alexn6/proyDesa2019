@@ -58,7 +58,7 @@ class CompetenciaController extends AbstractFOSRestController
   }
 
   /**
-     * Crea un usuario.
+     * Crea una competencia.
      * @Rest\Post("/competition"), defaults={"_format"="json"})
      * 
      * @return Response

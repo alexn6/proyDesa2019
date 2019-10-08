@@ -16,6 +16,62 @@ use App\Entity\UsuarioCompetencia;
  */
 class UsuarioCompetenciaController extends AbstractFOSRestController
 {
+
+    /**
+     * Actualiza el rol de usuario_competencia
+     * @Rest\Put("/usercomp-rol"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function updateRol(Request $request){
+
+        $respJson = (object) null;
+        $statusCode;
+
+        if(!empty($request->getContent())){
+
+          // recuperamos los datos del body y pasamos a un array
+          $dataRequest = json_decode($request->getContent());
+
+          if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->idCompetencia))&&(!empty($dataRequest->rol))){
+            // vemos si existen los datos necesarios
+            $idUser = $dataRequest->idUsuario;
+            $idCompetition = $dataRequest->idCompetencia;
+            $nuevo_rol = $dataRequest->rol;
+
+            $repository=$this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+        
+            // controlamos que el nombre de usuario este disponible
+            $usuario_comp = $repository->findOneBy(['usuario' => $idUser, 'competencia' => $idCompetition]);
+            
+            $em = $this->getDoctrine()->getManager();
+            $usuario_comp->setRol($nuevo_rol);
+            $em->flush();
+    
+            $statusCode = Response::HTTP_OK;
+            $respJson->messaging = "Actualizacion realizada";
+          }
+          else{
+            $statusCode = Response::HTTP_BAD_REQUEST;
+            $respJson->messaging = "Solicitud mal formada";
+          }
+          
+        }
+        else{
+          $statusCode = Response::HTTP_BAD_REQUEST;
+          $respJson->messaging = "Solicitud mal formada";
+        }
+  
+        
+        $respJson = json_encode($respJson);
+  
+        $response = new Response($respJson);
+        $response->headers->set('Content-Type', 'application/json');
+        $response->setStatusCode($statusCode);
+  
+        return $response;
+    }
+
     /**
      * Devuelve todas las competencias de un usuario
      * @Rest\Get("/competitionsuser"), defaults={"_format"="json"})
