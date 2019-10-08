@@ -42,21 +42,26 @@ class GeneradorEncuentroController extends AbstractFOSRestController
         if(!empty($request->getContent())){
             // recuperamos los datos del body y pasamos a un array
             $competitorsBody = json_decode($request->getContent(), true);
-            // var_dump($competitorsBody);
+            if(count($competitorsBody) < 2){
+                $statusCode = Response::HTTP_BAD_REQUEST;
+                $respJson->matches = NULL;
+                $respJson->messaging = "La cantidad de competidores es insuficiente";    
+            }
+            else{
+                $matchesCompetition = $this->generator::ligaSingle($competitorsBody);
+                //var_dump($matchesCompetition);
+    
+                $statusCode = Response::HTTP_OK;
+                $respJson->matches = $matchesCompetition;
+                $respJson->messaging = "Generacion realizada con exito";
+            }
 
-            $matchesCompetition = $this->generator::ligaSingle($competitorsBody);
-            //var_dump($matchesCompetition);
-
-            $statusCode = Response::HTTP_OK;
-            $respJson->matches = $matchesCompetition;
-            $respJson->messaging = "Se recibio el body";
         }
         else{
             $statusCode = Response::HTTP_BAD_REQUEST;
             $respJson->matches = NULL;
             $respJson->messaging = "Peticion mal formada";
         }
-    
           
         $respJson = json_encode($respJson);
 
@@ -68,7 +73,7 @@ class GeneradorEncuentroController extends AbstractFOSRestController
     }
 
     /**
-     * Generacion de encuentros LIGA SINGLE
+     * Generacion de encuentros LIGA DOUBLE
      * @Rest\Post("/league-double"), defaults={"_format"="json"})
      * 
      * @return Response
@@ -82,14 +87,19 @@ class GeneradorEncuentroController extends AbstractFOSRestController
         if(!empty($request->getContent())){
             // recuperamos los datos del body y pasamos a un array
             $competitorsBody = json_decode($request->getContent(), true);
-            // var_dump($competitorsBody);
+            if(count($competitorsBody) < 2){
+                $statusCode = Response::HTTP_BAD_REQUEST;
+                $respJson->matches = NULL;
+                $respJson->messaging = "La cantidad de competidores es insuficiente";    
+            }
+            else{
+                $matchesCompetition = $this->generator::ligaDouble($competitorsBody);
+                //var_dump($matchesCompetition);
 
-            $matchesCompetition = $this->generator::ligaDouble($competitorsBody);
-            //var_dump($matchesCompetition);
-
-            $statusCode = Response::HTTP_OK;
-            $respJson->matches = $matchesCompetition;
-            $respJson->messaging = "Se recibio el body";
+                $statusCode = Response::HTTP_OK;
+                $respJson->matches = $matchesCompetition;
+                $respJson->messaging = "Generacion realizada con exito";
+            }
         }
         else{
             $statusCode = Response::HTTP_BAD_REQUEST;
@@ -111,6 +121,7 @@ class GeneradorEncuentroController extends AbstractFOSRestController
     /**
      * 
      * @Rest\Get("/league-single-id")
+     * Por nombre de competencia
      * 
      * @return Response
      */
@@ -177,6 +188,7 @@ class GeneradorEncuentroController extends AbstractFOSRestController
     /**
      * 
      * @Rest\Get("/league-double-id")
+     * Por nombre de competencia
      * 
      * @return Response
      */
