@@ -122,5 +122,27 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
 
         return $query->execute();
     }
-    
+
+  // recuperamos las competencias en las que participa un usuario
+  public function findCompetitionsParticipatesByUser($idUsuario)
+  {
+      $entityManager = $this->getEntityManager();
+      $query = $entityManager->createQuery(
+          '   SELECT c.nombre, cat.nombre categoria, org.nombre tipo_organizacion
+              FROM App\Entity\Competencia c
+              INNER JOIN App\Entity\UsuarioCompetencia uc
+              WITH uc.competencia = c.id
+              INNER JOIN App\Entity\Categoria cat
+              WITH c.categoria = cat.id
+              INNER JOIN App\Entity\TipoOrganizacion org
+              WITH c.organizacion = org.id
+              AND uc.usuario = :idUsuario
+              AND uc.rol = :rolUser
+          ')->setParameter('idUsuario', $idUsuario)
+          ->setParameter('rolUser', "PARTICIPANTE");
+
+      return $query->execute();
+  }
+
+
 }

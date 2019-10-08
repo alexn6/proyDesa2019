@@ -37,7 +37,7 @@ serviceCompetitors:
     controller: App\Controller\ParticipanteController::getCompetitors
 
 # ###############################################################
-# ################# participantes ######################
+# ################# s ######################
 serviceCompetitions:
     path: /api/competitions
     controller: App\Controller\CompetenciaController::allCompetition
@@ -47,3 +47,10 @@ serviceCompetitions:
 serviceCategories:
     path: /api/categories
     controller: App\Controller\CategoriaController::allCategories
+
+    # ###############################################################
+# ################# Usuario Competencia ######################
+serviceUserParticipates:
+    path: /api/competitionsuser
+    controller: App\Controller\UsuarioCompetenciaController::getCompetitionParticipatesByUser
+
