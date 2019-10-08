@@ -129,4 +129,62 @@ class UsuarioController extends AbstractFOSRestController
 
       return $response;
   }
+
+  /**
+     * Actualiza el rol de usuario_competencia
+     * @Rest\Put("/user-token"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function updateToken(Request $request){
+
+      $respJson = (object) null;
+      $statusCode;
+
+      if(!empty($request->getContent())){
+
+        // recuperamos los datos del body y pasamos a un array
+        $dataRequest = json_decode($request->getContent());
+
+        if((!empty($dataRequest->nombreUsuario))&&(!empty($dataRequest->token))){
+          // vemos si existen los datos necesarios
+          $nombreUsuario = $dataRequest->nombreUsuario;
+          $new_token = $dataRequest->token;
+          
+          // buscamos el usuario
+          $repository=$this->getDoctrine()->getRepository(Usuario::class);
+          $usuario = $repository->findOneBy(['nombreUsuario' => $nombreUsuario]);
+
+          if($usuario != NULL){
+            $em = $this->getDoctrine()->getManager();
+            $usuario->setToken($new_token);
+            $em->flush();
+    
+            $respJson->messaging = "Actualizacion realizada";
+          }
+          else{
+            $respJson->messaging = "El usuario no existe";
+          }
+          $statusCode = Response::HTTP_OK;
+        }
+        else{
+          $statusCode = Response::HTTP_BAD_REQUEST;
+          $respJson->messaging = "Solicitud mal formada";
+        }
+        
+      }
+      else{
+        $statusCode = Response::HTTP_BAD_REQUEST;
+        $respJson->messaging = "Solicitud mal formada";
+      }
+
+      
+      $respJson = json_encode($respJson);
+
+      $response = new Response($respJson);
+      $response->headers->set('Content-Type', 'application/json');
+      $response->setStatusCode($statusCode);
+
+      return $response;
+  }
 }
