@@ -165,5 +165,57 @@ class CompetenciaController extends AbstractFOSRestController
 
     // ########################################################
     // ################### funciones auxiliares ################
-    
+ 
+    	 /**
+     * 
+     * @Rest\GET("/findCompetitionsByName/{nameCompetition}"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function findCompetitionsByName($nameCompetition){
+
+      // var_dump($request);
+       $repository = $this->getDoctrine()->getRepository(Competencia::class);
+ 
+      // $name = $nameCompetiton;
+ 
+       if(!empty($nameCompetition)){
+       $competitions = $repository->findCompetitionsByName($nameCompetition);
+ 
+       $competitions = $this->get('serializer')->serialize($competitions, 'json', [
+         'circular_reference_handler' => function ($object) {
+           return $object->getId();
+         },
+         'ignored_attributes' => ['usuarioscompetencias', '__initializer__', '__cloner__', '__isInitialized__']
+       ]);
+   
+       $array_comp = json_decode($competitions, true);
+ 
+     foreach ($array_comp as &$valor) {
+       $valor['categoria']['deporte'] = $valor['categoria']['deporte']['nombre'];
+     }
+ 
+     $array_comp = json_encode($array_comp);
+ 
+     // $response = new Response($competitions);
+     $response = new Response($array_comp);
+     
+       $statusCode = Response::HTTP_OK;
+      
+       }else{
+         $respJson->competitions = NULL;
+         $statusCode = Response::HTTP_BAD_REQUEST;
+       }
+     
+     //  $respJson = json_encode($respJson);
+ 
+ 
+       $response = new Response($array_comp);
+       $response->setStatusCode($statusCode);
+       $response->headers->set('Content-Type', 'application/json');
+ 
+       return $response;
+     }
+ 
+ 
 }

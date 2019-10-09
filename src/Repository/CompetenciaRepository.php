@@ -19,6 +19,19 @@ class CompetenciaRepository extends ServiceEntityRepository
         parent::__construct($registry, Competencia::class);
     }
 
+//funcion busqueda por nombre
+public function findCompetitionsByName($nameCompetition){
+    $entityManager = $this->getEntityManager();
+    $query = $entityManager->createQuery(
+        ' SELECT c
+          FROM App\Entity\Competencia c 
+          WHERE c.nombre LIKE :nameCompetition
+        ')->setParameter('nameCompetition','%'.$nameCompetition.'%');
+
+           
+        return $query->execute();
+}
+
     // /**
     //  * @return Competencia[] Returns an array of Competencia objects
     //  */
