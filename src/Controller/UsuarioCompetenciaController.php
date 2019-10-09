@@ -270,11 +270,11 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         $idUser = $request->get('idUsuario');
         // vemos si recibimos algun parametro
         if(!empty($idUser)){
-            $respJson->competitions = $repository->findCompetitionsParticipatesByUser($idUser);
+            $respJson = $repository->findCompetitionsParticipatesByUser($idUser);
             $statusCode = Response::HTTP_OK;
         }
         else{
-            $respJson->competitions = NULL;
+            $respJson = NULL;
             $statusCode = Response::HTTP_BAD_REQUEST;
         }
 
