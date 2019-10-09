@@ -9,6 +9,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\Entity\UsuarioCompetencia;
+use App\Entity\Usuario;
+use App\Entity\Competencia;
 
  /**
  * UsuarioCompetencia controller
@@ -16,6 +18,89 @@ use App\Entity\UsuarioCompetencia;
  */
 class UsuarioCompetenciaController extends AbstractFOSRestController
 {
+
+    /**
+     * Agrega un usuario SOLICITANTE
+     * @Rest\Post("/usercomp"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function addSolicitante(Request $request){
+
+        $respJson = (object) null;
+        $statusCode;
+
+        // controlamos que se haya recibido algo en el body
+        if(!empty($request->getContent())){
+          // recuperamos los datos del body y pasamos a un array
+          $dataRequest = json_decode($request->getContent());
+
+          // vemos si existen los datos necesarios
+          if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->idCompetencia))){
+            $idUser = $dataRequest->idUsuario;
+            $idCompetition = $dataRequest->idCompetencia;
+        
+            // controlamos que el nombre de usuario este disponible
+            $repository=$this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+            //$usuario_comp = $repository->findOneBy(['usuario' => $idUser, 'competencia' => $idCompetition]);
+
+            // buscamos los datos correspodientes a los id recibidos
+            $repositoryUser=$this->getDoctrine()->getRepository(Usuario::class);
+            $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
+            $user = $repositoryUser->find($idUser);
+            $competition = $repositoryComp->find($idCompetition);
+
+            // controlamos que existan el uduario como la competencia
+            if(($user != NULL) && ($competition != NULL)){
+                // controlamos que no sea un solicitante repetido
+                $solicitante = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition]);
+                if($solicitante == NULL){
+                    // creamos el nuevo solicitante
+                    $newUserSolicitante = new UsuarioCompetencia();
+                    $newUserSolicitante->setUsuario($user);
+                    $newUserSolicitante->setCompetencia($competition);
+                    $newUserSolicitante->setRol("SOLICITANTE");
+                    $newUserSolicitante->setAlias("solicit");
+                    
+                    // persistimos el nuevo dato
+                    $em = $this->getDoctrine()->getManager();
+                    $em->persist($newUserSolicitante);
+                    $em->flush();
+            
+                    $statusCode = Response::HTTP_OK;
+                    $respJson->messaging = "Solicitud registrada.";
+                }
+                else{
+                    $statusCode = Response::HTTP_BAD_REQUEST;
+                    $respJson->messaging = "El usuario ya es SOLICITANTE de la competencia";    
+                }
+            }
+            else{
+                $statusCode = Response::HTTP_BAD_REQUEST;
+                $respJson->messaging = "El usuario y/o competencia no existen";
+            }
+
+          }
+          else{
+            $statusCode = Response::HTTP_BAD_REQUEST;
+            $respJson->messaging = "Solicitud mal formada";
+          }
+          
+        }
+        else{
+          $statusCode = Response::HTTP_BAD_REQUEST;
+          $respJson->messaging = "Solicitud mal formada";
+        }
+  
+        
+        $respJson = json_encode($respJson);
+  
+        $response = new Response($respJson);
+        $response->headers->set('Content-Type', 'application/json');
+        $response->setStatusCode($statusCode);
+  
+        return $response;
+    }
 
     /**
      * Actualiza el rol de usuario_competencia
