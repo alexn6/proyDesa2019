@@ -23,22 +23,27 @@ class CreatorEncuentros{
         switch ($nomb_tipoorg) {
             case 'ELIM':
                 $encuentros = $generador->eliminatorias($equipos);
+                return $encuentros;
                 break;
             case 'LIGSING':
                 $encuentros = $generador->ligaSingle($equipos);
+                return $encuentros;
                 break;
             case 'LIGDOUB':
                 $encuentros = $generador->ligaDouble($equipos);
+                return $encuentros;
                 break;
             case 'ELIMDOUB':
                 $encuentros = $generador->eliminatoriasDoubles($equipos);
+                return $encuentros;
                 break;
             case 'FASEGRUP':
                 // ver como resolver la cant de equipos
                 $encuentros = $generador->faseGrupos($equipos, $cant_grupos);
+                return $encuentros;
                 break;
         }
 
-        return $encuentros;
+        // return $encuentros;
     }
 }

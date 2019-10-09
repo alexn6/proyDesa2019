@@ -9,8 +9,10 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\Utils\GeneratorEncuentro;
+use App\Utils\CreatorEncuentros;
 use App\Entity\Competencia;
 use App\Entity\UsuarioCompetencia;
+use App\Entity\TipoOrganizacion;
 
  /**
  * Usuario controller
@@ -235,6 +237,84 @@ class GeneradorEncuentroController extends AbstractFOSRestController
                 // var_dump($participantes);
     
                 $statusCode = Response::HTTP_OK;
+            }
+        }
+        else{
+            $respJson->matches = NULL;
+            $respJson->msg = "Solicitud mal formada";
+            $statusCode = Response::HTTP_BAD_REQUEST;
+        }
+
+        $respJson = json_encode($respJson);
+
+        $response = new Response($respJson);
+        $response->setStatusCode($statusCode);
+        $response->headers->set('Content-Type', 'application/json');
+
+        return $response;
+    }
+
+    /**
+     * 
+     * @Rest\Get("/matches")
+     * Por nombre de competencia
+     * 
+     * @return Response
+     */
+    public function generateMatchesCompetition(Request $request){
+        $name_competition = $request->get('competencia');
+
+        $respJson = (object) null;
+        $statusCode;
+       
+        // vemos si recibimos algun parametro
+        if(!empty($name_competition)){
+            $repository = $this->getDoctrine()->getRepository(Competencia::class);
+            $competition = $repository->findOneBy(['nombre' => $name_competition]);
+
+            if(empty($competition)){
+                $respJson->matches = NULL;
+                $statusCode = Response::HTTP_BAD_REQUEST;
+                $respJson->msg = "La competencia no existe o fue eliminada";
+            }
+            else{
+                $repositoryUsComp = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+                $idCompetencia = $competition->getId();
+                // recuperamos los usuario_competencia de una competencia
+                $participantes = $repositoryUsComp->findParticipanteByCompetencia($idCompetencia);
+    
+                if(count($participantes) < 2){
+                    $respJson->matches = NULL;
+                    $statusCode = Response::HTTP_BAD_REQUEST;
+                    $respJson->msg = "No cuenta con suficientes participantes para crear la competencia";
+                }
+                else{
+                    // recuperamos la lista de los nombres de los participantes
+                    $nombre_participantes = array();
+                    foreach ($participantes as &$valor) {
+                        array_push($nombre_participantes, $valor['nombreUsuario']);
+                    }
+
+                    // recuperamos el tipo de org de la competencia
+                    $repositoryTypeorg = $this->getDoctrine()->getRepository(TipoOrganizacion::class);
+                    $tipoorg = $repositoryTypeorg->find($competition->getOrganizacion());
+                    // var_dump($tipoorg);
+                    $codigo_tipo = $tipoorg->getCodigo();
+    
+                    // $matchesCompetition = $this->generator::ligaDouble($nombre_participantes);
+                    $generatorMatches = new CreatorEncuentros();
+                    if(strcmp($codigo_tipo, "FASEGRUP") == 0){
+                        $matchesCompetition = $generatorMatches->createMatches($nombre_participantes, $codigo_tipo, $competition->getCantGrupos());
+                    }
+                    else{
+                        // var_dump($competition);
+                        $matchesCompetition = $generatorMatches->createMatches($nombre_participantes, $codigo_tipo, null);
+                    }
+    
+                    $statusCode = Response::HTTP_OK;
+                    $respJson->msg = "Generacion realizada con exito";
+                    $respJson->matches = $matchesCompetition;
+                }
             }
         }
         else{

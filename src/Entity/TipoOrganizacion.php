@@ -19,6 +19,11 @@ class TipoOrganizacion
     private $id;
 
     /**
+     * @ORM\Column(type="string", length=10, unique=true)
+     */
+    private $codigo;
+
+    /**
      * @ORM\Column(type="string", length=127, unique=true)
      */
     private $nombre;
@@ -53,6 +58,18 @@ class TipoOrganizacion
     public function setDescripcion(string $descripcion): self
     {
         $this->descripcion = $descripcion;
+
+        return $this;
+    }
+
+    public function getCodigo(): ?string
+    {
+        return $this->codigo;
+    }
+
+    public function setCodigo(string $codigo): self
+    {
+        $this->codigo = $codigo;
 
         return $this;
     }    

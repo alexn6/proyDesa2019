@@ -77,13 +77,13 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
                 WITH uc.usuario = u.id
                 WHERE uc.rol = :rol
                 AND uc.competencia = :idCompetencia
-            ')->setParameter('rol', "participante")
+            ')->setParameter('rol', "PARTICIPANTE")
             ->setParameter('idCompetencia', $idCompetencia);
 
         return $query->execute();
     }
 
-    // recuperamos el nombre de los usuarios de una competencia
+    // recuperamos las competencias de un usuario
     public function findCompetitionsByUser($idUsuario)
     {
         $entityManager = $this->getEntityManager();

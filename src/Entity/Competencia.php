@@ -48,6 +48,11 @@ class Competencia
      */
     private $max_competidores;
 
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $cant_grupos;
+
     // /**
     //  * Una competencia tiene una sola categoria
     //  * @ORM\OneToOne(targetEntity="App\Entity\Categoria", inversedBy="competencia")
@@ -202,6 +207,18 @@ class Competencia
     public function setGenero(string $genero): self
     {
         $this->genero = $genero;
+
+        return $this;
+    }
+
+    public function getCantGrupos(): ?int
+    {
+        return $this->cant_grupos;
+    }
+
+    public function setCantGrupos(int $cant_grupos): self
+    {
+        $this->cant_grupos = $cant_grupos;
 
         return $this;
     }
