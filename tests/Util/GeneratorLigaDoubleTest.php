@@ -1,8 +1,6 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
-
-// require_once '/var/www/html/proyDesa2019/vendor/mnito/round-robin/src/objects/ScheduleBuilder.php';
 use App\Utils\GeneratorEncuentro;
 
 class GeneratorLigaDoubleTest extends TestCase{
