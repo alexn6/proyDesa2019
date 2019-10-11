@@ -371,7 +371,7 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         $idUser = $request->get('idUsuario');
         // vemos si recibimos algun parametro
         if(!empty($idUser)){
-            $respJson->competitions = $repository->findCompetitionsFollowByUser($idUser);
+            $respJson = $repository->findCompetitionsFollowByUser($idUser);
             $statusCode = Response::HTTP_OK;
         }
         else{

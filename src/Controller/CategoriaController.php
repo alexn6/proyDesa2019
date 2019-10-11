@@ -34,7 +34,16 @@ class CategoriaController extends AbstractFOSRestController
         }
         ]);
 
-        $response = new Response($categories);
+        // pasamos a un array para procesarlo
+        $array_comp = json_decode($categories, true);
+        // cambiamos el objeto deporte por su nombre
+        foreach ($array_comp as &$valor) {
+           $valor['deporte'] = $valor['deporte']['nombre'];
+        }
+        // pasamos todo a json de nuevo
+        $array_comp = json_encode($array_comp);
+
+        $response = new Response($array_comp);
         $response->setStatusCode(Response::HTTP_OK);
         $response->headers->set('Content-Type', 'application/json');
 
