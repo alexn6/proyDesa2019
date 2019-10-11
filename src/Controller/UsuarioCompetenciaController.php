@@ -121,6 +121,76 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
     }
 
     /**
+     * Registrar la solicitud a inscripcion de un participante
+     * @Rest\Post("/usercomp-del"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function deleteSolicitante(Request $request){
+
+        $respJson = (object) null;
+        $statusCode;
+
+        // controlamos que se haya recibido algo en el body
+        if(!empty($request->getContent())){
+          // recuperamos los datos del body y pasamos a un array
+          $dataRequest = json_decode($request->getContent());
+
+          // vemos si existen los datos necesarios
+          if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->idCompetencia))){
+            $idUser = $dataRequest->idUsuario;
+            $idCompetition = $dataRequest->idCompetencia;
+
+            // buscamos los datos correspodientes a los id recibidos
+            $repositoryUser=$this->getDoctrine()->getRepository(Usuario::class);
+            $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
+            $user = $repositoryUser->find($idUser);
+            $competition = $repositoryComp->find($idCompetition);
+        
+            // vamos a buscar el elemento
+            $repository=$this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+
+            $solicitante = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => "SOLICITANTE"]);
+            $seguidorSolic = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => "SEG-SOLIC"]);
+
+            // persistimos el nuevo dato
+            $em = $this->getDoctrine()->getManager();
+            
+            // uno de los 2 se borra seguro dado q esta solicitud vendria de la lista 
+            // de solicitantes de una competencia
+            // borramos el solicitante
+            if($solicitante != NULL){
+                $em->remove($solicitante);
+            }
+            // o borramos el seguidor-solicitante
+            if($seguidorSolic != NULL){
+                $em->remove($seguidorSolic);
+            }
+            $em->flush();
+            $statusCode = Response::HTTP_OK;
+            $respJson->messaging = "Borrado con exito";
+          }
+          else{
+            $statusCode = Response::HTTP_BAD_REQUEST;
+            $respJson->messaging = "Solicitud mal formada";
+          }
+        }
+        else{
+            $statusCode = Response::HTTP_BAD_REQUEST;
+            $respJson->messaging = "Solicitud mal formada";
+        }
+
+        $respJson = json_encode($respJson);
+  
+        $response = new Response($respJson);
+        $response->headers->set('Content-Type', 'application/json');
+        $response->setStatusCode($statusCode);
+  
+        return $response;
+    }
+    
+
+    /**
      * Actualiza el rol de usuario_competencia
      * @Rest\Put("/usercomp-rol"), defaults={"_format"="json"})
      * 
