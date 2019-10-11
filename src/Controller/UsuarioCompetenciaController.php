@@ -20,7 +20,7 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
 {
 
     /**
-     * Agrega un usuario SOLICITANTE
+     * Registrar la solicitud a inscripcion de un participante
      * @Rest\Post("/usercomp"), defaults={"_format"="json"})
      * 
      * @return Response
@@ -53,26 +53,44 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
             // controlamos que existan el uduario como la competencia
             if(($user != NULL) && ($competition != NULL)){
                 // controlamos que no sea un solicitante repetido
-                $solicitante = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition]);
-                if($solicitante == NULL){
-                    // creamos el nuevo solicitante
-                    $newUserSolicitante = new UsuarioCompetencia();
-                    $newUserSolicitante->setUsuario($user);
-                    $newUserSolicitante->setCompetencia($competition);
-                    $newUserSolicitante->setRol("SOLICITANTE");
-                    $newUserSolicitante->setAlias("solicit");
-                    
-                    // persistimos el nuevo dato
-                    $em = $this->getDoctrine()->getManager();
-                    $em->persist($newUserSolicitante);
-                    $em->flush();
+                $solicitante = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => "SOLICITANTE"]);
+                $seguidorSolic = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => "SEG-SOLIC"]);
+                $participante = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => "PARTICIPANTE"]);
+                $seguidor = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => "SEGUIDOR"]);
+                if(($solicitante == NULL)&&($seguidorSolic == NULL)&&($participante == NULL)){
+                    // si ya es un seguidor actualizamos su rol
+                    if($seguidor != NULL){
+                        $seguidor->setRol("SEG-SOLIC");
+                        // persistimos el nuevo dato
+                        $em = $this->getDoctrine()->getManager();
+                        $em->persist($seguidor);
+                        $em->flush();
+                    }
+                    else{
+                        // creamos el nuevo solicitante
+                        $newUserSolicitante = new UsuarioCompetencia();
+                        $newUserSolicitante->setUsuario($user);
+                        $newUserSolicitante->setCompetencia($competition);
+                        $newUserSolicitante->setRol("SOLICITANTE");
+                        $newUserSolicitante->setAlias("solicit");
+                        
+                        // persistimos el nuevo dato
+                        $em = $this->getDoctrine()->getManager();
+                        $em->persist($newUserSolicitante);
+                        $em->flush();
+                    }
             
                     $statusCode = Response::HTTP_OK;
                     $respJson->messaging = "Solicitud registrada.";
                 }
                 else{
                     $statusCode = Response::HTTP_BAD_REQUEST;
-                    $respJson->messaging = "El usuario ya es SOLICITANTE de la competencia";    
+                    if(($solicitante != NULL)||($seguidorSolic != NULL)){
+                        $respJson->messaging = "El usuario ya es SOLICITANTE de la competencia";
+                    }
+                    else{
+                        $respJson->messaging = "El usuario ya es PARTICIPANTE de la competencia";
+                    }
                 }
             }
             else{
