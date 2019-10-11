@@ -12,6 +12,8 @@ use App\Entity\UsuarioCompetencia;
 use App\Entity\Usuario;
 use App\Entity\Competencia;
 
+use App\Utils\NotificationService;
+
  /**
  * UsuarioCompetencia controller
  * @Route("/api",name="api_")
@@ -20,7 +22,7 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
 {
 
     /**
-     * Registrar la solicitud a inscripcion de un participante
+     * Registrar la solicitud a inscripcion de un usuario
      * @Rest\Post("/usercomp"), defaults={"_format"="json"})
      * 
      * @return Response
@@ -121,7 +123,81 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
     }
 
     /**
-     * Registrar la solicitud a inscripcion de un participante
+     * Aprueba la solicitud a inscripcion de un usuasrio en una competencia.
+     * Pre: los usuarios y competencia recibidos existen
+     * @Rest\Post("/add-participate"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function approvedSolicitud(Request $request){
+
+        $respJson = (object) null;
+        $statusCode;
+
+        // controlamos que se haya recibido algo en el body
+        if(!empty($request->getContent())){
+          // recuperamos los datos del body y pasamos a un array
+          $dataRequest = json_decode($request->getContent());
+
+          // vemos si existen los datos necesarios
+          if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->idCompetencia))){
+            $idUser = $dataRequest->idUsuario;
+            $idCompetition = $dataRequest->idCompetencia;
+
+            // buscamos los datos correspodientes a los id recibidos
+            $repositoryUser=$this->getDoctrine()->getRepository(Usuario::class);
+            $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
+            $user = $repositoryUser->find($idUser);
+            $competition = $repositoryComp->find($idCompetition);
+        
+            // vamos a buscar el elemento
+            $repository=$this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+
+            $solicitante = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => "SOLICITANTE"]);
+            $seguidorSolic = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => "SEG-SOLIC"]);
+
+            // persistimos el nuevo dato
+            $em = $this->getDoctrine()->getManager();
+
+            // actualizamos el dato del solicitante
+            if($solicitante != NULL){
+                $solicitante->setRol("PARTICIPANTE");
+            }
+            // o borramos el seguidor-solicitante
+            if($seguidorSolic != NULL){
+                $seguidorSolic->setRol("PARTICIPANTE");
+            }
+            $em->flush();
+            $statusCode = Response::HTTP_OK;
+            $respJson->messaging = "Actualizado rol del ususario a PARTICIPANTE";
+            $msg = "Solicitud de inscripcion aprobada";
+            // enviamos la notificacion al usuario
+            $this->notifySolInscription($user->getToken(), $competition->getNombre(), $msg);
+          }
+          else{
+            $statusCode = Response::HTTP_BAD_REQUEST;
+            $respJson->messaging = "Solicitud mal formada";
+            }
+        }
+        else{
+            $statusCode = Response::HTTP_BAD_REQUEST;
+            $respJson->messaging = "Solicitud mal formada";
+        }
+
+        $respJson = json_encode($respJson);
+  
+        $response = new Response($respJson);
+        $response->headers->set('Content-Type', 'application/json');
+        $response->setStatusCode($statusCode);
+  
+        return $response;
+    }
+
+    
+
+    /**
+     * Elimina una solicitud de inscripcion
+     * Pre: los usuarios y competencia recibidos existen
      * @Rest\Post("/usercomp-del"), defaults={"_format"="json"})
      * 
      * @return Response
@@ -169,6 +245,9 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
             $em->flush();
             $statusCode = Response::HTTP_OK;
             $respJson->messaging = "Borrado con exito";
+            $msg = "Su solicitud fue rechazada";
+            // enviamos la notificacion al usuario
+            $this->notifySolInscription($user->getToken(), $competition->getNombre(), $msg);
           }
           else{
             $statusCode = Response::HTTP_BAD_REQUEST;
@@ -375,6 +454,20 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         $response->headers->set('Content-Type', 'application/json');
 
         return $response;
+    }
+
+    // ##################################################################
+    // ###################### funciones auxiliares ######################
+
+    // notifica al usuario que su solicitud de incripcion a la competencia fue rechazada
+    private function notifySolInscription($tokenUser, $nameCompetition, $msg){
+        $servNotification = new NotificationService();
+
+        $title = "Resolucion de su solicitud de inscripcion";
+        //$token ='da7cU3tPSs8:APA91bH2QFvIB8uGSgNmioaHBGTBkTrcYSCy-Rpsp8VDlnH8UmKIC6prC3jC0n5TMx55rldz5VBmJOOja7fJdCw-xzguuz1RXxCqGjFJ7kErSjPI4gQ6pBgFNGKgzw0BIO0I_NpHZDPy';
+        //$msg = "Su solicitud fue rechazada";
+
+        $servNotification->sendSimpleNotificationFCM($title, $tokenUser, $msg);
     }
 
 }
