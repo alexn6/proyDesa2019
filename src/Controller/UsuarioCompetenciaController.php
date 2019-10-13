@@ -470,4 +470,38 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         $servNotification->sendSimpleNotificationFCM($title, $tokenUser, $msg);
     }
 
+    	 
+    /**
+     * Devuelve todas las competencias que organiza un usuario
+     * @Rest\Get("/competition-organize"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function getCompetitionOrganizeByUser(Request $request){
+        $repository = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+        
+        $respJson = (object) null;
+
+        $idUser = $request->get('idUsuario');
+        // vemos si recibimos algun parametro
+        if(!empty($idUser)){
+            $respJson = $repository->findCompetitionsOrganizeByUser($idUser);
+            $statusCode = Response::HTTP_OK;
+        }
+        else{
+            $respJson = NULL;
+            $statusCode = Response::HTTP_BAD_REQUEST;
+        }
+
+        $respJson = json_encode($respJson);
+
+        // var_dump($respJson);
+
+        $response = new Response($respJson);
+        $response->setStatusCode($statusCode);
+        $response->headers->set('Content-Type', 'application/json');
+
+        return $response;
+    }
+
 }
