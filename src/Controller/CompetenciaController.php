@@ -163,6 +163,60 @@ class CompetenciaController extends AbstractFOSRestController
         return $response;
     }
 
+    // filtros para buscar competencias
+    /**
+     * 
+     * @Rest\Get("/competitions/filter")
+     * 
+     * @return Response
+     */
+    public function filterCompetitions(Request $request)
+    {
+      // ver este ejemplo => 'SELECT u FROM ForumUser u WHERE (u.username = :name OR u.username = :name2) AND u.id = :id'
+      $repository=$this->getDoctrine()->getRepository(Competencia::class);
+
+      $respJson = (object) null;
+
+      // recuperamos los parametros recibidos
+      $idCategoria = $request->get('categoria');
+      $idTipoOrg = $request->get('tipo_organizacion');
+      $genero = $request->get('genero');
+      $idDeporte = $request->get('deporte');
+      $nombreCompetencia = $request->get('competencia');
+      $ciudad = $request->get('ciudad');
+      
+      // en el caso de no recibir datos le asginamos un null para mantener
+      // la cantidad de parametros de la consulta
+      if(empty($idCategoria)){
+        $idCategoria = null;
+      }
+      if(empty($idTipoOrg)){
+        $idTipoOrg = null;
+      }
+      if(empty($idDeporte)){
+        $idDeporte = null;
+      }
+      if(empty($genero)){
+        $genero = null;
+      }
+      if(empty($nombreCompetencia)){
+        $nombreCompetencia = null;
+      }
+      if(empty($ciudad)){
+        $ciudad = null;
+      }
+      
+      $respJson = $repository->filterCompetitions($nombreCompetencia, $idCategoria, $idDeporte, $idTipoOrg, $genero, $ciudad);
+      // pasamos a json el resultado
+      $respJson = json_encode($respJson);
+
+      $response = new Response($respJson);
+      $response->setStatusCode(Response::HTTP_OK);
+      $response->headers->set('Content-Type', 'application/json');
+
+      return $response;
+  }     
+
     // ########################################################
     // ################### funciones auxiliares ################
  
@@ -216,6 +270,5 @@ class CompetenciaController extends AbstractFOSRestController
  
        return $response;
      }
- 
  
 }
