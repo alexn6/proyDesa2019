@@ -39,7 +39,7 @@ class CompetenciaRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $qb = $this->getEntityManager()->createQueryBuilder();
         // partimos de una consulta base para 
-        $stringQueryBase = 'SELECT c.nombre, categ.nombre categoria, organ.nombre tipoorganizacion, c.ciudad, c.genero
+        $stringQueryBase = 'SELECT c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.ciudad, c.genero
                             FROM App\Entity\Competencia c
                             INNER JOIN App\Entity\Categoria categ
                             WITH c.categoria = categ.id
