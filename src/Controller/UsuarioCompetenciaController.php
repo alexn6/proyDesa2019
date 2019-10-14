@@ -59,6 +59,11 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
                 $seguidorSolic = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => "SEG-SOLIC"]);
                 $participante = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => "PARTICIPANTE"]);
                 $seguidor = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => "SEGUIDOR"]);
+                // recuperamos los datos para la notificacion a los organizadores
+                $nameCompetition = $competition->getNombre();
+                $nameUser = $user->getNombre();
+                $arrayToken = $repository->findOrganizatorsCompetencia($competition->getId());
+
                 if(($solicitante == NULL)&&($seguidorSolic == NULL)&&($participante == NULL)){
                     // si ya es un seguidor actualizamos su rol
                     if($seguidor != NULL){
@@ -82,8 +87,11 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
                         $em->flush();
                     }
             
+                    // notificamos a los organizadores de la solicitud de inscripcion
+                    $this->notifyInscriptionToOrganizators($arrayToken, $nameCompetition, $nameUser);
+
                     $statusCode = Response::HTTP_OK;
-                    $respJson->messaging = "Solicitud registrada.";
+                    $respJson->messaging = "Solicitud registrada.".count($arrayToken);
                 }
                 else{
                     $statusCode = Response::HTTP_BAD_REQUEST;
@@ -455,22 +463,7 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
 
         return $response;
     }
-
-    // ##################################################################
-    // ###################### funciones auxiliares ######################
-
-    // notifica al usuario que su solicitud de incripcion a la competencia fue rechazada
-    private function notifySolInscription($tokenUser, $nameCompetition, $msg){
-        $servNotification = new NotificationService();
-
-        $title = "Resolucion de inscripcion";
-        //$token ='da7cU3tPSs8:APA91bH2QFvIB8uGSgNmioaHBGTBkTrcYSCy-Rpsp8VDlnH8UmKIC6prC3jC0n5TMx55rldz5VBmJOOja7fJdCw-xzguuz1RXxCqGjFJ7kErSjPI4gQ6pBgFNGKgzw0BIO0I_NpHZDPy';
-        //$msg = "Su solicitud fue rechazada";
-
-        $servNotification->sendSimpleNotificationFCM($title, $tokenUser, $msg);
-    }
-
-    	 
+	 
     /**
      * Devuelve todas las competencias que organiza un usuario
      * @Rest\Get("/competition-organize"), defaults={"_format"="json"})
@@ -502,6 +495,32 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         $response->headers->set('Content-Type', 'application/json');
 
         return $response;
+    }
+
+    // ##################################################################
+    // ###################### funciones auxiliares ######################
+
+    // notifica al usuario que su solicitud de incripcion a la competencia fue rechazada
+    private function notifySolInscription($tokenUser, $nameCompetition, $msg){
+        $servNotification = new NotificationService();
+
+        $title = "Resolucion de inscripcion";
+        //$token ='da7cU3tPSs8:APA91bH2QFvIB8uGSgNmioaHBGTBkTrcYSCy-Rpsp8VDlnH8UmKIC6prC3jC0n5TMx55rldz5VBmJOOja7fJdCw-xzguuz1RXxCqGjFJ7kErSjPI4gQ6pBgFNGKgzw0BIO0I_NpHZDPy';
+        //$msg = "Su solicitud fue rechazada";
+
+        $servNotification->sendSimpleNotificationFCM($title, $tokenUser, $msg);
+    }
+
+    // notifica al usuario que su solicitud de incripcion a la competencia fue rechazada
+    private function notifyInscriptionToOrganizators($arrayTokens, $nameCompetition, $nameUser){
+        $servNotification = new NotificationService();
+
+        $title = "Inscripcion: ".$nameCompetition;
+        $msg = "El usuario ".$nameUser." quiere formar parte de tu competencia";
+        //$token ='da7cU3tPSs8:APA91bH2QFvIB8uGSgNmioaHBGTBkTrcYSCy-Rpsp8VDlnH8UmKIC6prC3jC0n5TMx55rldz5VBmJOOja7fJdCw-xzguuz1RXxCqGjFJ7kErSjPI4gQ6pBgFNGKgzw0BIO0I_NpHZDPy';
+        //$msg = "Su solicitud fue rechazada";
+
+        $servNotification->sendMultipleNotificationFCM($title, $arrayTokens, $msg);
     }
 
 }

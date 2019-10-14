@@ -83,6 +83,25 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    // recuperamos los tokenFirebase de los organizadores de una competencia
+    public function findOrganizatorsCompetencia($idCompetencia)
+    {
+        $entityManager = $this->getEntityManager();
+
+        $query = $entityManager->createQuery(
+            '   SELECT u.token
+                FROM App\Entity\UsuarioCompetencia uc
+                INNER JOIN App\Entity\Usuario u
+                WITH uc.usuario = u.id
+                AND uc.competencia = :idCompetencia
+                AND (uc.rol = :rol1 OR uc.rol = :rol2)
+            ')->setParameter('rol1', "ORGANIZADOR")
+            ->setParameter('rol2', "CO-ORGANIZADOR")
+            ->setParameter('idCompetencia', $idCompetencia);
+
+        return $query->execute();
+    }
+
     // recuperamos las competencias de un usuario
     public function findCompetitionsByUser($idUsuario)
     {
@@ -102,7 +121,7 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    // recuperamos el nombre de los usuarios de una competencia
+    // recuperamos las competencias seguidas por un usuario
     public function findCompetitionsFollowByUser($idUsuario)
     {
         $entityManager = $this->getEntityManager();
