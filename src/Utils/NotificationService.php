@@ -62,19 +62,21 @@ class NotificationService{
     {
         $notif = (object) null;
         $notif->title = $titleNotif;
+        $notif->body = $msg;
 
-        $msg = (object) null;
-        $msg->token = $tokenDev;
-        $msg->notification = $notif;
+        $msgtest = (object) null;
+        $msgtest->token = $tokenDev;
+        $msgtest->notification = $notif;
+
+        // $data = (object) null;
+        // $data->test = "texto de tokenDev";
 
         // dato a mandar
         $response = (object) null;
-        $response->message = $msg;
+        $response->message = $msgtest;
+        // $response->data = $data;
 
         $fields = array('to' => $tokenDev, 'data' => $response);
-
-        // print_r($response);
-        // echo(json_encode($response));
 
         $headers = array('Authorization: key=' . $this::TOKEN_ACCES_SERVER_FIREBASE, 'Content-Type: application/json');
 

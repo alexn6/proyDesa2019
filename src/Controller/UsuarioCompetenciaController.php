@@ -170,7 +170,7 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
             $em->flush();
             $statusCode = Response::HTTP_OK;
             $respJson->messaging = "Actualizado rol del ususario a PARTICIPANTE";
-            $msg = "Solicitud de inscripcion aprobada";
+            $msg = "¡¡Solicitud de inscripcion aprobada!!";
             // enviamos la notificacion al usuario
             $this->notifySolInscription($user->getToken(), $competition->getNombre(), $msg);
           }
@@ -245,7 +245,7 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
             $em->flush();
             $statusCode = Response::HTTP_OK;
             $respJson->messaging = "Borrado con exito";
-            $msg = "Su solicitud fue rechazada";
+            $msg = "Su solicitud de inscripcion fue rechazada";
             // enviamos la notificacion al usuario
             $this->notifySolInscription($user->getToken(), $competition->getNombre(), $msg);
           }
@@ -463,7 +463,7 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
     private function notifySolInscription($tokenUser, $nameCompetition, $msg){
         $servNotification = new NotificationService();
 
-        $title = "Resolucion de su solicitud de inscripcion";
+        $title = "Resolucion de inscripcion";
         //$token ='da7cU3tPSs8:APA91bH2QFvIB8uGSgNmioaHBGTBkTrcYSCy-Rpsp8VDlnH8UmKIC6prC3jC0n5TMx55rldz5VBmJOOja7fJdCw-xzguuz1RXxCqGjFJ7kErSjPI4gQ6pBgFNGKgzw0BIO0I_NpHZDPy';
         //$msg = "Su solicitud fue rechazada";
 
