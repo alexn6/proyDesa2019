@@ -184,4 +184,25 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
        return $query->execute();
    }
 
+   // ######################################################################
+   // ############################## USUARIOS ##############################
+
+   // recuperamos los usuarios solicitantes de una competencia
+  public function findSolicitantesByCompetencia($idCompetencia)
+  {
+      $entityManager = $this->getEntityManager();
+      $query = $entityManager->createQuery(
+          '   SELECT u.id, u.nombreUsuario, u.nombre, u.apellido, u.correo
+              FROM App\Entity\UsuarioCompetencia uc
+              INNER JOIN App\Entity\Usuario u
+              WITH uc.usuario = u.id
+              WHERE uc.competencia = :idCompetencia
+              AND (uc.rol = :rol1 OR uc.rol = :rol2)
+          ')->setParameter('rol1', "SOLICITANTE")
+          ->setParameter('rol2', "SEG-SOLIC")
+          ->setParameter('idCompetencia', $idCompetencia);
+
+      return $query->execute();
+  }
+
 }

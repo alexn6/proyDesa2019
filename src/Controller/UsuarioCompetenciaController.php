@@ -20,6 +20,36 @@ use App\Utils\NotificationService;
  */
 class UsuarioCompetenciaController extends AbstractFOSRestController
 {
+    /**
+     * Devuelve todas los solicitantes de una competencia
+     * @Rest\Get("/usercomp/petitioners"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function getPetitionersByCompetition(Request $request){
+        $repository = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+        
+        $respJson = (object) null;
+
+        $idCompetencia = $request->get('idCompetencia');
+        // vemos si recibimos algun parametro
+        if(!empty($idCompetencia)){
+            $respJson = $repository->findSolicitantesByCompetencia($idCompetencia);
+            $statusCode = Response::HTTP_OK;
+        }
+        else{
+            $respJson->petitioners = NULL;
+            $statusCode = Response::HTTP_BAD_REQUEST;
+        }
+
+        $respJson = json_encode($respJson);
+
+        $response = new Response($respJson);
+        $response->setStatusCode($statusCode);
+        $response->headers->set('Content-Type', 'application/json');
+
+        return $response;
+    }
 
     /**
      * Registrar la solicitud a inscripcion de un usuario

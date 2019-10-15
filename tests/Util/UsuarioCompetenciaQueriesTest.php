@@ -42,6 +42,16 @@ class UsuarioCompetenciaQueriesTest extends KernelTestCase{
         $this->assertEquals(count($result), 2);
     }
 
+    // cant de solicitantes de una competencia, probamos con una competencia de 4 solicitantes
+    public function testSolicitantesCompetition(){
+        $repository = $this->entityManager->getRepository(UsuarioCompetencia::class);
+
+        $result = $repository->findSolicitantesByCompetencia(3);
+
+        print_r($result);
+        $this->assertEquals(count($result), 4);
+    }
+
     /**
      * {@inheritDoc}
      */
