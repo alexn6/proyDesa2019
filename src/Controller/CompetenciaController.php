@@ -14,6 +14,8 @@ use \Datetime;
 use App\Entity\Competencia;
 use App\Entity\Categoria;
 use App\Entity\TipoOrganizacion;
+use App\Entity\Usuario;
+use App\Entity\UsuarioCompetencia;
 
 /**
  * Competencia controller
@@ -73,6 +75,7 @@ class CompetenciaController extends AbstractFOSRestController
         $repository=$this->getDoctrine()->getRepository(Competencia::class);
         $repository_cat=$this->getDoctrine()->getRepository(Categoria::class);
         $repository_tipoorg=$this->getDoctrine()->getRepository(TipoOrganizacion::class);
+        $repository_user=$this->getDoctrine()->getRepository(Usuario::class);
 
         // recuperamos los datos del body y pasamos a un array
         $dataCompetitionRequest = json_decode($request->getContent());      
@@ -95,7 +98,8 @@ class CompetenciaController extends AbstractFOSRestController
           // buscamos los datos de los id recibidos
           $categoria = $repository_cat->find($dataCompetitionRequest->categoria_id);
           $tipoorg = $repository_tipoorg->find($dataCompetitionRequest->tipoorg_id);
-          // creamos el usuario
+          $user_creator = $repository_user->find($dataCompetitionRequest->user_id);
+          // creamos la competencia
           $competenciaCreate = new Competencia();
           $competenciaCreate->setNombre($nombre_comp);
           $competenciaCreate->setFechaIni($fecha_ini);
@@ -105,10 +109,31 @@ class CompetenciaController extends AbstractFOSRestController
           $competenciaCreate->setMaxCompetidores($dataCompetitionRequest->max_comp);
           $competenciaCreate->setCategoria($categoria);
           $competenciaCreate->setOrganizacion($tipoorg);
+
+          // vemos si recibimos una cant de grupos 
+          $cant_grupos = $dataCompetitionRequest->cant_grupos;
+          if(!empty($cant_grupos)){
+            $competenciaCreate->setCantGrupos($cant_grupos);
+          }
   
+          // persistimos la nueva competencia
           $em = $this->getDoctrine()->getManager();
           $em->persist($competenciaCreate);
           $em->flush();
+
+          // creamos el registro del usuario como organizador
+          // creamos el nuevo solicitante
+          $newUserOrganizator = new UsuarioCompetencia();
+          $newUserOrganizator->setUsuario($user_creator);
+          $newUserOrganizator->setCompetencia($competenciaCreate);
+          $newUserOrganizator->setRol("ORGANIZADOR");
+          $newUserOrganizator->setAlias("org");
+          
+          // persistimos el registro
+          $em = $this->getDoctrine()->getManager();
+          $em->persist($newUserOrganizator);
+          $em->flush();
+
   
           $statusCode = Response::HTTP_CREATED;
   
