@@ -23,21 +23,6 @@ class Deporte
      */
     private $nombre;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Categoria", mappedBy="deporte")
-     */
-    private $categorias;
-
-    // /**
-    //  * Many Deportes have Many Categorias.
-    //  * @ORM\ManyToMany(targetEntity="App\Entity\Categoria")
-    //  * @ORM\JoinTable(name="deporte_categoria",
-    //  *      joinColumns={@ORM\JoinColumn(name="deporte_id", referencedColumnName="id")},
-    //  *      inverseJoinColumns={@ORM\JoinColumn(name="categoria_id", referencedColumnName="id", unique=true)}
-    //  *      )
-    //  */
-    // private $categorias;
-
     public function __construct()
     {
         $this->categorias = new ArrayCollection();
@@ -60,42 +45,4 @@ class Deporte
         return $this;
     }
 
-    // /**
-    //  * @return Collection|Categoria[]
-    //  */
-    // public function getCategorias(): Collection
-    // {
-    //     return $this->categorias;
-    // }
-
-    /**
-     * @return ArrayCollection
-     */
-    public function getCategorias()
-    {
-        return $this->categorias;
-    }
-
-    public function addCategoria(Categoria $categoria): self
-    {
-        if (!$this->categorias->contains($categoria)) {
-            $this->categorias[] = $categoria;
-            $categoria->setDeporte($this);
-        }
-
-        return $this;
-    }
-
-    public function removeCategoria(Categoria $categoria): self
-    {
-        if ($this->categorias->contains($categoria)) {
-            $this->categorias->removeElement($categoria);
-            // set the owning side to null (unless already changed)
-            if ($categoria->getDeporte() === $this) {
-                $categoria->setDeporte(null);
-            }
-        }
-
-        return $this;
-    }
 }

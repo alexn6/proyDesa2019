@@ -33,22 +33,11 @@ class Categoria
      */
     private $min_integrantes;
 
-     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Deporte", inversedBy="categorias")
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Deporte")
+     * @ORM\JoinColumn(name="deporte_id", referencedColumnName="id")
      */
     private $deporte;
-
-    // private $deporte;
-
-    //  /**
-    //  * @ORM\OneToMany(targetEntity="App\Entity\Competencia", mappedBy="categoria")
-    //  */
-    // private $competencia;
-
-    // public function __construct()
-    // {
-    //     $this->competencia = new ArrayCollection();
-    // }
 
     public function getId(): ?int
     {
@@ -102,44 +91,5 @@ class Categoria
 
         return $this;
     }
-
-    // /**
-    //  * @return ArrayCollection
-    //  */
-    // public function getCompetencia()
-    // {
-    //     return $this->competencia;
-    // }
-
-    // /**
-    //  * @return Collection|Competencia[]
-    //  */
-    // public function getCompetencia(): Collection
-    // {
-    //     return $this->competencia;
-    // }
-
-    // public function addCompetencium(Competencia $competencium): self
-    // {
-    //     if (!$this->competencia->contains($competencium)) {
-    //         $this->competencia[] = $competencium;
-    //         $competencium->setCategoria($this);
-    //     }
-
-    //     return $this;
-    // }
-
-    // public function removeCompetencium(Competencia $competencium): self
-    // {
-    //     if ($this->competencia->contains($competencium)) {
-    //         $this->competencia->removeElement($competencium);
-    //         // set the owning side to null (unless already changed)
-    //         if ($competencium->getCategoria() === $this) {
-    //             $competencium->setCategoria(null);
-    //         }
-    //     }
-
-    //     return $this;
-    // }
 
 }

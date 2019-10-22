@@ -11,6 +11,32 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Competencia
 {
+    const GENERO_MASCULINO = 'MASCULINO';
+    const GENERO_FEMENINO = 'FEMENINO';
+    const GENERO_MIXTO = 'MIXTO';
+
+    static private $enumGeneros = null;
+
+    static public function getGenerosEnum()
+    {
+        if (self::$enumGeneros == null)
+        {
+            self::$enumGeneros = array ();
+            $oClass = new \ReflectionClass('App\Entity\Competencia');
+            $classConstants = $oClass->getConstants();
+            $constantPrefix = "GENERO";
+            foreach ($classConstants as $key => $val)
+            {
+                if (substr($key, 0, strlen($constantPrefix)) === $constantPrefix)
+                {
+                // self::$enumGeneros[$val] = $val;
+                array_push(self::$enumGeneros, $val);
+                }
+            }
+        }
+        return self::$enumGeneros;
+    }
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -39,7 +65,7 @@ class Competencia
     private $ciudad;
 
     /**
-     * @ORM\Column(type="string", length=127)
+     * @ORM\Column(type="string", columnDefinition="ENUM('MASCULINO', 'FEMENINO', 'MIXTO')")
      */
     private $genero;
 
@@ -53,19 +79,15 @@ class Competencia
      */
     private $cant_grupos;
 
-    // /**
-    //  * Una competencia tiene una sola categoria
-    //  * @ORM\OneToOne(targetEntity="App\Entity\Categoria", inversedBy="competencia")
-    //  */
     /**
-     * Una competencia tiene una sola categoria
-     * @ORM\OneToOne(targetEntity="App\Entity\Categoria")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Categoria")
+     * @ORM\JoinColumn(name="categoria_id", referencedColumnName="id")
      */
     private $categoria;
 
     /**
-     * Una competencia tiene un solo tipo de organizacion
-     * @ORM\OneToOne(targetEntity="App\Entity\TipoOrganizacion")
+     * @ORM\ManyToOne(targetEntity="App\Entity\TipoOrganizacion")
+     * @ORM\JoinColumn(name="organizacion_id", referencedColumnName="id")
      */
     private $organizacion;
 
@@ -132,17 +154,6 @@ class Competencia
         return $this;
     }
 
-    public function getCategoria(): ?Categoria
-    {
-        return $this->categoria;
-    }
-
-    public function setCategoria(?Categoria $categoria): self
-    {
-        $this->categoria = $categoria;
-
-        return $this;
-    }
 
     /**
      * @return Collection|UsuarioCompetencia[]
@@ -175,18 +186,6 @@ class Competencia
         return $this;
     }
 
-    public function getOrganizacion(): ?TipoOrganizacion
-    {
-        return $this->organizacion;
-    }
-
-    public function setOrganizacion(?TipoOrganizacion $organizacion): self
-    {
-        $this->organizacion = $organizacion;
-
-        return $this;
-    }
-
     public function getCiudad(): ?string
     {
         return $this->ciudad;
@@ -206,9 +205,12 @@ class Competencia
 
     public function setGenero(string $genero): self
     {
+        if (!in_array($genero, array(self::GENERO_MASCULINO, self::GENERO_FEMENINO, self::GENERO_MIXTO))) {
+            throw new \InvalidArgumentException("Genero invalido");
+        }
         $this->genero = $genero;
 
-        return $this;
+        return $this;        
     }
 
     public function getCantGrupos(): ?int
@@ -219,6 +221,30 @@ class Competencia
     public function setCantGrupos(int $cant_grupos): self
     {
         $this->cant_grupos = $cant_grupos;
+
+        return $this;
+    }
+
+    public function getCategoria(): ?Categoria
+    {
+        return $this->categoria;
+    }
+
+    public function setCategoria(?Categoria $categoria): self
+    {
+        $this->categoria = $categoria;
+
+        return $this;
+    }
+
+    public function getOrganizacion(): ?TipoOrganizacion
+    {
+        return $this->organizacion;
+    }
+
+    public function setOrganizacion(?TipoOrganizacion $organizacion): self
+    {
+        $this->organizacion = $organizacion;
 
         return $this;
     }

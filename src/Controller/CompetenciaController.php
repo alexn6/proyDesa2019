@@ -101,11 +101,30 @@ class CompetenciaController extends AbstractFOSRestController
           $user_creator = $repository_user->find($dataCompetitionRequest->user_id);
           // creamos la competencia
           $competenciaCreate = new Competencia();
+
+          try
+          {
+            $competenciaCreate->setGenero($dataCompetitionRequest->genero);
+          }
+          catch (\Exception $e)
+          {
+              $statusCode = Response::HTTP_INSUFFICIENT_STORAGE;
+              $respJson->success = false;
+              $respJson->messaging = "ERROR-> " . $e->getMessage();
+
+              $respJson = json_encode($respJson);
+
+              $response = new Response($respJson);
+              $response->headers->set('Content-Type', 'application/json');
+              $response->setStatusCode($statusCode);
+
+              return $response;
+          }
+
           $competenciaCreate->setNombre($nombre_comp);
           $competenciaCreate->setFechaIni($fecha_ini);
           $competenciaCreate->setFechaFin($fecha_fin);
           $competenciaCreate->setCiudad($dataCompetitionRequest->ciudad);
-          $competenciaCreate->setGenero($dataCompetitionRequest->genero);
           $competenciaCreate->setMaxCompetidores($dataCompetitionRequest->max_comp);
           $competenciaCreate->setCategoria($categoria);
           $competenciaCreate->setOrganizacion($tipoorg);
@@ -122,7 +141,6 @@ class CompetenciaController extends AbstractFOSRestController
           $em->flush();
 
           // creamos el registro del usuario como organizador
-          // creamos el nuevo solicitante
           $newUserOrganizator = new UsuarioCompetencia();
           $newUserOrganizator->setUsuario($user_creator);
           $newUserOrganizator->setCompetencia($competenciaCreate);
@@ -133,10 +151,9 @@ class CompetenciaController extends AbstractFOSRestController
           $em = $this->getDoctrine()->getManager();
           $em->persist($newUserOrganizator);
           $em->flush();
-
-  
+          
           $statusCode = Response::HTTP_CREATED;
-  
+
           $respJson->success = true;
           $respJson->messaging = "Creacion exitosa";
         }
