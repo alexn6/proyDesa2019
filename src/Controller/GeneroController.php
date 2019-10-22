@@ -24,7 +24,16 @@ class GeneroController extends AbstractFOSRestController
      */
     public function allGenders()
     {
-        $generos = Competencia::getGenerosEnum();
+
+        $generosEnum = Competencia::getGenerosEnum();
+        $generos = array();
+
+        foreach ($generosEnum as $val)
+        {
+            $genero = (object) null;
+            $genero->nombre = $val;
+            array_push($generos, $genero);
+        }
 
         // convertimos el objeto en un json
         $respJson = json_encode($generos);
