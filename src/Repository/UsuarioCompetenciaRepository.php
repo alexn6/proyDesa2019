@@ -65,13 +65,13 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
         ->getArrayResult();
     }
 
-    // recuperamos el nombre de los usuarios de una competencia
+    // recuperamos los usuarios de una competencia
     public function findParticipanteByCompetencia($idCompetencia)
     {
 
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            '   SELECT u.nombreUsuario
+            '   SELECT u.id, u.nombreUsuario, u.nombre, u.apellido, u.correo
                 FROM App\Entity\UsuarioCompetencia uc
                 INNER JOIN App\Entity\Usuario u
                 WITH uc.usuario = u.id
@@ -205,4 +205,20 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
       return $query->execute();
   }
 
+  public function findCompetidoresByCompetencia($idCompetencia)
+  {
+      $entityManager = $this->getEntityManager();
+      $query = $entityManager->createQuery(
+          '   SELECT u.id, u.nombreUsuario, u.nombre, u.apellido, u.correo
+              FROM App\Entity\UsuarioCompetencia uc
+              INNER JOIN App\Entity\Usuario u
+              WITH uc.usuario = u.id
+              WHERE uc.competencia = :idCompetencia
+              AND (uc.rol = :rol1)
+          ')->setParameter('rol1', "PARTICIPANTE")
+          ->setParameter('idCompetencia', $idCompetencia);
+
+      return $query->execute();
+  }
+  
 }
