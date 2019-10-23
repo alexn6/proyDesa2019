@@ -19,6 +19,20 @@ class CategoriaRepository extends ServiceEntityRepository
         parent::__construct($registry, Categoria::class);
     }
 
+    //funcion traer categorias por id de deporte
+    public function findCategoriesBySport($id_deporte){
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        '   SELECT c
+            FROM App\Entity\Categoria c
+            INNER JOIN App\Entity\Deporte d
+            WITH c.deporte = d.id 
+            AND c.deporte = :id_deporte
+        ')->setParameter('id_deporte',$id_deporte);
+        
+        return $query->execute();   
+    }
+    
     // /**
     //  * @return Categoria[] Returns an array of Categoria objects
     //  */
