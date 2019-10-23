@@ -36,21 +36,10 @@ class UsuarioCompetencia
     private $alias;
 
     /**
-     * @ORM\Column(type="string", length=127)
+     * @ORM\ManyToOne(targetEntity="App\Entity\Rol")
+     * @ORM\JoinColumn(name="rol_id", referencedColumnName="id")
      */
     private $rol;
-
-    public function getRol(): ?string
-    {
-        return $this->rol;
-    }
-
-    public function setRol(string $rol): self
-    {
-        $this->rol = $rol;
-
-        return $this;
-    }
 
     public function getUsuario(): ?Usuario
     {
@@ -89,6 +78,18 @@ class UsuarioCompetencia
     public function setAlias(string $alias): self
     {
         $this->alias = $alias;
+
+        return $this;
+    }
+
+    public function getRol(): ?Rol
+    {
+        return $this->rol;
+    }
+
+    public function setRol(?Rol $rol): self
+    {
+        $this->rol = $rol;
 
         return $this;
     }
