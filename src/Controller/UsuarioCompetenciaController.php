@@ -11,8 +11,10 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Entity\UsuarioCompetencia;
 use App\Entity\Usuario;
 use App\Entity\Competencia;
+use App\Entity\Rol;
 
 use App\Utils\NotificationService;
+use App\Utils\Constant;
 
  /**
  * UsuarioCompetencia controller
@@ -307,60 +309,60 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
     }
     
 
-    /**
-     * Actualiza el rol de usuario_competencia
-     * @Rest\Put("/usercomp-rol"), defaults={"_format"="json"})
-     * 
-     * @return Response
-     */
-    public function updateRol(Request $request){
+    // /**
+    //  * Actualiza el rol de usuario_competencia
+    //  * @Rest\Put("/usercomp-rol"), defaults={"_format"="json"})
+    //  * 
+    //  * @return Response
+    //  */
+    // public function updateRol(Request $request){
 
-        $respJson = (object) null;
-        $statusCode;
+    //     $respJson = (object) null;
+    //     $statusCode;
 
-        if(!empty($request->getContent())){
+    //     if(!empty($request->getContent())){
 
-          // recuperamos los datos del body y pasamos a un array
-          $dataRequest = json_decode($request->getContent());
+    //       // recuperamos los datos del body y pasamos a un array
+    //       $dataRequest = json_decode($request->getContent());
 
-          if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->idCompetencia))&&(!empty($dataRequest->rol))){
-            // vemos si existen los datos necesarios
-            $idUser = $dataRequest->idUsuario;
-            $idCompetition = $dataRequest->idCompetencia;
-            $nuevo_rol = $dataRequest->rol;
+    //       if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->idCompetencia))&&(!empty($dataRequest->rol))){
+    //         // vemos si existen los datos necesarios
+    //         $idUser = $dataRequest->idUsuario;
+    //         $idCompetition = $dataRequest->idCompetencia;
+    //         $nuevo_rol = $dataRequest->rol;
 
-            $repository=$this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+    //         $repository=$this->getDoctrine()->getRepository(UsuarioCompetencia::class);
         
-            // controlamos que el nombre de usuario este disponible
-            $usuario_comp = $repository->findOneBy(['usuario' => $idUser, 'competencia' => $idCompetition]);
+    //         // controlamos que el nombre de usuario este disponible
+    //         $usuario_comp = $repository->findOneBy(['usuario' => $idUser, 'competencia' => $idCompetition]);
             
-            $em = $this->getDoctrine()->getManager();
-            $usuario_comp->setRol($nuevo_rol);
-            $em->flush();
+    //         $em = $this->getDoctrine()->getManager();
+    //         $usuario_comp->setRol($nuevo_rol);
+    //         $em->flush();
     
-            $statusCode = Response::HTTP_OK;
-            $respJson->messaging = "Actualizacion realizada";
-          }
-          else{
-            $statusCode = Response::HTTP_BAD_REQUEST;
-            $respJson->messaging = "Solicitud mal formada";
-          }
+    //         $statusCode = Response::HTTP_OK;
+    //         $respJson->messaging = "Actualizacion realizada";
+    //       }
+    //       else{
+    //         $statusCode = Response::HTTP_BAD_REQUEST;
+    //         $respJson->messaging = "Solicitud mal formada";
+    //       }
           
-        }
-        else{
-          $statusCode = Response::HTTP_BAD_REQUEST;
-          $respJson->messaging = "Solicitud mal formada";
-        }
+    //     }
+    //     else{
+    //       $statusCode = Response::HTTP_BAD_REQUEST;
+    //       $respJson->messaging = "Solicitud mal formada";
+    //     }
   
         
-        $respJson = json_encode($respJson);
+    //     $respJson = json_encode($respJson);
   
-        $response = new Response($respJson);
-        $response->headers->set('Content-Type', 'application/json');
-        $response->setStatusCode($statusCode);
+    //     $response = new Response($respJson);
+    //     $response->headers->set('Content-Type', 'application/json');
+    //     $response->setStatusCode($statusCode);
   
-        return $response;
-    }
+    //     return $response;
+    // }
 
     /**
      * Devuelve todas las competencias de un usuario
@@ -528,28 +530,222 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
     }
 
     // ##################################################################
+    // ###################### actualizacion de roles ####################
+
+    /**
+     * Actualiza el rol de usuario_competencia a SEGUIDOR
+     * @Rest\Put("/usercomp-rolfollow"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function toRolFollow(Request $request){
+
+        $respJson = (object) null;
+        $statusCode;
+
+        if(!empty($request->getContent())){
+
+          // recuperamos los datos del body y pasamos a un array
+          $dataRequest = json_decode($request->getContent());
+
+          if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->idCompetencia))){
+            // vamos a actualizar el rol del usuario
+            $this->processUpdateRol($dataRequest, Constant::ROL_SEGUIDOR);
+
+            $statusCode = Response::HTTP_OK;
+            $respJson->messaging = "Actualizacion realizada";
+          }
+          else{
+            $statusCode = Response::HTTP_BAD_REQUEST;
+            $respJson->messaging = "Solicitud mal formada";
+          }
+          
+        }
+        else{
+          $statusCode = Response::HTTP_BAD_REQUEST;
+          $respJson->messaging = "Solicitud mal formada";
+        }
+  
+        
+        $respJson = json_encode($respJson);
+  
+        $response = new Response($respJson);
+        $response->headers->set('Content-Type', 'application/json');
+        $response->setStatusCode($statusCode);
+  
+        return $response;
+    }
+
+    /**
+     * Actualiza el rol de usuario_competencia a COMPETIDOR
+     * @Rest\Put("/usercomp-rolcomp"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function toRolCompetitor(Request $request){
+
+        $respJson = (object) null;
+        $statusCode;
+
+        if(!empty($request->getContent())){
+
+          // recuperamos los datos del body y pasamos a un array
+          $dataRequest = json_decode($request->getContent());
+
+          if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->idCompetencia))){
+            // vamos a actualizar el rol del usuario
+            $this->processUpdateRol($dataRequest, Constant::ROL_COMPETIDOR);
+
+            $statusCode = Response::HTTP_OK;
+            $respJson->messaging = "Actualizacion realizada";
+          }
+          else{
+            $statusCode = Response::HTTP_BAD_REQUEST;
+            $respJson->messaging = "Solicitud mal formada";
+          }
+          
+        }
+        else{
+          $statusCode = Response::HTTP_BAD_REQUEST;
+          $respJson->messaging = "Solicitud mal formada";
+        }
+  
+        
+        $respJson = json_encode($respJson);
+  
+        $response = new Response($respJson);
+        $response->headers->set('Content-Type', 'application/json');
+        $response->setStatusCode($statusCode);
+  
+        return $response;
+    }
+
+    /**
+     * Actualiza el rol de usuario_competencia a ORGANIZADOR
+     * @Rest\Put("/usercomp-rolorg"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function toRolOrganizator(Request $request){
+
+        $respJson = (object) null;
+        $statusCode;
+
+        if(!empty($request->getContent())){
+
+          // recuperamos los datos del body y pasamos a un array
+          $dataRequest = json_decode($request->getContent());
+
+          if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->idCompetencia))){
+            // vamos a actualizar el rol del usuario
+            $this->processUpdateRol($dataRequest, Constant::ROL_ORGANIZADOR);
+
+            $statusCode = Response::HTTP_OK;
+            $respJson->messaging = "Actualizacion realizada";
+          }
+          else{
+            $statusCode = Response::HTTP_BAD_REQUEST;
+            $respJson->messaging = "Solicitud mal formada";
+          }
+          
+        }
+        else{
+          $statusCode = Response::HTTP_BAD_REQUEST;
+          $respJson->messaging = "Solicitud mal formada";
+        }
+  
+        
+        $respJson = json_encode($respJson);
+  
+        $response = new Response($respJson);
+        $response->headers->set('Content-Type', 'application/json');
+        $response->setStatusCode($statusCode);
+  
+        return $response;
+    }
+
+    /**
+     * Actualiza el rol de usuario_competencia a CO-ORGANIZADOR
+     * @Rest\Put("/usercomp-rolcoorg"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function toRolCoorganizator(Request $request){
+
+        $respJson = (object) null;
+        $statusCode;
+
+        if(!empty($request->getContent())){
+
+          // recuperamos los datos del body y pasamos a un array
+          $dataRequest = json_decode($request->getContent());
+
+          if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->idCompetencia))){
+            // vamos a actualizar el rol del usuario
+            $this->processUpdateRol($dataRequest, Constant::ROL_COORGANIZADOR);
+
+            $statusCode = Response::HTTP_OK;
+            $respJson->messaging = "Actualizacion realizada";
+          }
+          else{
+            $statusCode = Response::HTTP_BAD_REQUEST;
+            $respJson->messaging = "Solicitud mal formada";
+          }
+          
+        }
+        else{
+          $statusCode = Response::HTTP_BAD_REQUEST;
+          $respJson->messaging = "Solicitud mal formada";
+        }
+  
+        
+        $respJson = json_encode($respJson);
+  
+        $response = new Response($respJson);
+        $response->headers->set('Content-Type', 'application/json');
+        $response->setStatusCode($statusCode);
+  
+        return $response;
+    }
+
+    // ##################################################################
     // ###################### funciones auxiliares ######################
+
+    // se actualiza el rol de la fila de usuarioCompetencia
+    private function processUpdateRol($dataRequest, $nameRol){
+        // recuperamos los datos
+        $idUser = $dataRequest->idUsuario;
+        $idCompetition = $dataRequest->idCompetencia;
+
+        $repository=$this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+        $repositoryRol=$this->getDoctrine()->getRepository(Rol::class);
+    
+        // buscamos la fila correspondiente
+        $usuario_comp = $repository->findOneBy(['usuario' => $idUser, 'competencia' => $idCompetition]);
+
+        // buscamos el rol correspondiente
+        $rol = $repositoryRol->findOneBy(['nombre' => $nameRol]);
+
+        // actualizamos el dato y lo persistimos
+        $em = $this->getDoctrine()->getManager();
+        $usuario_comp->setRol($rol);
+        $em->flush();
+    }
 
     // notifica al usuario que su solicitud de incripcion a la competencia fue rechazada
     private function notifySolInscription($tokenUser, $nameCompetition, $msg){
-        $servNotification = new NotificationService();
-
         $title = "Resolucion de inscripcion";
-        //$token ='da7cU3tPSs8:APA91bH2QFvIB8uGSgNmioaHBGTBkTrcYSCy-Rpsp8VDlnH8UmKIC6prC3jC0n5TMx55rldz5VBmJOOja7fJdCw-xzguuz1RXxCqGjFJ7kErSjPI4gQ6pBgFNGKgzw0BIO0I_NpHZDPy';
-        //$msg = "Su solicitud fue rechazada";
 
+        $servNotification = new NotificationService();
         $servNotification->sendSimpleNotificationFCM($title, $tokenUser, $msg);
     }
 
     // notifica al usuario que su solicitud de incripcion a la competencia fue rechazada
     private function notifyInscriptionToOrganizators($arrayTokens, $nameCompetition, $nameUser){
-        $servNotification = new NotificationService();
-
         $title = "Inscripcion: ".$nameCompetition;
         $msg = "El usuario ".$nameUser." quiere formar parte de tu competencia";
-        //$token ='da7cU3tPSs8:APA91bH2QFvIB8uGSgNmioaHBGTBkTrcYSCy-Rpsp8VDlnH8UmKIC6prC3jC0n5TMx55rldz5VBmJOOja7fJdCw-xzguuz1RXxCqGjFJ7kErSjPI4gQ6pBgFNGKgzw0BIO0I_NpHZDPy';
-        //$msg = "Su solicitud fue rechazada";
 
+        $servNotification = new NotificationService();
         $servNotification->sendMultipleNotificationFCM($title, $arrayTokens, $msg);
     }
 
