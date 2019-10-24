@@ -76,7 +76,6 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         
             // controlamos que el nombre de usuario este disponible
             $repository=$this->getDoctrine()->getRepository(UsuarioCompetencia::class);
-            //$usuario_comp = $repository->findOneBy(['usuario' => $idUser, 'competencia' => $idCompetition]);
 
             // buscamos los datos correspodientes a los id recibidos
             $repositoryUser=$this->getDoctrine()->getRepository(Usuario::class);
@@ -86,48 +85,53 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
 
             // controlamos que existan el uduario como la competencia
             if(($user != NULL) && ($competition != NULL)){
-                // controlamos que no sea un solicitante repetido
-                $solicitante = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => "SOLICITANTE"]);
-                $seguidorSolic = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => "SEG-SOLIC"]);
-                $participante = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => "PARTICIPANTE"]);
-                $seguidor = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => "SEGUIDOR"]);
+              // recuperamos los roles a usar
+                $repositoryRol=$this->getDoctrine()->getRepository(Rol::class);
+                $rolSolicitante = $repositoryRol->findOneBy(['nombre' => Constant::ROL_SOLICITANTE]);
+                $rolCompetidor = $repositoryRol->findOneBy(['nombre' => Constant::ROL_COMPETIDOR]);
+                $rolOrganizador = $repositoryRol->findOneBy(['nombre' => Constant::ROL_ORGANIZADOR]);
+                // controlamos que no sea un solicitante repetido o competidor
+                $solicitante = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => $rolSolicitante]);
+                $participante = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => $rolCompetidor]);
+                $organizador = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => $rolOrganizador]);
                 // recuperamos los datos para la notificacion a los organizadores
                 $nameCompetition = $competition->getNombre();
                 $nameUser = $user->getNombre();
+                // recuperamos los token de los organizadores
                 $arrayToken = $repository->findOrganizatorsCompetencia($competition->getId());
 
-                if(($solicitante == NULL)&&($seguidorSolic == NULL)&&($participante == NULL)){
-                    // si ya es un seguidor actualizamos su rol
-                    if($seguidor != NULL){
-                        $seguidor->setRol("SEG-SOLIC");
-                        // persistimos el nuevo dato
-                        $em = $this->getDoctrine()->getManager();
-                        $em->persist($seguidor);
-                        $em->flush();
-                    }
-                    else{
-                        // creamos el nuevo solicitante
-                        $newUserSolicitante = new UsuarioCompetencia();
-                        $newUserSolicitante->setUsuario($user);
-                        $newUserSolicitante->setCompetencia($competition);
-                        $newUserSolicitante->setRol("SOLICITANTE");
-                        $newUserSolicitante->setAlias("solicit");
-                        
-                        // persistimos el nuevo dato
-                        $em = $this->getDoctrine()->getManager();
-                        $em->persist($newUserSolicitante);
-                        $em->flush();
-                    }
-            
+                if(($solicitante == NULL)&&($participante == NULL)){
+                  // creamos un usuario_competencia aun sin rol
+                  $newUser = new UsuarioCompetencia();
+                  $newUser->setUsuario($user);
+                  $newUser->setCompetencia($competition);
+                  // atacamos el caso en que el usuario es organizador de la competencia
+                  // pasaria derecho a ser un participante de la misma
+                  if($organizador != NULL){
+                    $newUser->setRol($rolCompetidor);
+                    $newUser->setAlias("el_org");
+
+                    $respJson->messaging = "Por ser organizador de la competencia su solicitud es aprobada. Ya es un competidor";
+                  }
+                  else{
+                    $newUser->setRol($rolSolicitante);
+                    $newUser->setAlias("solicit");
+
+                    $respJson->messaging = "Solicitud registrada";
+                                
                     // notificamos a los organizadores de la solicitud de inscripcion
                     $this->notifyInscriptionToOrganizators($arrayToken, $nameCompetition, $nameUser);
+                  }
+                  // persistimos el nuevo dato
+                  $em = $this->getDoctrine()->getManager();
+                  $em->persist($newUser);
+                  $em->flush();
 
-                    $statusCode = Response::HTTP_OK;
-                    $respJson->messaging = "Solicitud registrada.".count($arrayToken);
+                  $statusCode = Response::HTTP_OK;
                 }
                 else{
                     $statusCode = Response::HTTP_BAD_REQUEST;
-                    if(($solicitante != NULL)||($seguidorSolic != NULL)){
+                    if($solicitante != NULL){
                         $respJson->messaging = "El usuario ya es SOLICITANTE de la competencia";
                     }
                     else{
@@ -139,13 +143,11 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
                 $statusCode = Response::HTTP_BAD_REQUEST;
                 $respJson->messaging = "El usuario y/o competencia no existen";
             }
-
           }
           else{
             $statusCode = Response::HTTP_BAD_REQUEST;
             $respJson->messaging = "Solicitud mal formada";
-          }
-          
+          } 
         }
         else{
           $statusCode = Response::HTTP_BAD_REQUEST;
@@ -164,13 +166,12 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
 
     /**
      * Aprueba la solicitud a inscripcion de un usuasrio en una competencia.
-     * Pre: los usuarios y competencia recibidos existen
+     * Pre: los usuarios y competencia recibidos existen,  el rol del usuario es SOLICITANTE
      * @Rest\Post("/add-participate"), defaults={"_format"="json"})
      * 
      * @return Response
      */
     public function approvedSolicitud(Request $request){
-
         $respJson = (object) null;
         $statusCode;
 
@@ -187,27 +188,21 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
             // buscamos los datos correspodientes a los id recibidos
             $repositoryUser=$this->getDoctrine()->getRepository(Usuario::class);
             $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
+            $repositoryRol=$this->getDoctrine()->getRepository(Rol::class);
             $user = $repositoryUser->find($idUser);
             $competition = $repositoryComp->find($idCompetition);
+            $rolCompetidor = $repositoryRol->findOneBy(['nombre' => Constant::ROL_COMPETIDOR]);
+            $rolSolicitante = $repositoryRol->findOneBy(['nombre' => Constant::ROL_SOLICITANTE]);
         
             // vamos a buscar el elemento
             $repository=$this->getDoctrine()->getRepository(UsuarioCompetencia::class);
-
-            $solicitante = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => "SOLICITANTE"]);
-            $seguidorSolic = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => "SEG-SOLIC"]);
+            $solicitante = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => $rolSolicitante]);
 
             // persistimos el nuevo dato
             $em = $this->getDoctrine()->getManager();
-
-            // actualizamos el dato del solicitante
-            if($solicitante != NULL){
-                $solicitante->setRol("PARTICIPANTE");
-            }
-            // o borramos el seguidor-solicitante
-            if($seguidorSolic != NULL){
-                $seguidorSolic->setRol("PARTICIPANTE");
-            }
+            $solicitante->setRol($rolCompetidor);
             $em->flush();
+
             $statusCode = Response::HTTP_OK;
             $respJson->messaging = "Actualizado rol del ususario a PARTICIPANTE";
             $msg = "¡¡Solicitud de inscripcion aprobada!!";

@@ -16,6 +16,9 @@ use App\Entity\Categoria;
 use App\Entity\TipoOrganizacion;
 use App\Entity\Usuario;
 use App\Entity\UsuarioCompetencia;
+use App\Entity\Rol;
+
+use App\Utils\Constant;
 
 /**
  * Competencia controller
@@ -141,10 +144,12 @@ class CompetenciaController extends AbstractFOSRestController
           $em->flush();
 
           // creamos el registro del usuario como organizador
+          $repositoryRol=$this->getDoctrine()->getRepository(Rol::class);
+          $rolOrganizador = $repositoryRol->findOneBy(['nombre' => Constant::ROL_ORGANIZADOR]);
           $newUserOrganizator = new UsuarioCompetencia();
           $newUserOrganizator->setUsuario($user_creator);
           $newUserOrganizator->setCompetencia($competenciaCreate);
-          $newUserOrganizator->setRol("ORGANIZADOR");
+          $newUserOrganizator->setRol($rolOrganizador);
           $newUserOrganizator->setAlias("org");
           
           // persistimos el registro
