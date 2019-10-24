@@ -5,6 +5,9 @@ namespace App\Repository;
 use App\Entity\UsuarioCompetencia;
 use App\Entity\Usuario;
 use App\Entity\Competencia;
+use App\Entity\Rol;
+
+use App\Utils\Constant;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
@@ -65,93 +68,77 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
         ->getArrayResult();
     }
 
-    // recuperamos los usuarios de una competencia
-    public function findParticipanteByCompetencia($idCompetencia)
-    {
+   // ######################################################################
+   // ######################## USUARIOS ROL SEGUN COMPETENCIA ##############################
 
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            '   SELECT u.id, u.nombreUsuario, u.nombre, u.apellido, u.correo, uc.alias
-                FROM App\Entity\UsuarioCompetencia uc
-                INNER JOIN App\Entity\Usuario u
-                WITH uc.usuario = u.id
-                WHERE uc.rol = :rol
-                AND uc.competencia = :idCompetencia
-            ')->setParameter('rol', "PARTICIPANTE")
-            ->setParameter('idCompetencia', $idCompetencia);
-
-        return $query->execute();
-    }
-
-    // recuperamos los tokenFirebase de los organizadores de una competencia
-    public function findOrganizatorsCompetencia($idCompetencia)
-    {
-        $entityManager = $this->getEntityManager();
-
-        $query = $entityManager->createQuery(
-            '   SELECT u.token
-                FROM App\Entity\UsuarioCompetencia uc
-                INNER JOIN App\Entity\Usuario u
-                WITH uc.usuario = u.id
-                AND uc.competencia = :idCompetencia
-                AND (uc.rol = :rol1 OR uc.rol = :rol2)
-            ')->setParameter('rol1', "ORGANIZADOR")
-            ->setParameter('rol2', "CO-ORGANIZADOR")
-            ->setParameter('idCompetencia', $idCompetencia);
-
-        return $query->execute();
-    }
-
-    // recuperamos las competencias de un usuario
-    public function findCompetitionsByUser($idUsuario)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            '   SELECT c.id,c.nombre, cat.nombre categoria, d.nombre deporte, org.nombre tipo_organizacion, c.ciudad, c.genero, uc.rol
-                FROM App\Entity\Competencia c
-                INNER JOIN App\Entity\UsuarioCompetencia uc
-                WITH uc.competencia = c.id
-                INNER JOIN App\Entity\Categoria cat
-                WITH c.categoria = cat.id
-                INNER JOIN App\Entity\TipoOrganizacion org
-                WITH c.organizacion = org.id
-                INNER JOIN App\Entity\Deporte d
-                WITH cat.deporte = d.id
-                AND uc.usuario = :idUsuario
-            ')->setParameter('idUsuario', $idUsuario);
-
-        return $query->execute();
-    }
-
-    // recuperamos las competencias seguidas por un usuario
-    public function findCompetitionsFollowByUser($idUsuario)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            '   SELECT c.id,c.nombre, cat.nombre categoria, d.nombre deporte, org.nombre tipo_organizacion, c.ciudad, c.genero, uc.rol
-                FROM App\Entity\Competencia c
-                INNER JOIN App\Entity\UsuarioCompetencia uc
-                WITH uc.competencia = c.id
-                INNER JOIN App\Entity\Categoria cat
-                WITH c.categoria = cat.id
-                INNER JOIN App\Entity\TipoOrganizacion org
-                WITH c.organizacion = org.id
-                INNER JOIN App\Entity\Deporte d
-               WITH cat.deporte = d.id
-                AND uc.usuario = :idUsuario
-                AND uc.rol = :rolUser
-            ')->setParameter('idUsuario', $idUsuario)
-            ->setParameter('rolUser', "SEGUIDOR");
-
-        return $query->execute();
-    }
-
-  // recuperamos las competencias en las que participa un usuario
-  public function findCompetitionsParticipatesByUser($idUsuario)
+   // recuperamos los usuarios solicitantes de una competencia
+  public function findSolicitantesByCompetencia($idCompetencia)
   {
       $entityManager = $this->getEntityManager();
       $query = $entityManager->createQuery(
-          '   SELECT c.id,c.nombre, cat.nombre categoria, d.nombre deporte, org.nombre tipo_organizacion, c.ciudad, c.genero, uc.rol
+        '   SELECT u.id, u.nombreUsuario, u.nombre, u.apellido, u.correo, uc.alias alias
+            FROM App\Entity\UsuarioCompetencia uc
+            INNER JOIN App\Entity\Usuario u
+            WITH uc.usuario = u.id
+            INNER JOIN App\Entity\Rol r
+            WITH uc.rol = r.id
+            WHERE uc.competencia = :idCompetencia
+            AND (r.nombre = :rol)
+        ')->setParameter('rol', Constant::ROL_ORGANIZADOR)
+        ->setParameter('idCompetencia', $idCompetencia);
+
+      return $query->execute();
+  }
+
+  // recuperamos los usuarios competidortes de una competencia
+  public function findCompetidoresByCompetencia($idCompetencia)
+  {
+      $entityManager = $this->getEntityManager();
+      $query = $entityManager->createQuery(
+          '   SELECT u.id, u.nombreUsuario, u.nombre, u.apellido, u.correo, uc.alias
+              FROM App\Entity\UsuarioCompetencia uc
+              INNER JOIN App\Entity\Usuario u
+              WITH uc.usuario = u.id
+              INNER JOIN App\Entity\Rol r
+              WITH uc.rol = r.id
+              AND r.nombre = :rol
+              AND uc.competencia = :idCompetencia
+          ')->setParameter('rol', Constant::ROL_COMPETIDOR)
+          ->setParameter('idCompetencia', $idCompetencia);    
+
+      return $query->execute();
+  }
+
+  // recuperamos los tokenFirebase de los organizadores de una competencia
+  public function findOrganizatorsCompetencia($idCompetencia)
+  {
+      $entityManager = $this->getEntityManager();
+
+      $query = $entityManager->createQuery(
+          '   SELECT u.token
+              FROM App\Entity\UsuarioCompetencia uc
+              INNER JOIN App\Entity\Usuario u
+              WITH uc.usuario = u.id
+              INNER JOIN App\Entity\Rol r
+              WITH uc.rol = r.id
+              AND uc.competencia = :idCompetencia
+              AND (r.nombre = :rol1 OR r.nombre = :rol2)
+          ')->setParameter('rol1', Constant::ROL_ORGANIZADOR)
+          ->setParameter('rol2', Constant::ROL_COORGANIZADOR)
+          ->setParameter('idCompetencia', $idCompetencia);    
+
+      return $query->execute();
+  }
+
+  // ######################################################################
+  // #################### COMPETENCIA SEGUN ROL USUARIO ##################
+
+  // recuperamos las competencias de un usuario
+  public function findCompetitionsByUser($idUsuario)
+  {
+      $entityManager = $this->getEntityManager();
+      $query = $entityManager->createQuery(
+          '   SELECT c.id,c.nombre, cat.nombre categoria, d.nombre deporte, org.nombre tipo_organizacion, c.ciudad, c.genero, r.nombre rol
               FROM App\Entity\Competencia c
               INNER JOIN App\Entity\UsuarioCompetencia uc
               WITH uc.competencia = c.id
@@ -160,71 +147,89 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
               INNER JOIN App\Entity\TipoOrganizacion org
               WITH c.organizacion = org.id
               INNER JOIN App\Entity\Deporte d
-               WITH cat.deporte = d.id
+              WITH cat.deporte = d.id
+              INNER JOIN App\Entity\Rol r
+             WITH uc.rol = r.id
               AND uc.usuario = :idUsuario
-              AND uc.rol = :rolUser
+          ')->setParameter('idUsuario', $idUsuario);
+
+
+      return $query->execute();
+  }
+
+  // recuperamos las competencias seguidas por un usuario
+  public function findCompetitionsFollowByUser($idUsuario)
+  {
+      $entityManager = $this->getEntityManager();
+      $query = $entityManager->createQuery(
+          '   SELECT c.id,c.nombre, cat.nombre categoria, d.nombre deporte, org.nombre tipo_organizacion, c.ciudad, c.genero, r.nombre rol
+              FROM App\Entity\Competencia c
+              INNER JOIN App\Entity\UsuarioCompetencia uc
+              WITH uc.competencia = c.id
+              INNER JOIN App\Entity\Categoria cat
+              WITH c.categoria = cat.id
+              INNER JOIN App\Entity\TipoOrganizacion org
+              WITH c.organizacion = org.id
+              INNER JOIN App\Entity\Deporte d
+             WITH cat.deporte = d.id
+             INNER JOIN App\Entity\Rol r
+             WITH uc.rol = r.id
+              AND uc.usuario = :idUsuario
+              AND r.nombre = :rolUser
           ')->setParameter('idUsuario', $idUsuario)
-          ->setParameter('rolUser', "PARTICIPANTE");
+          ->setParameter('rolUser', Constant::ROL_SEGUIDOR);
 
       return $query->execute();
   }
 
-   // recuperamos el nombre de los usuarios de una competencia
-   public function findCompetitionsOrganizeByUser($idUsuario)
-   {
-       $entityManager = $this->getEntityManager();
-       $query = $entityManager->createQuery(
-           '   SELECT c.id,c.nombre, cat.nombre categoria, d.nombre deporte, org.nombre tipo_organizacion, c.ciudad, c.genero, uc.rol
-               FROM App\Entity\Competencia c
-               INNER JOIN App\Entity\UsuarioCompetencia uc
-               WITH uc.competencia = c.id
-               INNER JOIN App\Entity\Categoria cat
-               WITH c.categoria = cat.id
-               INNER JOIN App\Entity\TipoOrganizacion org
-               WITH c.organizacion = org.id
-               INNER JOIN App\Entity\Deporte d
-               WITH cat.deporte = d.id
-               AND uc.usuario = :idUsuario
-               AND uc.rol = :rolUser
-           ')->setParameter('idUsuario', $idUsuario)
-           ->setParameter('rolUser', "ORGANIZADOR");
-
-       return $query->execute();
-   }
-
-   // ######################################################################
-   // ############################## USUARIOS ##############################
-
-   // recuperamos los usuarios solicitantes de una competencia
-  public function findSolicitantesByCompetencia($idCompetencia)
+  // recuperamos las competencias en las que participa un usuario
+  public function findCompetitionsParticipatesByUser($idUsuario)
   {
       $entityManager = $this->getEntityManager();
       $query = $entityManager->createQuery(
-          '   SELECT u.id, u.nombreUsuario, u.nombre, u.apellido, u.correo
-              FROM App\Entity\UsuarioCompetencia uc
-              INNER JOIN App\Entity\Usuario u
-              WITH uc.usuario = u.id
-              WHERE uc.competencia = :idCompetencia
-              AND (uc.rol = :rol1 OR uc.rol = :rol2)
-          ')->setParameter('rol1', "SOLICITANTE")
-          ->setParameter('rol2', "SEG-SOLIC")
-          ->setParameter('idCompetencia', $idCompetencia);
+        '   SELECT c.id,c.nombre, cat.nombre categoria, d.nombre deporte, org.nombre tipo_organizacion, c.ciudad, c.genero, r.nombre rol
+            FROM App\Entity\Competencia c
+            INNER JOIN App\Entity\UsuarioCompetencia uc
+            WITH uc.competencia = c.id
+            INNER JOIN App\Entity\Categoria cat
+            WITH c.categoria = cat.id
+            INNER JOIN App\Entity\TipoOrganizacion org
+            WITH c.organizacion = org.id
+            INNER JOIN App\Entity\Deporte d
+            WITH cat.deporte = d.id
+            INNER JOIN App\Entity\Rol r
+            WITH uc.rol = r.id
+            AND uc.usuario = :idUsuario
+            AND r.nombre = :rolUser
+        ')->setParameter('idUsuario', $idUsuario)
+        ->setParameter('rolUser', Constant::ROL_COMPETIDOR);
+
 
       return $query->execute();
   }
 
-  public function findCompetidoresByCompetencia($idCompetencia)
+  // recuperamos las competencia que organiza un usuario
+  public function findCompetitionsOrganizeByUser($idUsuario)
   {
       $entityManager = $this->getEntityManager();
       $query = $entityManager->createQuery(
-          '   SELECT u.id, u.nombreUsuario, u.nombre, u.apellido, u.correo
-              FROM App\Entity\UsuarioCompetencia uc
-              INNER JOIN App\Entity\Usuario u
-              WITH uc.usuario = u.id
-              WHERE uc.competencia = :idCompetencia
-              AND (uc.rol = :rol1)
-          ')->setParameter('rol1', "PARTICIPANTE")
-          ->setParameter('idCompetencia', $idCompetencia);
+       '   SELECT c.id,c.nombre, cat.nombre categoria, d.nombre deporte, org.nombre tipo_organizacion, c.ciudad, c.genero, r.nombre rol
+           FROM App\Entity\Competencia c
+           INNER JOIN App\Entity\UsuarioCompetencia uc
+           WITH uc.competencia = c.id
+           INNER JOIN App\Entity\Categoria cat
+           WITH c.categoria = cat.id
+           INNER JOIN App\Entity\TipoOrganizacion org
+           WITH c.organizacion = org.id
+           INNER JOIN App\Entity\Deporte d
+           WITH cat.deporte = d.id
+           INNER JOIN App\Entity\Rol r
+           WITH uc.rol = r.id
+           AND uc.usuario = :idUsuario
+           AND r.nombre = :rolUser
+       ')->setParameter('idUsuario', $idUsuario)
+       ->setParameter('rolUser', Constant::ROL_ORGANIZADOR);
+
 
       return $query->execute();
   }

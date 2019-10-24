@@ -444,7 +444,7 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         $idCompetencia = $request->get('idCompetencia');
         // vemos si recibimos algun parametro
         if(!empty($idCompetencia)){
-            $respJson = $repository->findParticipanteByCompetencia($idCompetencia);
+            $respJson = $repository->findCompetidoresByCompetencia($idCompetencia);
             $statusCode = Response::HTTP_OK;
         }
         else{
