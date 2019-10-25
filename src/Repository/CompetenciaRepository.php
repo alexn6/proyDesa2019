@@ -7,6 +7,10 @@ use Doctrine\Common\Persistence\ManagerRegistry;
 
 use App\Entity\Competencia;
 use App\Entity\TipoOrganizacion;
+use App\Entity\UsuarioCompetencia;
+use App\Entity\Rol;
+use App\Entity\Deporte;
+use App\Entity\Categoria;
 
 /**
  * @method Competencia|null find($id, $lockMode = null, $lockVersion = null)
@@ -34,12 +38,12 @@ class CompetenciaRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    //funcion busqueda por nombre
+    // filtro de competencias
     public function filterCompetitions($nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad){
         $entityManager = $this->getEntityManager();
         $qb = $this->getEntityManager()->createQueryBuilder();
         // partimos de una consulta base para 
-        $stringQueryBase = 'SELECT c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.ciudad, c.genero
+        $stringQueryBase = 'SELECT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.ciudad, c.genero
                             FROM App\Entity\Competencia c
                             INNER JOIN App\Entity\Categoria categ
                             WITH c.categoria = categ.id

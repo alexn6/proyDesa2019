@@ -262,8 +262,8 @@ class CompetenciaController extends AbstractFOSRestController
       $response->headers->set('Content-Type', 'application/json');
 
       return $response;
-  }     
-
+  } 
+  
     // ########################################################
     // ################### funciones auxiliares ################
  

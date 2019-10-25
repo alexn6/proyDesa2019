@@ -703,6 +703,67 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         return $response;
     }
 
+    /**
+     * Actualiza el rol de usuario_competencia a SEGUIDOR
+     * @Rest\Put("/usercomp-delfollow"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function deleteFollower(Request $request){
+
+      $respJson = (object) null;
+      $statusCode;
+
+      if(!empty($request->getContent())){
+
+        // recuperamos los datos del body y pasamos a un array
+        $dataRequest = json_decode($request->getContent());
+
+        if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->idCompetencia))){
+          $idUsuario = $dataRequest->idUsuario;
+          $idCompetencia = $dataRequest->idCompetencia;
+          // recuperamos la fila y la eliminamos la fila
+          $repository = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+          // recuperamos los roles a usar
+          $repositoryRol=$this->getDoctrine()->getRepository(Rol::class);
+          $rolSeguidor = $repositoryRol->findOneBy(['nombre' => Constant::ROL_SEGUIDOR]);
+          // buscamos los datos correspodientes a los id recibidos
+          $repositoryUser=$this->getDoctrine()->getRepository(Usuario::class);
+          $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
+          $usuario = $repositoryUser->find($idUsuario);
+          $competencia = $repositoryComp->find($idCompetencia);
+          $competenciaNoSeguida = $competencia->getNombre();
+          // buscamos el seguidor
+          $follower = $repository->findOneBy(['usuario' => $usuario, 'competencia' => $competencia, 'rol' => $rolSeguidor]);
+          // eliminamos el dato y refrescamos la DB
+          $em = $this->getDoctrine()->getManager();
+          $em->remove($follower);
+          $em->flush();
+
+          $statusCode = Response::HTTP_OK;
+          $respJson->messaging = "Ya no es seguidor de la competencia: ".$competenciaNoSeguida;
+        }
+        else{
+          $statusCode = Response::HTTP_BAD_REQUEST;
+          $respJson->messaging = "Solicitud mal formada";
+        }
+        
+      }
+      else{
+        $statusCode = Response::HTTP_BAD_REQUEST;
+        $respJson->messaging = "Solicitud mal formada";
+      }
+
+      
+      $respJson = json_encode($respJson);
+
+      $response = new Response($respJson);
+      $response->headers->set('Content-Type', 'application/json');
+      $response->setStatusCode($statusCode);
+
+      return $response;
+  }
+
     // ##################################################################
     // ###################### funciones auxiliares ######################
 
