@@ -262,15 +262,15 @@ class GeneradorEncuentroController extends AbstractFOSRestController
      * @return Response
      */
     public function generateMatchesCompetition(Request $request){
-        $name_competition = $request->get('competencia');
+        $idCompetition = $request->get('idCompetencia');
 
         $respJson = (object) null;
         $statusCode;
        
         // vemos si recibimos algun parametro
-        if(!empty($name_competition)){
+        if(!empty($idCompetition)){
             $repository = $this->getDoctrine()->getRepository(Competencia::class);
-            $competition = $repository->findOneBy(['nombre' => $name_competition]);
+            $competition = $repository->find($idCompetition);
 
             if(empty($competition)){
                 $respJson->matches = NULL;
@@ -281,7 +281,7 @@ class GeneradorEncuentroController extends AbstractFOSRestController
                 $repositoryUsComp = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
                 $idCompetencia = $competition->getId();
                 // recuperamos los usuario_competencia de una competencia
-                $participantes = $repositoryUsComp->findParticipanteByCompetencia($idCompetencia);
+                $participantes = $repositoryUsComp->findNameCompetidoresByCompetencia($idCompetencia);
     
                 if(count($participantes) < 2){
                     $respJson->matches = NULL;
@@ -298,10 +298,8 @@ class GeneradorEncuentroController extends AbstractFOSRestController
                     // recuperamos el tipo de org de la competencia
                     $repositoryTypeorg = $this->getDoctrine()->getRepository(TipoOrganizacion::class);
                     $tipoorg = $repositoryTypeorg->find($competition->getOrganizacion());
-                    // var_dump($tipoorg);
                     $codigo_tipo = $tipoorg->getCodigo();
     
-                    // $matchesCompetition = $this->generator::ligaDouble($nombre_participantes);
                     $generatorMatches = new CreatorEncuentros();
                     if(strcmp($codigo_tipo, "FASEGRUP") == 0){
                         $matchesCompetition = $generatorMatches->createMatches($nombre_participantes, $codigo_tipo, $competition->getCantGrupos());
