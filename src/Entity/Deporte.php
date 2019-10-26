@@ -23,11 +23,6 @@ class Deporte
      */
     private $nombre;
 
-    public function __construct()
-    {
-        $this->categorias = new ArrayCollection();
-    }
-
     public function getId(): ?int
     {
         return $this->id;
