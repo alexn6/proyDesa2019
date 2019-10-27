@@ -528,7 +528,7 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
     // ###################### actualizacion de roles ####################
 
     /**
-     * Actualiza el rol de usuario_competencia a SEGUIDOR
+     * Actualiza o crea una nueva fila con el rol de usuario_competencia a SEGUIDOR
      * @Rest\Put("/usercomp-rolfollow"), defaults={"_format"="json"})
      * 
      * @return Response
@@ -544,7 +544,7 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
           $dataRequest = json_decode($request->getContent());
 
           if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->idCompetencia))){
-            // vamos a actualizar el rol del usuario
+            // vamos a actualizar o crear un nuevo dato con el rol del usuario
             $this->processUpdateRol($dataRequest, Constant::ROL_SEGUIDOR);
 
             $statusCode = Response::HTTP_OK;
@@ -782,10 +782,31 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         // buscamos el rol correspondiente
         $rol = $repositoryRol->findOneBy(['nombre' => $nameRol]);
 
-        // actualizamos el dato y lo persistimos
-        $em = $this->getDoctrine()->getManager();
-        $usuario_comp->setRol($rol);
-        $em->flush();
+        //var_dump($usuario_comp);
+        // vemos si hay que actualizar o crear un nuevo dato
+        if($usuario_comp != NULL){
+          // actualizamos el dato y lo persistimos
+          $em = $this->getDoctrine()->getManager();
+          $usuario_comp->setRol($rol);
+          $em->flush();
+        }
+        else{
+          $repositoryUser=$this->getDoctrine()->getRepository(Usuario::class);
+          $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
+          $user = $repositoryUser->find($idUser);
+          $competition = $repositoryComp->find($idCompetition);
+
+          $newUser = new UsuarioCompetencia();
+          $newUser->setUsuario($user);
+          $newUser->setCompetencia($competition);
+          $newUser->setRol($rol);
+          $newUser->setAlias("nueva fila");
+          //var_dump($newUser);
+          // persistimos el nuevo dato
+          $em = $this->getDoctrine()->getManager();
+          $em->persist($newUser);
+          $em->flush();
+        }
     }
 
     // notifica al usuario que su solicitud de incripcion a la competencia fue rechazada

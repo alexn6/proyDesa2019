@@ -309,6 +309,8 @@ class GeneradorEncuentroController extends AbstractFOSRestController
                         $matchesCompetition = $generatorMatches->createMatches($nombre_participantes, $codigo_tipo, null);
                     }
     
+                    // vamos a persistir los datos de los encuentros generados
+                    //$this->saveEncuentros($matchesCompetition, $competition, $codigo_tipo);
                     $statusCode = Response::HTTP_OK;
                     $respJson->msg = "Generacion realizada con exito";
                     $respJson->matches = $matchesCompetition;
