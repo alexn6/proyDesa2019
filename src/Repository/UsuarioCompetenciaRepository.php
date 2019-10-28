@@ -84,7 +84,7 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
             WITH uc.rol = r.id
             WHERE uc.competencia = :idCompetencia
             AND (r.nombre = :rol)
-        ')->setParameter('rol', Constant::ROL_ORGANIZADOR)
+        ')->setParameter('rol', Constant::ROL_SOLICITANTE)
         ->setParameter('idCompetencia', $idCompetencia);
 
       return $query->execute();

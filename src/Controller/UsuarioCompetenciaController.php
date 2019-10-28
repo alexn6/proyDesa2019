@@ -192,8 +192,9 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
             $user = $repositoryUser->find($idUser);
             $competition = $repositoryComp->find($idCompetition);
             $rolCompetidor = $repositoryRol->findOneBy(['nombre' => Constant::ROL_COMPETIDOR]);
+            var_dump($rolCompetidor);
             $rolSolicitante = $repositoryRol->findOneBy(['nombre' => Constant::ROL_SOLICITANTE]);
-        
+            var_dump($rolSolicitante);
             // vamos a buscar el elemento
             $repository=$this->getDoctrine()->getRepository(UsuarioCompetencia::class);
             $solicitante = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => $rolSolicitante]);
