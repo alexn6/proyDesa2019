@@ -14,6 +14,8 @@ use App\Entity\Competencia;
 use App\Entity\UsuarioCompetencia;
 use App\Entity\TipoOrganizacion;
 
+use App\Controller\EncuentroController;
+
  /**
  * Usuario controller
  * @Route("/api/generator",name="api_")
@@ -310,7 +312,10 @@ class GeneradorEncuentroController extends AbstractFOSRestController
                     }
     
                     // vamos a persistir los datos de los encuentros generados
-                    //$this->saveEncuentros($matchesCompetition, $competition, $codigo_tipo);
+                    $managerEncuentro = new EncuentroController();
+                    // $managerEncuentro = $this->forward('service_encuentro');
+                    //$managerEncuentro = $this->container->get('EncuentroController')->saveFixture($matchesCompetition, $competition, $codigo_tipo);
+                    $managerEncuentro->saveFixture($matchesCompetition, $competition, $codigo_tipo);
                     $statusCode = Response::HTTP_OK;
                     $respJson->msg = "Generacion realizada con exito";
                     $respJson->matches = $matchesCompetition;
