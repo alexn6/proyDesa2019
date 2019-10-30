@@ -96,6 +96,11 @@ class Competencia
      */
     private $usuarioscompetencias;
 
+    /**
+     * @ORM\Column(type="string", length=64)
+     */
+    private $fase;
+
     public function __construct()
     {
         $this->usuarioscompetencias = new ArrayCollection();
@@ -245,6 +250,18 @@ class Competencia
     public function setOrganizacion(?TipoOrganizacion $organizacion): self
     {
         $this->organizacion = $organizacion;
+
+        return $this;
+    }
+
+    public function getFase(): ?string
+    {
+        return $this->fase;
+    }
+
+    public function setFase(string $fase): self
+    {
+        $this->fase = $fase;
 
         return $this;
     }

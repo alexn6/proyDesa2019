@@ -312,8 +312,6 @@ class GeneradorEncuentroController extends AbstractFOSRestController
                     }
     
                     // vamos a persistir los datos de los encuentros generados
-                    // $managerEncuentro = new EncuentroController();
-                    // $managerEncuentro->saveFixture($matchesCompetition, $competition, $codigo_tipo);
                     $this->forward('App\Controller\EncuentroController::saveFixture', [
                         'matches'  => $matchesCompetition,
                         'competencia' => $competition,

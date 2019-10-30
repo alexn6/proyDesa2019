@@ -252,10 +252,11 @@ class EncuentroController extends AbstractFOSRestController
   // gurda en la DB los encuentros generados en una eliminatorio(single y double)
   private function saveEliminatorias($fixtureEncuentros, $competencia){
     // recuperamos el id y la fase de a copetencia
-    for ($i=0; $i < count($fixtureEncuentros); $i++) {
+    for ($i=1; $i <= count($fixtureEncuentros); $i++) {
       // esto desp queda determinadao por la competencia
-      $jornada = "SEMIS";
-      //$jornada = $competencia->getFase();
+      //$jornada = "SEMIS";
+      $jornada = $competencia->getFase();
+      var_dump($competencia->getFase());
       $this->saveEncuentrosCompetition($fixtureEncuentros[$i], $competencia, $jornada, null);
     }
   }
