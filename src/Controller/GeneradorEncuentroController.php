@@ -312,10 +312,13 @@ class GeneradorEncuentroController extends AbstractFOSRestController
                     }
     
                     // vamos a persistir los datos de los encuentros generados
-                    $managerEncuentro = new EncuentroController();
-                    // $managerEncuentro = $this->forward('service_encuentro');
-                    //$managerEncuentro = $this->container->get('EncuentroController')->saveFixture($matchesCompetition, $competition, $codigo_tipo);
-                    $managerEncuentro->saveFixture($matchesCompetition, $competition, $codigo_tipo);
+                    // $managerEncuentro = new EncuentroController();
+                    // $managerEncuentro->saveFixture($matchesCompetition, $competition, $codigo_tipo);
+                    $this->forward('App\Controller\EncuentroController::saveFixture', [
+                        'matches'  => $matchesCompetition,
+                        'competencia' => $competition,
+                        'tipoorg' => $codigo_tipo
+                    ]);
                     $statusCode = Response::HTTP_OK;
                     $respJson->msg = "Generacion realizada con exito";
                     $respJson->matches = $matchesCompetition;

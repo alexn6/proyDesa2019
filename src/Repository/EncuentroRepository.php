@@ -3,6 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\Encuentro;
+use App\Entity\Competencia;
+
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
 
@@ -47,4 +49,19 @@ class EncuentroRepository extends ServiceEntityRepository
         ;
     }
     */
+
+     // recuperamos los usuarios solicitantes de una competencia
+  public function findEncuentrosByCompetencia($idCompetencia)
+  {
+      $entityManager = $this->getEntityManager();
+      $query = $entityManager->createQuery(
+        '   SELECT e.competidor1
+            FROM App\Entity\Encuentro e
+            INNER JOIN App\Entity\Competencia comp
+            WITH e.competencia = comp.id
+            WHERE e.competencia = :idCompetencia
+        ')->setParameter('idCompetencia', $idCompetencia);
+
+      return $query->execute();
+  }
 }

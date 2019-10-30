@@ -5,6 +5,7 @@ namespace App\Controller;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\Entity\Encuentro;
@@ -40,6 +41,55 @@ class EncuentroController extends AbstractFOSRestController
     // return $response;
     return null;
   }
+
+  /**
+     * 
+     * @Rest\Get("/confrontations")
+     * Por nombre de competencia
+     * 
+     * @return Response
+     */
+    public function generateMatchesCompetition(Request $request){
+      $idCompetition = $request->get('idCompetencia');
+
+      $respJson = (object) null;
+      $statusCode;
+     
+      // vemos si recibimos algun parametro
+      if(!empty($idCompetition)){
+          $repository = $this->getDoctrine()->getRepository(Competencia::class);
+          $competition = $repository->find($idCompetition);
+
+          if(empty($competition)){
+              $respJson->matches = NULL;
+              $statusCode = Response::HTTP_BAD_REQUEST;
+              $respJson->msg = "La competencia no existe o fue eliminada";
+          }
+          else{
+            $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
+            // recuperamos los usuario_competencia de una competencia
+            $respJson = $repositoryEnc->findEncuentrosByCompetencia($idCompetition);
+
+            $statusCode = Response::HTTP_OK;
+            //$respJson->msg = "Operacion exitosa";
+             //= $encuentros;
+          }
+      }
+      else{
+        $respJson->encuentros = NULL;
+        $respJson->msg = "Solicitud mal formada";
+        $statusCode = Response::HTTP_BAD_REQUEST;
+      }
+
+      $respJson = json_encode($respJson);
+
+      $response = new Response($respJson);
+      $response->setStatusCode($statusCode);
+      $response->headers->set('Content-Type', 'application/json');
+
+      return $response;
+    }
+  
 
   /**
    * Creamos y persistimos un objeto del tipo Encuentro
@@ -189,7 +239,7 @@ class EncuentroController extends AbstractFOSRestController
     if(($tipoorg == Constant::COD_TIPO_LIGA_SINGLE) || ($tipoorg == Constant::COD_TIPO_LIGA_DOUBLE)){
       // recorremos el array, cada i da la joranada(fecha) y pasa la lista
       // de encuentros a la funcion de guardar encuentros
-      $this->saveLiga($matches, $tipoorg);
+      $this->saveLiga($matches, $competencia);
     }
     if($tipoorg == Constant::COD_TIPO_FASE_GRUPOS){
       $this->saveGrupos($matches, $competencia);

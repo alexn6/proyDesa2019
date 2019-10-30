@@ -9,7 +9,7 @@ class NotificationSolicitudTest extends TestCase{
         $servNotification = new NotificationService();
 
         $title = "Resolucion de su solicitud de inscripcion";
-        $token ='da7cU3tPSs8:APA91bH2QFvIB8uGSgNmioaHBGTBkTrcYSCy-Rpsp8VDlnH8UmKIC6prC3jC0n5TMx55rldz5VBmJOOja7fJdCw-xzguuz1RXxCqGjFJ7kErSjPI4gQ6pBgFNGKgzw0BIO0I_NpHZDPy';
+        $token ='eJ8zOQsR00g:APA91bFtKM0nA6ou-TvORHDzpOKob2GDctSEjgy-gl9TIKalMAcmFymI1HC3iRmNgKikbDbsvxx3aghsZeMAtSn4ykR_z5BdaEsWkjnSlrKSuXhk7vuziqYSp2-lYvv64xUKuq82aPhy';
         $msg = "Su solicitud fue rechazada";
 
         $result = $servNotification->sendSimpleNotificationFCM($title, $token, $msg);
