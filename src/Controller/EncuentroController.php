@@ -256,7 +256,7 @@ class EncuentroController extends AbstractFOSRestController
       // esto desp queda determinadao por la competencia
       //$jornada = "SEMIS";
       $jornada = $competencia->getFase();
-      var_dump($competencia->getFase());
+      //var_dump($competencia->getFase());
       $this->saveEncuentrosCompetition($fixtureEncuentros[$i], $competencia, $jornada, null);
     }
   }
@@ -278,6 +278,7 @@ class EncuentroController extends AbstractFOSRestController
   // guardamos los encuentros generados por una competencia con grupos
   private function saveGrupos($fixtureEncuentros, $competencia){
     // el fixture serian los matches
+    // controlar que tengan cant de grupos
     for ($i=0; $i < count($fixtureEncuentros); $i++) {
       //$fixtureGrupo = $fixtureEncuentros[$encuentros];
       $fixtureGrupo = $fixtureEncuentros[$i];
