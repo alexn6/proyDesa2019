@@ -277,14 +277,15 @@ class EncuentroController extends AbstractFOSRestController
 
   // guardamos los encuentros generados por una competencia con grupos
   private function saveGrupos($fixtureEncuentros, $competencia){
+    //var_dump($fixtureEncuentros);
     // el fixture serian los matches
     // controlar que tengan cant de grupos
     for ($i=0; $i < count($fixtureEncuentros); $i++) {
       //$fixtureGrupo = $fixtureEncuentros[$encuentros];
-      $fixtureGrupo = $fixtureEncuentros[$i];
+      $fixtureGrupo = $fixtureEncuentros[$i]["Encuentros"];
       $grupo = $i+1;
-      for ($j=0; $j < count($fixtureGrupo); $j++) {
-        $jornada = "FECHA".($j+1);
+      for ($j=1; $j <= count($fixtureGrupo); $j++) {
+        $jornada = "FECHA".$j;
         $this->saveEncuentrosCompetition($fixtureGrupo[$j], $competencia, $jornada, $grupo);
       }      
     }

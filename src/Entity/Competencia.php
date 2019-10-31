@@ -70,12 +70,12 @@ class Competencia
     private $genero;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer",  nullable=true)
      */
     private $max_competidores;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer",  nullable=true)
      */
     private $cant_grupos;
 
@@ -97,9 +97,19 @@ class Competencia
     private $usuarioscompetencias;
 
     /**
-     * @ORM\Column(type="string", length=64)
+     * @ORM\Column(type="integer",  nullable=true)
      */
     private $fase;
+
+    /**
+     * @ORM\Column(type="integer",  nullable=true)
+     */
+    private $min_competidores;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $fase_actual;
 
     public function __construct()
     {
@@ -254,14 +264,38 @@ class Competencia
         return $this;
     }
 
-    public function getFase(): ?string
+    public function getFase(): ?int
     {
         return $this->fase;
     }
 
-    public function setFase(string $fase): self
+    public function setFase(int $fase): self
     {
         $this->fase = $fase;
+
+        return $this;
+    }
+
+    public function getMinCompetidores(): ?int
+    {
+        return $this->min_competidores;
+    }
+
+    public function setMinCompetidores(int $min_competidores): self
+    {
+        $this->min_competidores = $min_competidores;
+
+        return $this;
+    }
+
+    public function getFaseActual(): ?int
+    {
+        return $this->fase_actual;
+    }
+
+    public function setFaseActual(int $fase_actual): self
+    {
+        $this->fase_actual = $fase_actual;
 
         return $this;
     }

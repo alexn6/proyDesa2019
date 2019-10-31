@@ -33,6 +33,11 @@ class TipoOrganizacion
      */
     private $descripcion;
 
+    /** Determina el nombre de la funcion a utilizar para controlar el minimo permitido
+     * @ORM\Column(type="string", length=127)
+     */
+    private $minimo;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -70,6 +75,18 @@ class TipoOrganizacion
     public function setCodigo(string $codigo): self
     {
         $this->codigo = $codigo;
+
+        return $this;
+    }
+
+    public function getMinimo(): ?string
+    {
+        return $this->minimo;
+    }
+
+    public function setMinimo(string $minimo): self
+    {
+        $this->minimo = $minimo;
 
         return $this;
     }    

@@ -40,12 +40,12 @@ class Encuentro
     private $competidor2;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer",  nullable=true)
      */
     private $grupo;
 
     /**
-     * @ORM\Column(type="string", length=64)
+     * @ORM\Column(type="integer")
      */
     private $jornada;
 
@@ -62,18 +62,6 @@ class Encuentro
     public function setGrupo(int $grupo): self
     {
         $this->grupo = $grupo;
-
-        return $this;
-    }
-
-    public function getJornada(): ?string
-    {
-        return $this->jornada;
-    }
-
-    public function setJornada(string $jornada): self
-    {
-        $this->jornada = $jornada;
 
         return $this;
     }
@@ -110,6 +98,18 @@ class Encuentro
     public function setCompetidor2(?Usuario $competidor2): self
     {
         $this->competidor2 = $competidor2;
+
+        return $this;
+    }
+
+    public function getJornada(): ?int
+    {
+        return $this->jornada;
+    }
+
+    public function setJornada(int $jornada): self
+    {
+        $this->jornada = $jornada;
 
         return $this;
     }

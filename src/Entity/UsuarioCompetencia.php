@@ -31,7 +31,7 @@ class UsuarioCompetencia
     protected $competencia;
 
     /**
-     * @ORM\Column(type="string", length=127)
+     * @ORM\Column(type="string", length=127, nullable=true)
      */
     private $alias;
 
