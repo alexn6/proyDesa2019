@@ -15,6 +15,8 @@ use App\Entity\UsuarioCompetencia;
 use App\Entity\TipoOrganizacion;
 
 use App\Controller\EncuentroController;
+use App\Utils\Validation;
+use App\Utils\Reflection;
 
  /**
  * Usuario controller
@@ -284,8 +286,13 @@ class GeneradorEncuentroController extends AbstractFOSRestController
                 $idCompetencia = $competition->getId();
                 // recuperamos los usuario_competencia de una competencia
                 $participantes = $repositoryUsComp->findNameCompetidoresByCompetencia($idCompetencia);
-    
-                if(count($participantes) < 2){
+
+                // if(count($participantes) < 2){
+                //     $respJson->matches = NULL;
+                //     $statusCode = Response::HTTP_BAD_REQUEST;
+                //     $respJson->msg = "No cuenta con suficientes participantes para crear la competencia";
+                // }
+                if(!($this->validarCantCompetidores($competition, $participantes))){
                     $respJson->matches = NULL;
                     $statusCode = Response::HTTP_BAD_REQUEST;
                     $respJson->msg = "No cuenta con suficientes participantes para crear la competencia";
@@ -302,6 +309,9 @@ class GeneradorEncuentroController extends AbstractFOSRestController
                     $tipoorg = $repositoryTypeorg->find($competition->getOrganizacion());
                     $codigo_tipo = $tipoorg->getCodigo();
     
+                    // esto ponerlo en el control de competidores mas arriba
+                    // $this->validarCantCompetidores($competition, $nombre_participantes);
+
                     $generatorMatches = new CreatorEncuentros();
                     if(strcmp($codigo_tipo, "FASEGRUP") == 0){
                         $matchesCompetition = $generatorMatches->createMatches($nombre_participantes, $codigo_tipo, $competition->getCantGrupos());
@@ -336,5 +346,39 @@ class GeneradorEncuentroController extends AbstractFOSRestController
         $response->headers->set('Content-Type', 'application/json');
 
         return $response;
+    }
+
+    // #####################################################################################
+    // ################# validar cant minima de competencia ################################
+
+    // controlamos que la cant de competidores se adecue a la competencia
+    private function validarCantCompetidores($competencia, $competidores){
+        // aca sacamos la funcion de control de cada tipo de organizacion
+        $funcion_validacion = $competencia->getOrganizacion()->getMinimo();
+        // recuperamos los datos a pasarle a la funcion
+        $n_competidores = count($competidores);
+        $n_fase = $competencia->getFase();
+        $n_grupos = $competencia->getCantGrupos();
+        $n_minima = $competencia->getMinCompetidores();
+        
+        $validator = new Validation();
+        $managerFunction = new Reflection();
+        // recuperamos la funcion del objeto y la ejecutamos
+        $exec_function = $managerFunction->getFunction($validator, $funcion_validacion);
+        $rdo_validation = $exec_function($n_fase, $n_minima, $n_grupos, $n_competidores);
+
+        return $rdo_validation;
+    }
+
+    private function validarCompetidoresEliminitorias($n_fase, $n_minima, $n_grupos, $n_competidores){
+
+    }
+
+    private function validarCompetidoresLiga($n_fase, $n_minima, $n_grupos, $n_competidores){
+
+    }
+
+    private function validarCompetidoresGrupos($n_fase, $n_minima, $n_grupos, $n_competidores){
+
     }
 }

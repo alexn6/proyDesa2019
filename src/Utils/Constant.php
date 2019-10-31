@@ -17,4 +17,6 @@ class Constant{
     const COD_TIPO_ELIMINATORIAS_DOUBLE = 'ELIMDOUB';
     const COD_TIPO_FASE_GRUPOS = 'FASEGRUP';
 
+    const MIN_COMPETIDORES_LIGA = 3;
+
 }

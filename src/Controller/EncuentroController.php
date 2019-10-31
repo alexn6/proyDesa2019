@@ -254,9 +254,7 @@ class EncuentroController extends AbstractFOSRestController
     // recuperamos el id y la fase de a copetencia
     for ($i=1; $i <= count($fixtureEncuentros); $i++) {
       // esto desp queda determinadao por la competencia
-      //$jornada = "SEMIS";
       $jornada = $competencia->getFase();
-      //var_dump($competencia->getFase());
       $this->saveEncuentrosCompetition($fixtureEncuentros[$i], $competencia, $jornada, null);
     }
   }
@@ -266,7 +264,7 @@ class EncuentroController extends AbstractFOSRestController
     // recuperamos el id y la fase de a copetencia
     // recorremos la lista de encuentros y persistimos los encuentros
     for ($i=1; $i <= count($fixtureEncuentros); $i++) {
-      $jornada = "FECHA".$i;
+      $jornada = $i;
       $this->saveEncuentrosCompetition($fixtureEncuentros[$i], $competencia, $jornada, null);
     }
     // for ($i=0; $i < count($fixtureEncuentros); $i++) {
@@ -285,7 +283,7 @@ class EncuentroController extends AbstractFOSRestController
       $fixtureGrupo = $fixtureEncuentros[$i]["Encuentros"];
       $grupo = $i+1;
       for ($j=1; $j <= count($fixtureGrupo); $j++) {
-        $jornada = "FECHA".$j;
+        $jornada = $j;
         $this->saveEncuentrosCompetition($fixtureGrupo[$j], $competencia, $jornada, $grupo);
       }      
     }
@@ -313,10 +311,7 @@ class EncuentroController extends AbstractFOSRestController
       $newEncuentro->setCompetidor1($competitor1);
       $newEncuentro->setCompetidor2($competitor2);
 
-      if($grupo == NULL){
-        $newEncuentro->setGrupo(0);
-      }
-      else{
+      if($grupo != NULL){
         $newEncuentro->setGrupo($grupo);
       }
 
@@ -324,7 +319,6 @@ class EncuentroController extends AbstractFOSRestController
     }
 
     $em->flush();
-    //$em->clear(); // sepeara todos los objetos de doctrine
     
   }
   
