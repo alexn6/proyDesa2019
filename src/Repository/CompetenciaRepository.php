@@ -109,6 +109,61 @@ class CompetenciaRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    // filtro de competencias con roles de un usuario
+    // 1ra parte: las competencias en las que si tengo un rol
+    // public function filterCompetitionsRol($nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad){
+    public function filterCompetitionsRol($idUsuario){
+
+        //         SELECT c.id, c.nombre, c.genero, r.nombre
+        // FROM `competencia` c
+        // INNER JOIN `usuario_competencia` uc
+        // ON c.id=uc.id_competencia
+        // INNER JOIN `rol` r ON uc.rol_id=r.id WHERE uc.id_usuario=2
+        
+                $entityManager = $this->getEntityManager();
+                $query = $entityManager->createQuery(
+                    ' SELECT c.id, c.nombre, c.genero, r.nombre as rol
+                    FROM App\Entity\Competencia c 
+                    INNER JOIN App\Entity\UsuarioCompetencia uc
+                    WITH c.id = uc.competencia
+                    INNER JOIN App\Entity\Rol r
+                    WITH uc.rol = r.id
+                    WHERE uc.usuario = :idUsuario
+                    ORDER BY c.id ASC
+                    ')->setParameter('idUsuario',$idUsuario);
+        
+                    
+                return $query->execute();
+    }
+            
+    // filtro de competencias con roles de un usuario
+    // 2da parte: las competencias en las que no tengo un rol
+    // public function filterCompetitionsRol($nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad){
+    public function filterCompetitionsUnrol($idUsuario){
+
+        // SELECT DISTINCT c.id, c.nombre, c.genero, 'ESPECTADOR' AS rol
+        // FROM `competencia` c
+        // INNER JOIN `usuario_competencia` uc
+        // ON c.id=uc.id_competencia
+        // WHERE uc.id_usuario!=2
+        // ORDER BY `id` ASC
+
+        $entityManager = $this->getEntityManager();
+        $rol = "ESPECTADOR";
+        $query = $entityManager->createQuery(
+            ' SELECT DISTINCT c.id, c.nombre, c.genero, \'ESPECTADOR\' as rol
+            FROM App\Entity\Competencia c 
+            INNER JOIN App\Entity\UsuarioCompetencia uc
+            WITH c.id = uc.competencia
+            WHERE uc.usuario != :idUsuario
+            ORDER BY c.id ASC
+            ')->setParameter('idUsuario',$idUsuario);
+
+            
+        return $query->execute();
+    }
+            
+
     // /**
     //  * @return Competencia[] Returns an array of Competencia objects
     //  */

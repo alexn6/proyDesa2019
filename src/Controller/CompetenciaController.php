@@ -317,5 +317,98 @@ class CompetenciaController extends AbstractFOSRestController
  
        return $response;
      }
+
+     // para probar 
+     /**
+     * Lista de todos las competencias.
+     * @Rest\Get("/competitions-rol"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function competitionRolByUser(Request $request)
+    {
+      $respJson = (object) null;
+
+      // recuperamos los parametros recibidos
+      $idUsuario = $request->get('idUsuario');
+
+      // var_dump($request);
+      $repository = $this->getDoctrine()->getRepository(Competencia::class);
+ 
+      // $name = $nameCompetiton;
+ 
+      if(!empty($idUsuario)){
+        $competitions = $repository->filterCompetitionsRol($idUsuario);
+
+        $competitions = $this->get('serializer')->serialize($competitions, 'json', [
+          'circular_reference_handler' => function ($object) {
+            return $object->getId();
+          }
+        ]);
+    
+        $array_comp = json_decode($competitions, true);
+        $array_comp = json_encode($array_comp);
+        
+  
+        $statusCode = Response::HTTP_OK;
+      
+      }
+      else{
+         $respJson->competitions = NULL;
+         $statusCode = Response::HTTP_BAD_REQUEST;
+      }
+ 
+      $response = new Response($array_comp);
+      $response->setStatusCode($statusCode);
+      $response->headers->set('Content-Type', 'application/json');
+
+      return $response;
+    }
+
+     /**
+     * Lista de todos las competencias.
+     * @Rest\Get("/competitions-unrol"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function competitionUnrolByUser(Request $request)
+    {
+      $respJson = (object) null;
+
+      // recuperamos los parametros recibidos
+      $idUsuario = $request->get('idUsuario');
+
+      // var_dump($request);
+      $repository = $this->getDoctrine()->getRepository(Competencia::class);
+ 
+      // $name = $nameCompetiton;
+ 
+      if(!empty($idUsuario)){
+        $competitions = $repository->filterCompetitionsUnrol($idUsuario);
+
+        $competitions = $this->get('serializer')->serialize($competitions, 'json', [
+          'circular_reference_handler' => function ($object) {
+            return $object->getId();
+          }
+        ]);
+    
+        $array_comp = json_decode($competitions, true);
+        $array_comp = json_encode($array_comp);
+        
+  
+        $statusCode = Response::HTTP_OK;
+      
+      }
+      else{
+         $respJson->competitions = NULL;
+         $statusCode = Response::HTTP_BAD_REQUEST;
+      }
+ 
+      $response = new Response($array_comp);
+      $response->setStatusCode($statusCode);
+      $response->headers->set('Content-Type', 'application/json');
+
+      return $response;
+    }
  
 }
