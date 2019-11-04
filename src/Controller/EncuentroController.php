@@ -89,6 +89,64 @@ class EncuentroController extends AbstractFOSRestController
 
       return $response;
     }
+
+    /**
+     * 
+     * @Rest\Get("/confrontations/competition")
+     * Por nombre de competencia
+     * 
+     * @return Response
+     */
+    public function getConfratationsByCompetition(Request $request){
+      $idCompetition = $request->get('idCompetencia');
+
+      $respJson = (object) null;
+      $statusCode;
+     
+      // vemos si recibimos algun parametro
+      if(!empty($idCompetition)){
+          // controlamos que exista la competencia
+          $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
+          $competition = $repositoryComp->find($idCompetition);
+
+          if(empty($competition)){
+              $respJson->matches = NULL;
+              $statusCode = Response::HTTP_BAD_REQUEST;
+              $respJson->msg = "La competencia no existe o fue eliminada";
+          }
+          else{
+            $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
+            // recuperamos los usuario_competencia de una competencia
+            $encuentros = $repositoryEnc->findEncuentrosByCompetencia($idCompetition);
+
+            $encuentros = $this->get('serializer')->serialize($encuentros, 'json', [
+              'circular_reference_handler' => function($object){
+                return $object->getId();
+              },
+              'ignored_attributes' => ['usuarioscompetencias', '__initializer__','__cloner__','__isInitialized__']
+            ]);
+
+            // $array_encuentros = json_encode($encuentros);
+            // $array_encuentros = json_decode($array_encuentros);
+
+            $statusCode = Response::HTTP_OK;
+            $respJson = $encuentros;
+          }
+      }
+      else{
+        $respJson->encuentros = NULL;
+        $respJson->msg = "Solicitud mal formada";
+        $statusCode = Response::HTTP_BAD_REQUEST;
+      }
+
+      //$respJson = json_encode($respJson);
+
+      $response = new Response($respJson);
+      $response->setStatusCode($statusCode);
+      $response->headers->set('Content-Type', 'application/json');
+
+      return $response;
+    }
   
 
   /**

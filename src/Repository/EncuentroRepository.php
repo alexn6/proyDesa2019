@@ -55,10 +55,8 @@ class EncuentroRepository extends ServiceEntityRepository
   {
       $entityManager = $this->getEntityManager();
       $query = $entityManager->createQuery(
-        '   SELECT e.competidor1
+        '   SELECT e
             FROM App\Entity\Encuentro e
-            INNER JOIN App\Entity\Competencia comp
-            WITH e.competencia = comp.id
             WHERE e.competencia = :idCompetencia
         ')->setParameter('idCompetencia', $idCompetencia);
 
