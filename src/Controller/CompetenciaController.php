@@ -373,13 +373,7 @@ class CompetenciaController extends AbstractFOSRestController
             return $object->getId();
           }
         ]);
-    
-        // $array_comp = json_decode($competitions, true);
-        // $array_comp = json_encode($array_comp);
-        
-  
         $statusCode = Response::HTTP_OK;
-      
       }
       else{
          $respJson->competitions = NULL;
@@ -415,10 +409,7 @@ class CompetenciaController extends AbstractFOSRestController
       // var_dump($request);
       $repository = $this->getDoctrine()->getRepository(Competencia::class);
  
-      // $name = $nameCompetiton;
- 
       if(!empty($idUsuario)){
-        //$competitions = $repository->filterCompetitionsRol($idUsuario);
         $competitions = $repository->filterCompetitionsRol($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoOrg, $genero, $ciudad);
 
         $competitions = $this->get('serializer')->serialize($competitions, 'json', [
@@ -430,9 +421,7 @@ class CompetenciaController extends AbstractFOSRestController
         $array_comp = json_decode($competitions, true);
         $array_comp = json_encode($array_comp);
         
-  
         $statusCode = Response::HTTP_OK;
-      
       }
       else{
          $respJson->competitions = NULL;
@@ -468,10 +457,7 @@ class CompetenciaController extends AbstractFOSRestController
       // var_dump($request);
       $repository = $this->getDoctrine()->getRepository(Competencia::class);
  
-      // $name = $nameCompetiton;
- 
       if(!empty($idUsuario)){
-        // $competitions = $repository->filterCompetitionsUnrol($idUsuario);
         $competitions = $repository->filterCompetitionsUnrol($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoOrg, $genero, $ciudad);
 
         $competitions = $this->get('serializer')->serialize($competitions, 'json', [
@@ -483,9 +469,7 @@ class CompetenciaController extends AbstractFOSRestController
         $array_comp = json_decode($competitions, true);
         $array_comp = json_encode($array_comp);
         
-  
         $statusCode = Response::HTTP_OK;
-      
       }
       else{
          $respJson->competitions = NULL;

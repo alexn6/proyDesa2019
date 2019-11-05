@@ -176,9 +176,7 @@ class CompetenciaRepository extends ServiceEntityRepository
         
         // vamos en busca de las competencias con rol
         $competitionsRol = $this->filterCompetitionsRol($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad);
-        //$competitionsRol = $this->filterCompetitionsRol($idUsuario);
         // ahora vamos a buscar las competencias en las que no tiene un rol asignado
-        //$competitionsUnrol = $this->filterCompetitionsUnrol($idUsuario);
         $competitionsUnrol = $this->filterCompetitionsUnrol($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad);
         // juntamos los array obtenidos
         $competitions = array_merge($competitionsRol, $competitionsUnrol);
@@ -203,34 +201,7 @@ class CompetenciaRepository extends ServiceEntityRepository
     // filtro de competencias con roles de un usuario
     // 1ra parte: las competencias en las que si tengo un rol
     public function filterCompetitionsRol($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad){
-    //public function filterCompetitionsRol($idUsuario){
         $entityManager = $this->getEntityManager();
-        // $query = $entityManager->createQuery(
-        //     ' SELECT c.id, c.nombre, c.genero, r.nombre as rol
-        //     FROM App\Entity\Competencia c 
-        //     INNER JOIN App\Entity\UsuarioCompetencia uc
-        //     WITH c.id = uc.competencia
-        //     INNER JOIN App\Entity\Rol r
-        //     WITH uc.rol = r.id
-        //     WHERE uc.usuario = :idUsuario
-        //     ORDER BY c.id ASC
-        //     ')->setParameter('idUsuario',$idUsuario);
-
-        // $query = $entityManager->createQuery(
-        //     // c.ciudad, c.genero (la ciudad se deberia modificar cuando se agrege la tabla ciudad)
-        //     ' SELECT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.genero, c.ciudad, r.nombre as rol
-        //     FROM App\Entity\Competencia c
-        //     INNER JOIN App\Entity\Categoria categ
-        //     WITH c.categoria = categ.id
-        //     INNER JOIN App\Entity\TipoOrganizacion organ
-        //     WITH c.organizacion = organ.id
-        //     INNER JOIN App\Entity\UsuarioCompetencia uc
-        //     WITH c.id = uc.competencia
-        //     INNER JOIN App\Entity\Rol r
-        //     WITH uc.rol = r.id
-        //     WHERE uc.usuario = :idUsuario
-        //     ORDER BY c.id ASC
-        // ')->setParameter('idUsuario',$idUsuario);
 
         $queryBase = ' SELECT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.genero, c.ciudad, r.nombre as rol
                         FROM App\Entity\Competencia c
@@ -243,48 +214,6 @@ class CompetenciaRepository extends ServiceEntityRepository
                         INNER JOIN App\Entity\Rol r
                         WITH uc.rol = r.id
                         WHERE uc.usuario = :idUsuario';
-
-        // si recibimos parametros agrandamos la consulta
-        // if($idCategoria != NULL){
-        //     // creamos la parte de la consulta con el parametro recibido y la juntamos
-        //     $stringQueryCategoria = ' AND c.categoria = '.$idCategoria;
-        //     $stringQueryBase = $stringQueryBase.$stringQueryCategoria;
-        // }
-        // // si recibimos parametros agrandamos la consulta
-        // if($idDeporte != NULL){
-        //     // creamos la parte de la consulta con el parametro recibido y la juntamos
-        //     $stringQueryDeporte = ' AND categ.deporte = '.$idDeporte;
-        //     $stringQueryBase = $stringQueryBase.$stringQueryDeporte;
-        // }
-        // // si recibimos parametros agrandamos la consulta
-        // if($idTipoorg != NULL){
-        //     // creamos la parte de la consulta con el parametro recibido y la juntamos
-        //     $stringQueryTipoorg = ' AND c.organizacion = '.$idTipoorg;
-        //     $stringQueryBase = $stringQueryBase.$stringQueryTipoorg;
-        // }
-        // // ############# ahora trabajamos con los datos de las columnas #############
-        // // si recibimos parametros agrandamos la consulta
-        // if($genero != NULL){
-        //     // creamos la parte de la consulta con el parametro recibido y la juntamos
-        //     $stringQueryGenero = ' AND c.genero = '.$genero;
-        //     $stringQueryBase = $stringQueryBase.$stringQueryGenero;
-        // }
-
-        // // vemos si recibimos un nombre de competencia como parametro
-        // if($nombreCompetencia != NULL){
-        //     // escapamos los %, no los toma como debe si no hacemos esto
-        //     $like = $qb->expr()->literal('%'.$nombreCompetencia.'%');
-        //     $stringQueryNombreComp = ' AND c.nombre LIKE '.$like;
-        //     $stringQueryBase = $stringQueryBase.$stringQueryNombreComp;
-        // }
-
-        // // vemos si recibimos un nombre de competencia como parametro
-        // if($ciudad != NULL){
-        //     // escapamos los %, no los toma como debe si no hacemos esto
-        //     $like = $qb->expr()->literal('%'.$ciudad.'%');
-        //     $stringQueryCiudad = ' AND c.ciudad LIKE '.$like;
-        //     $stringQueryBase = $stringQueryBase.$stringQueryCiudad;
-        // }
 
         // le agregamos los filtros a la query
         $queryBase = $this->addFilters($queryBase, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad);
@@ -302,7 +231,6 @@ class CompetenciaRepository extends ServiceEntityRepository
     // filtro de competencias con roles de un usuario, NULL si no las hay
     // 2da parte: las competencias en las que no tengo un rol
     public function filterCompetitionsUnrol($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad){
-    //public function filterCompetitionsUnrol($idUsuario){
 
         $entityManager = $this->getEntityManager();
 
@@ -322,18 +250,6 @@ class CompetenciaRepository extends ServiceEntityRepository
             $hayResultados = false;
         }
 
-        // ' SELECT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.genero, c.ciudad, r.nombre as rol
-        //     FROM App\Entity\Competencia c
-        //     INNER JOIN App\Entity\Categoria categ
-        //     WITH c.categoria = categ.id
-        //     INNER JOIN App\Entity\TipoOrganizacion organ
-        //     WITH c.organizacion = organ.id
-        //     INNER JOIN App\Entity\UsuarioCompetencia uc
-        //     WITH c.id = uc.competencia
-        //     INNER JOIN App\Entity\Rol r
-        //     WITH uc.rol = r.id
-        //     WHERE uc.usuario = :idUsuario
-        //     ORDER BY c.id ASC'
         // base de la query
         $queryBase = ' SELECT DISTINCT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.genero, c.ciudad, \'ESPECTADOR\' as rol
                         FROM App\Entity\Competencia c
