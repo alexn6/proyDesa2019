@@ -133,10 +133,25 @@ class CompetenciaController extends AbstractFOSRestController
           $competenciaCreate->setOrganizacion($tipoorg);
 
           // vemos si recibimos una cant de grupos 
-          $cant_grupos = $dataCompetitionRequest->cant_grupos;
-          if(!empty($cant_grupos)){
+          // $cant_grupos = $dataCompetitionRequest->cant_grupos;
+          // if(!empty($cant_grupos)){
+          //   $competenciaCreate->setCantGrupos($cant_grupos);
+          // }
+          $hayGrupos = property_exists((object) $dataCompetitionRequest,'cant_grupos');
+          if($hayGrupos){
+            $cant_grupos = $dataCompetitionRequest->cant_grupos;
             $competenciaCreate->setCantGrupos($cant_grupos);
           }
+
+          // recuperamos la fase de la competencia(solo en caso de q sea eliminitorias deberia ser != null)
+          $fase = null;
+          $existeFase = property_exists((object) $dataCompetitionRequest,'fase');
+          if($existeFase){
+            $fase = $dataCompetitionRequest->fase;
+          }
+
+          // seteamos la fase de la competencia
+          $this->setFaseCompetition($competenciaCreate, $fase);
   
           // persistimos la nueva competencia
           $em = $this->getDoctrine()->getManager();
@@ -482,5 +497,30 @@ class CompetenciaController extends AbstractFOSRestController
 
       return $response;
     }
+
+    // #####################################################################################
+    // ################# seteamos la fase de la competencia ################################
+
+    // controlamos que la cant de competidores se adecue a la competencia
+    private function setFaseCompetition($competencia, $fase){
+      // aca sacamos la funcion de control de cada tipo de organizacion
+      $codigoTipo = $competencia->getOrganizacion()->getCodigo();
+      
+      if(($codigoTipo == 'ELIM')||($codigoTipo == 'ELIMDOUB')){
+          $competencia->setFase($fase);
+          $competencia->setFaseActual($fase);
+      }
+      else{
+          if(($codigoTipo == 'LIGSING')||($codigoTipo == 'LIGDOUB')){
+            $competencia->setFase(1);
+            $competencia->setFaseActual(1);
+          }
+          // sino es un grupo (0 -> fase de grupos)
+          else{
+            $competencia->setFase(0);
+            $competencia->setFaseActual(0);
+          }
+      }
+  }
  
 }
