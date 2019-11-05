@@ -415,6 +415,13 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
             $statusCode = Response::HTTP_BAD_REQUEST;
         }
 
+        // var_dump($respJson);
+
+        // reemplazamos el rol (string) por un array de roles
+        foreach ($respJson as &$valor) {
+          $valor['rol'] = array($valor['rol']);
+        }
+
         $respJson = json_encode($respJson);
 
         // var_dump($respJson);
@@ -481,6 +488,11 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
             $statusCode = Response::HTTP_BAD_REQUEST;
         }
 
+        // reemplazamos el rol (string) por un array de roles
+        foreach ($respJson as &$valor) {
+          $valor['rol'] = array($valor['rol']);
+        }
+
         $respJson = json_encode($respJson);
 
         // var_dump($respJson);
@@ -512,6 +524,11 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         else{
             $respJson = NULL;
             $statusCode = Response::HTTP_BAD_REQUEST;
+        }
+
+        // reemplazamos el rol (string) por un array de roles
+        foreach ($respJson as &$valor) {
+          $valor['rol'] = array($valor['rol']);
         }
 
         $respJson = json_encode($respJson);

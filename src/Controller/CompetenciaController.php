@@ -111,18 +111,18 @@ class CompetenciaController extends AbstractFOSRestController
           }
           catch (\Exception $e)
           {
-              $statusCode = Response::HTTP_INSUFFICIENT_STORAGE;
-              $respJson->success = false;
-              $respJson->messaging = "ERROR-> " . $e->getMessage();
+            $statusCode = Response::HTTP_INSUFFICIENT_STORAGE;
+            $respJson->success = false;
+            $respJson->messaging = "ERROR-> " . $e->getMessage();
 
-              $respJson = json_encode($respJson);
+            $respJson = json_encode($respJson);
 
-              $response = new Response($respJson);
-              $response->headers->set('Content-Type', 'application/json');
-              $response->setStatusCode($statusCode);
+            $response = new Response($respJson);
+            $response->headers->set('Content-Type', 'application/json');
+            $response->setStatusCode($statusCode);
 
-              return $response;
-          }
+            return $response;
+        }
 
           $competenciaCreate->setNombre($nombre_comp);
           $competenciaCreate->setFechaIni($fecha_ini);
