@@ -92,6 +92,68 @@ class EncuentroController extends AbstractFOSRestController
 
     /**
      * 
+     * @Rest\Get("/confrontation/competition")
+     * Por nombre de competencia
+     * 
+     * @return Response
+     */
+    public function getConfratationsByCompetitionMin(Request $request){
+      $idCompetition = $request->get('idCompetencia');
+
+      $respJson = (object) null;
+      $statusCode;
+     
+      // vemos si recibimos algun parametro
+      if(!empty($idCompetition)){
+          // controlamos que exista la competencia
+          $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
+          $competition = $repositoryComp->find($idCompetition);
+
+          if(empty($competition)){
+              $respJson->matches = NULL;
+              $statusCode = Response::HTTP_BAD_REQUEST;
+              $respJson->msg = "La competencia no existe o fue eliminada";
+          }
+          else{
+            $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
+
+            // recuperamos inicialmente los datos del competidor1
+            $encuentros = $repositoryEnc->findEncuentrosComp1ByCompetencia($idCompetition);
+
+            $encuentros = $this->get('serializer')->serialize($encuentros, 'json');
+            // pasamos el resultado a un array de objetos para poder trabajarlo
+            $encuentros = json_decode($encuentros, true);
+            //var_dump($encuentrosComp1);
+
+            // recuperamos los datos del competidor2
+            $encuentrosComp2 = $repositoryEnc->findEncuentrosComp2ByCompetencia($idCompetition);
+
+            // le agregamos la columna del competidor2
+            for ($i=0; $i < count($encuentros) ; $i++) {
+              $encuentros[$i]['competidor2'] = $encuentrosComp2[$i]['competidor2'];
+            }
+
+            $encuentros = json_encode($encuentros);
+
+            $statusCode = Response::HTTP_OK;
+            $respJson = $encuentros;
+          }
+      }
+      else{
+        $respJson->encuentros = NULL;
+        $respJson->msg = "Solicitud mal formada";
+        $statusCode = Response::HTTP_BAD_REQUEST;
+      }
+
+      $response = new Response($respJson);
+      $response->setStatusCode($statusCode);
+      $response->headers->set('Content-Type', 'application/json');
+
+      return $response;
+    }
+
+    /**
+     * 
      * @Rest\Get("/confrontations/competition")
      * Por nombre de competencia
      * 
@@ -123,11 +185,17 @@ class EncuentroController extends AbstractFOSRestController
               'circular_reference_handler' => function($object){
                 return $object->getId();
               },
-              'ignored_attributes' => ['usuarioscompetencias', '__initializer__','__cloner__','__isInitialized__']
+              // 'usuarioscompetencias' evita las referencias circulares y nos permite mostrar el objeto completo
+              'ignored_attributes' => ['usuarioscompetencias', 'competencia', 'grupo', 'jornada', '__initializer__','__cloner__','__isInitialized__']
             ]);
 
-            // $array_encuentros = json_encode($encuentros);
-            // $array_encuentros = json_decode($array_encuentros);
+            $array_encuentros = json_decode($encuentros, true);
+ 
+            // foreach ($array_encuentros as &$valor) {
+            //   $valor['competencia'] = $valor['competencia']['id'];
+            // }
+
+            //$array_encuentros = json_encode($array_encuentros);
 
             $statusCode = Response::HTTP_OK;
             $respJson = $encuentros;
@@ -139,14 +207,15 @@ class EncuentroController extends AbstractFOSRestController
         $statusCode = Response::HTTP_BAD_REQUEST;
       }
 
-      //$respJson = json_encode($respJson);
-
       $response = new Response($respJson);
       $response->setStatusCode($statusCode);
       $response->headers->set('Content-Type', 'application/json');
 
       return $response;
     }
+
+    // para ignorar atributos dentro de una entidad a la hora de serializar
+    //https://symfony.com/doc/current/components/serializer.html#serializing-an-object
   
 
   /**
