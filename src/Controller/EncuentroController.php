@@ -92,7 +92,7 @@ class EncuentroController extends AbstractFOSRestController
 
     /**
      * 
-     * @Rest\Get("/confrontation/competition")
+     * @Rest\Get("/confrontations/competition")
      * Por nombre de competencia
      * 
      * @return Response
@@ -152,67 +152,67 @@ class EncuentroController extends AbstractFOSRestController
       return $response;
     }
 
-    /**
-     * 
-     * @Rest\Get("/confrontations/competition")
-     * Por nombre de competencia
-     * 
-     * @return Response
-     */
-    public function getConfratationsByCompetition(Request $request){
-      $idCompetition = $request->get('idCompetencia');
+    // /**
+    //  * 
+    //  * @Rest\Get("/confrontations/competition")
+    //  * Por nombre de competencia
+    //  * 
+    //  * @return Response
+    //  */
+    // public function getConfratationsByCompetition(Request $request){
+    //   $idCompetition = $request->get('idCompetencia');
 
-      $respJson = (object) null;
-      $statusCode;
+    //   $respJson = (object) null;
+    //   $statusCode;
      
-      // vemos si recibimos algun parametro
-      if(!empty($idCompetition)){
-          // controlamos que exista la competencia
-          $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
-          $competition = $repositoryComp->find($idCompetition);
+    //   // vemos si recibimos algun parametro
+    //   if(!empty($idCompetition)){
+    //       // controlamos que exista la competencia
+    //       $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
+    //       $competition = $repositoryComp->find($idCompetition);
 
-          if(empty($competition)){
-              $respJson->matches = NULL;
-              $statusCode = Response::HTTP_BAD_REQUEST;
-              $respJson->msg = "La competencia no existe o fue eliminada";
-          }
-          else{
-            $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
-            // recuperamos los usuario_competencia de una competencia
-            $encuentros = $repositoryEnc->findEncuentrosByCompetencia($idCompetition);
+    //       if(empty($competition)){
+    //           $respJson->matches = NULL;
+    //           $statusCode = Response::HTTP_BAD_REQUEST;
+    //           $respJson->msg = "La competencia no existe o fue eliminada";
+    //       }
+    //       else{
+    //         $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
+    //         // recuperamos los usuario_competencia de una competencia
+    //         $encuentros = $repositoryEnc->findEncuentrosByCompetencia($idCompetition);
 
-            $encuentros = $this->get('serializer')->serialize($encuentros, 'json', [
-              'circular_reference_handler' => function($object){
-                return $object->getId();
-              },
-              // 'usuarioscompetencias' evita las referencias circulares y nos permite mostrar el objeto completo
-              'ignored_attributes' => ['usuarioscompetencias', 'competencia', 'grupo', 'jornada', '__initializer__','__cloner__','__isInitialized__']
-            ]);
+    //         $encuentros = $this->get('serializer')->serialize($encuentros, 'json', [
+    //           'circular_reference_handler' => function($object){
+    //             return $object->getId();
+    //           },
+    //           // 'usuarioscompetencias' evita las referencias circulares y nos permite mostrar el objeto completo
+    //           'ignored_attributes' => ['usuarioscompetencias', 'competencia', 'grupo', 'jornada', '__initializer__','__cloner__','__isInitialized__']
+    //         ]);
 
-            $array_encuentros = json_decode($encuentros, true);
+    //         $array_encuentros = json_decode($encuentros, true);
  
-            // foreach ($array_encuentros as &$valor) {
-            //   $valor['competencia'] = $valor['competencia']['id'];
-            // }
+    //         // foreach ($array_encuentros as &$valor) {
+    //         //   $valor['competencia'] = $valor['competencia']['id'];
+    //         // }
 
-            //$array_encuentros = json_encode($array_encuentros);
+    //         //$array_encuentros = json_encode($array_encuentros);
 
-            $statusCode = Response::HTTP_OK;
-            $respJson = $encuentros;
-          }
-      }
-      else{
-        $respJson->encuentros = NULL;
-        $respJson->msg = "Solicitud mal formada";
-        $statusCode = Response::HTTP_BAD_REQUEST;
-      }
+    //         $statusCode = Response::HTTP_OK;
+    //         $respJson = $encuentros;
+    //       }
+    //   }
+    //   else{
+    //     $respJson->encuentros = NULL;
+    //     $respJson->msg = "Solicitud mal formada";
+    //     $statusCode = Response::HTTP_BAD_REQUEST;
+    //   }
 
-      $response = new Response($respJson);
-      $response->setStatusCode($statusCode);
-      $response->headers->set('Content-Type', 'application/json');
+    //   $response = new Response($respJson);
+    //   $response->setStatusCode($statusCode);
+    //   $response->headers->set('Content-Type', 'application/json');
 
-      return $response;
-    }
+    //   return $response;
+    // }
 
     // para ignorar atributos dentro de una entidad a la hora de serializar
     //https://symfony.com/doc/current/components/serializer.html#serializing-an-object

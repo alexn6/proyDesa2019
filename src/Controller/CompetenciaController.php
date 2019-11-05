@@ -318,7 +318,81 @@ class CompetenciaController extends AbstractFOSRestController
        return $response;
      }
 
-     // para probar 
+     // para probar
+
+     /**
+     * Lista de todos las competencias.
+     * @Rest\Get("/competitions-roles"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function competitionRolesByUser(Request $request)
+    {
+      $respJson = (object) null;
+
+      // recuperamos los parametros recibidos
+      $idUsuario = $request->get('idUsuario');
+      $idCategoria = $request->get('categoria');
+      $idTipoOrg = $request->get('tipo_organizacion');
+      $genero = $request->get('genero');
+      $idDeporte = $request->get('deporte');
+      $nombreCompetencia = $request->get('competencia');
+      $ciudad = $request->get('ciudad');
+      
+      // en el caso de no recibir datos le asginamos un null para mantener
+      // la cantidad de parametros de la consulta
+      if(empty($idCategoria)){
+        $idCategoria = null;
+      }
+      if(empty($idTipoOrg)){
+        $idTipoOrg = null;
+      }
+      if(empty($idDeporte)){
+        $idDeporte = null;
+      }
+      if(empty($genero)){
+        $genero = null;
+      }
+      if(empty($nombreCompetencia)){
+        $nombreCompetencia = null;
+      }
+      if(empty($ciudad)){
+        $ciudad = null;
+      }
+
+      // var_dump($request);
+      $repository = $this->getDoctrine()->getRepository(Competencia::class);
+ 
+      // $name = $nameCompetiton;
+ 
+      if(!empty($idUsuario)){
+        $competitions = $repository->filterCompetitionsByUserFull($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoOrg, $genero, $ciudad);
+
+        $competitions = $this->get('serializer')->serialize($competitions, 'json', [
+          'circular_reference_handler' => function ($object) {
+            return $object->getId();
+          }
+        ]);
+    
+        // $array_comp = json_decode($competitions, true);
+        // $array_comp = json_encode($array_comp);
+        
+  
+        $statusCode = Response::HTTP_OK;
+      
+      }
+      else{
+         $respJson->competitions = NULL;
+         $statusCode = Response::HTTP_BAD_REQUEST;
+      }
+ 
+      $response = new Response($competitions);
+      $response->setStatusCode($statusCode);
+      $response->headers->set('Content-Type', 'application/json');
+
+      return $response;
+    }
+
      /**
      * Lista de todos las competencias.
      * @Rest\Get("/competitions-rol"), defaults={"_format"="json"})
@@ -331,6 +405,12 @@ class CompetenciaController extends AbstractFOSRestController
 
       // recuperamos los parametros recibidos
       $idUsuario = $request->get('idUsuario');
+      $idCategoria = $request->get('categoria');
+      $idTipoOrg = $request->get('tipo_organizacion');
+      $genero = $request->get('genero');
+      $idDeporte = $request->get('deporte');
+      $nombreCompetencia = $request->get('competencia');
+      $ciudad = $request->get('ciudad');
 
       // var_dump($request);
       $repository = $this->getDoctrine()->getRepository(Competencia::class);
@@ -338,7 +418,8 @@ class CompetenciaController extends AbstractFOSRestController
       // $name = $nameCompetiton;
  
       if(!empty($idUsuario)){
-        $competitions = $repository->filterCompetitionsRol($idUsuario);
+        //$competitions = $repository->filterCompetitionsRol($idUsuario);
+        $competitions = $repository->filterCompetitionsRol($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoOrg, $genero, $ciudad);
 
         $competitions = $this->get('serializer')->serialize($competitions, 'json', [
           'circular_reference_handler' => function ($object) {
@@ -377,6 +458,12 @@ class CompetenciaController extends AbstractFOSRestController
 
       // recuperamos los parametros recibidos
       $idUsuario = $request->get('idUsuario');
+      $idCategoria = $request->get('categoria');
+      $idTipoOrg = $request->get('tipo_organizacion');
+      $genero = $request->get('genero');
+      $idDeporte = $request->get('deporte');
+      $nombreCompetencia = $request->get('competencia');
+      $ciudad = $request->get('ciudad');
 
       // var_dump($request);
       $repository = $this->getDoctrine()->getRepository(Competencia::class);
@@ -384,7 +471,8 @@ class CompetenciaController extends AbstractFOSRestController
       // $name = $nameCompetiton;
  
       if(!empty($idUsuario)){
-        $competitions = $repository->filterCompetitionsUnrol($idUsuario);
+        // $competitions = $repository->filterCompetitionsUnrol($idUsuario);
+        $competitions = $repository->filterCompetitionsUnrol($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoOrg, $genero, $ciudad);
 
         $competitions = $this->get('serializer')->serialize($competitions, 'json', [
           'circular_reference_handler' => function ($object) {
