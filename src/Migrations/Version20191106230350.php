@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20191031111732 extends AbstractMigration
+final class Version20191106230350 extends AbstractMigration
 {
     public function getDescription() : string
     {
@@ -29,6 +29,9 @@ final class Version20191031111732 extends AbstractMigration
         $this->addSql('CREATE TABLE usuario_competencia (id INT AUTO_INCREMENT NOT NULL, id_usuario INT NOT NULL, id_competencia INT NOT NULL, rol_id INT DEFAULT NULL, alias VARCHAR(127) DEFAULT NULL, INDEX IDX_BC07BB04FCF8192D (id_usuario), INDEX IDX_BC07BB049C3E847D (id_competencia), INDEX IDX_BC07BB044BAB96C (rol_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE = InnoDB');
         $this->addSql('CREATE TABLE competencia (id INT AUTO_INCREMENT NOT NULL, categoria_id INT DEFAULT NULL, organizacion_id INT DEFAULT NULL, nombre VARCHAR(127) NOT NULL, fecha_ini DATE NOT NULL, fecha_fin DATE NOT NULL, ciudad VARCHAR(127) NOT NULL, genero ENUM(\'MASCULINO\', \'FEMENINO\', \'MIXTO\'), max_competidores INT DEFAULT NULL, cant_grupos INT DEFAULT NULL, fase INT DEFAULT NULL, min_competidores INT DEFAULT NULL, fase_actual INT NOT NULL, UNIQUE INDEX UNIQ_842C498A3A909126 (nombre), INDEX IDX_842C498A3397707A (categoria_id), INDEX IDX_842C498A90B1019E (organizacion_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE = InnoDB');
         $this->addSql('CREATE TABLE rol (id INT AUTO_INCREMENT NOT NULL, nombre VARCHAR(32) NOT NULL, UNIQUE INDEX UNIQ_E553F373A909126 (nombre), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE campo (id INT AUTO_INCREMENT NOT NULL, predio_id INT DEFAULT NULL, nombre VARCHAR(50) NOT NULL, capacidad INT DEFAULT NULL, dimensiones INT DEFAULT NULL, INDEX IDX_291737AADC5381D3 (predio_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE juez (id INT AUTO_INCREMENT NOT NULL, competencia_id INT DEFAULT NULL, nombre VARCHAR(50) NOT NULL, apellido VARCHAR(50) NOT NULL, dni INT NOT NULL, INDEX IDX_8FBF65009980C34D (competencia_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE predio (id INT AUTO_INCREMENT NOT NULL, competencia_id INT DEFAULT NULL, nombre VARCHAR(50) NOT NULL, direccion VARCHAR(150) NOT NULL, ciudad VARCHAR(150) NOT NULL, INDEX IDX_13E6D7279980C34D (competencia_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE = InnoDB');
         $this->addSql('CREATE TABLE tipo_organizacion (id INT AUTO_INCREMENT NOT NULL, codigo VARCHAR(10) NOT NULL, nombre VARCHAR(127) NOT NULL, descripcion VARCHAR(255) NOT NULL, minimo VARCHAR(127) NOT NULL, UNIQUE INDEX UNIQ_BF73525A20332D99 (codigo), UNIQUE INDEX UNIQ_BF73525A3A909126 (nombre), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE = InnoDB');
         $this->addSql('ALTER TABLE categoria ADD CONSTRAINT FK_4E10122D239C54DD FOREIGN KEY (deporte_id) REFERENCES deporte (id)');
         $this->addSql('ALTER TABLE encuentro ADD CONSTRAINT FK_CDFA77FA9980C34D FOREIGN KEY (competencia_id) REFERENCES competencia (id)');
@@ -39,6 +42,9 @@ final class Version20191031111732 extends AbstractMigration
         $this->addSql('ALTER TABLE usuario_competencia ADD CONSTRAINT FK_BC07BB044BAB96C FOREIGN KEY (rol_id) REFERENCES rol (id)');
         $this->addSql('ALTER TABLE competencia ADD CONSTRAINT FK_842C498A3397707A FOREIGN KEY (categoria_id) REFERENCES categoria (id)');
         $this->addSql('ALTER TABLE competencia ADD CONSTRAINT FK_842C498A90B1019E FOREIGN KEY (organizacion_id) REFERENCES tipo_organizacion (id)');
+        $this->addSql('ALTER TABLE campo ADD CONSTRAINT FK_291737AADC5381D3 FOREIGN KEY (predio_id) REFERENCES predio (id)');
+        $this->addSql('ALTER TABLE juez ADD CONSTRAINT FK_8FBF65009980C34D FOREIGN KEY (competencia_id) REFERENCES competencia (id)');
+        $this->addSql('ALTER TABLE predio ADD CONSTRAINT FK_13E6D7279980C34D FOREIGN KEY (competencia_id) REFERENCES competencia (id)');
     }
 
     public function down(Schema $schema) : void
@@ -53,7 +59,10 @@ final class Version20191031111732 extends AbstractMigration
         $this->addSql('ALTER TABLE categoria DROP FOREIGN KEY FK_4E10122D239C54DD');
         $this->addSql('ALTER TABLE encuentro DROP FOREIGN KEY FK_CDFA77FA9980C34D');
         $this->addSql('ALTER TABLE usuario_competencia DROP FOREIGN KEY FK_BC07BB049C3E847D');
+        $this->addSql('ALTER TABLE juez DROP FOREIGN KEY FK_8FBF65009980C34D');
+        $this->addSql('ALTER TABLE predio DROP FOREIGN KEY FK_13E6D7279980C34D');
         $this->addSql('ALTER TABLE usuario_competencia DROP FOREIGN KEY FK_BC07BB044BAB96C');
+        $this->addSql('ALTER TABLE campo DROP FOREIGN KEY FK_291737AADC5381D3');
         $this->addSql('ALTER TABLE competencia DROP FOREIGN KEY FK_842C498A90B1019E');
         $this->addSql('DROP TABLE categoria');
         $this->addSql('DROP TABLE usuario');
@@ -62,6 +71,9 @@ final class Version20191031111732 extends AbstractMigration
         $this->addSql('DROP TABLE usuario_competencia');
         $this->addSql('DROP TABLE competencia');
         $this->addSql('DROP TABLE rol');
+        $this->addSql('DROP TABLE campo');
+        $this->addSql('DROP TABLE juez');
+        $this->addSql('DROP TABLE predio');
         $this->addSql('DROP TABLE tipo_organizacion');
     }
 }
