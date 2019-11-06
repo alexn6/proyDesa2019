@@ -16,6 +16,10 @@ use Doctrine\Common\Persistence\ManagerRegistry;
  */
 class EncuentroRepository extends ServiceEntityRepository
 {
+
+    const COMPETIDOR1 = 1;
+    const COMPETIDOR2 = 2;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Encuentro::class);
@@ -63,37 +67,80 @@ class EncuentroRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    // recuperamos el competidor1 de una competencia
-    public function findEncuentrosComp1ByCompetencia($idCompetencia)
+    // recuperamos los encuentros del competidor1 segun fecha y fase
+    public function findEncuentrosComp1ByCompetencia($idCompetencia, $fase, $grupo)
     {
         $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            '   SELECT DISTINCT e.id , uc.alias competidor1
-                FROM App\Entity\Encuentro e
-                INNER JOIN App\Entity\UsuarioCompetencia uc
-                WITH e.competencia = uc.competencia
-                WHERE e.competencia = :idCompetencia
-                AND uc.competencia = :idCompetencia
-                AND e.competidor1 = uc.usuario
-            ')->setParameter('idCompetencia', $idCompetencia);
 
+        // recuperamos el string de la query armado
+        $stringQuery = $this->getStringQueryConfrontationsByCompetitors($this::COMPETIDOR1, $fase, $grupo);
+
+        $query = $entityManager->createQuery($stringQuery);
+        // seteamos la competencia
+        $query->setParameter('idCompetencia', $idCompetencia);
+                    
         return $query->execute();
     }
 
-    // recuperamos el competidor1 de una competencia
-    public function findEncuentrosComp2ByCompetencia($idCompetencia)
+    // recuperamos los encuentros del competidor2 segun fecha y fase
+    public function findEncuentrosComp2ByCompetencia($idCompetencia, $fase, $grupo)
     {
         $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            '   SELECT DISTINCT e.id , uc.alias competidor2
-                FROM App\Entity\Encuentro e
-                INNER JOIN App\Entity\UsuarioCompetencia uc
-                WITH e.competencia = uc.competencia
-                WHERE e.competencia = :idCompetencia
-                AND uc.competencia = :idCompetencia
-                AND e.competidor2 = uc.usuario
-            ')->setParameter('idCompetencia', $idCompetencia);
 
+        // recuperamos el string de la query armado
+        $stringQuery = $this->getStringQueryConfrontationsByCompetitors($this::COMPETIDOR2, $fase, $grupo);
+
+        $query = $entityManager->createQuery($stringQuery);
+        // seteamos la competencia
+        $query->setParameter('idCompetencia', $idCompetencia);
+                    
         return $query->execute();
+    }
+
+    // ##################################################################################
+    // ############################## funciones auxiliares ##############################
+
+    // crea la consulta de encuentros por competencia, fase y grupo de los competidores
+    private function getStringQueryConfrontationsByCompetitors($competidor, $fase, $grupo){
+        $stringQuery;
+        // creamos el select de la consulta
+        if($competidor == $this::COMPETIDOR1){
+            $stringQuery = ' SELECT DISTINCT e.id , uc.alias competidor1';
+        }
+        if($competidor == $this::COMPETIDOR2){
+            $stringQuery = ' SELECT DISTINCT e.id , uc.alias competidor2';
+        }
+        // le adjuntamos la parte generica/unica de la consulta
+        $stringQuery = $stringQuery.' FROM App\Entity\Encuentro e
+                            INNER JOIN App\Entity\UsuarioCompetencia uc
+                            WITH e.competencia = uc.competencia
+                            WHERE e.competencia = :idCompetencia
+                            AND uc.competencia = :idCompetencia
+                        ';
+
+        $stringQueryCompetidor;
+        // seteamos el competidor
+        if($competidor == $this::COMPETIDOR1){
+            $stringQueryCompetidor = ' AND e.competidor1 = uc.usuario';
+        }
+        if($competidor == $this::COMPETIDOR2){
+            $stringQueryCompetidor = ' AND e.competidor2 = uc.usuario';
+        }
+        $stringQuery = $stringQuery.$stringQueryCompetidor;
+
+        // si recibimos parametros agrandamos la consulta
+        if($fase != NULL){
+            // creamos la parte de la consulta con el parametro recibido y la juntamos
+            $stringQueryFase = ' AND e.jornada = '.$fase;
+            $stringQuery = $stringQuery.$stringQueryFase;
+        }
+
+        if($grupo != NULL){
+            // creamos la parte de la consulta con el parametro recibido y la juntamos
+            $stringQueryGrupo = ' AND e.grupo = '.$grupo;
+            $stringQuery = $stringQuery.$stringQueryGrupo;
+        }
+
+        return $stringQuery;
     }
 }
