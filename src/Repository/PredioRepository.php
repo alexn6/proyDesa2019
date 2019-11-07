@@ -2,9 +2,11 @@
 
 namespace App\Repository;
 
-use App\Entity\Predio;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
+
+use App\Entity\Predio;
+use App\Entity\Competencia;
 
 /**
  * @method Predio|null find($id, $lockMode = null, $lockVersion = null)
@@ -47,4 +49,18 @@ class PredioRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    //Recuperar predios por id de competencia
+    public function findCampusByCompetetition($idCompetencia){
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        '   SELECT p
+            FROM App\Entity\Predio p
+            INNER JOIN App\Entity\Competencia c
+            WITH p.competencia = c.id
+            AND c.id = :idCompetencia
+        ')->setParameter('idCompetencia',$idCompetencia);
+        
+        return $query->execute();   
+    }
 }
