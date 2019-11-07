@@ -8,35 +8,35 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-use App\Entity\Predio;
+use App\Entity\Juez;
 use App\Entity\Competencia;
 
  /**
  * Predio controller
  * @Route("/api",name="api_")
  */
-class PredioController extends AbstractFOSRestController
+class JuezController extends AbstractFOSRestController
 {
     /**
      * Lista de todos las predios.
-     * @Rest\Get("/campus"), defaults={"_format"="json"})
+     * @Rest\Get("/referees"), defaults={"_format"="json"})
      * 
      * @return Response
      */
-    public function allCampus()
+    public function allReferees()
     {
 
-        $repository = $this->getDoctrine()->getRepository(Predio::class);
-        $campus = $repository->findall();
+        $repository = $this->getDoctrine()->getRepository(Juez::class);
+        $judges = $repository->findall();
 
-        $campus = $this->get('serializer')->serialize($campus, 'json', [
+        $judges = $this->get('serializer')->serialize($judges, 'json', [
             'circular_reference_handler' => function ($object) {
                 return $object->getId();
             },
             'ignored_attributes' => ['competencia']
         ]);
 
-        $response = new Response($campus);
+        $response = new Response($judges);
         $response->setStatusCode(Response::HTTP_OK);
         $response->headers->set('Content-Type', 'application/json');
 
@@ -45,12 +45,12 @@ class PredioController extends AbstractFOSRestController
 
     /**
      * Devuelve todas los predios de una competencia
-     * @Rest\Get("/campus/competition"), defaults={"_format"="json"})
+     * @Rest\Get("/referees/competition"), defaults={"_format"="json"})
      * 
      * @return Response
      */
-    public function getCampusByCompetition(Request $request){
-        $repository=$this->getDoctrine()->getRepository(Predio::class);
+    public function getJudgesByCompetition(Request $request){
+        $repository = $this->getDoctrine()->getRepository(Juez::class);
       
         $respJson = (object) null;
 
@@ -58,10 +58,10 @@ class PredioController extends AbstractFOSRestController
 
         // vemos si recibimos algun parametro
         if(!empty($idCompetencia)){
-            $campus = $repository->findCampusByCompetetition($idCompetencia);
+            $judges = $repository->findJudgesByCompetetition($idCompetencia);
             $statusCode = Response::HTTP_OK;
 
-            $campus = $this->get('serializer')->serialize($campus, 'json', [
+            $judges = $this->get('serializer')->serialize($judges, 'json', [
                 'circular_reference_handler' => function ($object) {
                     return $object->getId();
                 },
@@ -70,14 +70,14 @@ class PredioController extends AbstractFOSRestController
             $respJson->messaging = "Operacion con exito";
         }
         else{
-            $campus  = NULL;
+            $judges  = NULL;
             $statusCode = Response::HTTP_BAD_REQUEST;
             $respJson->messaging = "Faltan parametros";
         }
-
-        $respJson->campus = json_decode($campus);
-        $respJson = json_encode($respJson);
         
+        $respJson->judges = json_decode($judges);
+        $respJson = json_encode($respJson);
+
         $response = new Response($respJson);
         $response->setStatusCode(Response::HTTP_OK);
         $response->headers->set('Content-Type', 'application/json');
@@ -86,8 +86,8 @@ class PredioController extends AbstractFOSRestController
     }
 
     /**
-     * Crea un predio.
-     * @Rest\Post("/campus"), defaults={"_format"="json"})
+     * Crea un juez.
+     * @Rest\Post("/judge"), defaults={"_format"="json"})
      * 
      * @return Response
      */
@@ -99,57 +99,49 @@ class PredioController extends AbstractFOSRestController
         // vemos si existe un body
         if(!empty($request->getContent())){
   
-          $repository=$this->getDoctrine()->getRepository(Predio::class);
+          $repository=$this->getDoctrine()->getRepository(Juez::class);
     
           // recuperamos los datos del body y pasamos a un array
-          $dataPredioRequest = json_decode($request->getContent());
+          $dataJuezRequest = json_decode($request->getContent());
           
-          if(!$this->correctDataCreate($dataPredioRequest)){
+          if(!$this->correctDataCreate($dataJuezRequest)){
             $respJson->success = false;
             $statusCode = Response::HTTP_BAD_REQUEST;
             $respJson->messaging = "Peticion mal formada. Faltan parametros o cuentan con nombres erroneos.";
           }
           else{
-              // recuperamos los datos del body
-              $nombre = $dataPredioRequest->nombre;
-              $idCompetencia = $dataPredioRequest->idCompetencia;
-              $direccion = $dataPredioRequest->direccion;
-              $ciudad = $dataPredioRequest->ciudad;
-                
-              // controlamos que el nombre de predio este disponible
-              $predio = $repository->findOneBy(['nombre' => $nombre]);
-              if($predio){
+            // recuperamos los datos del body
+            $nombre = $dataJuezRequest->nombre;
+            $idCompetencia = $dataJuezRequest->idCompetencia;
+            $apellido = $dataJuezRequest->apellido;
+            $dni = $dataJuezRequest->dni;
+              
+            // controlamos que la competencia exista
+            $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
+            $competencia = $repositoryComp->find($idCompetencia);
+
+            if($competencia == NULL){
                 $respJson->success = false;
                 $statusCode = Response::HTTP_BAD_REQUEST;
-                $respJson->messaging = "El nombre del predio esta en uso";
-              }
-              else{
-                  // controlamos que la competencia exista
-                  $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
-                  $competencia = $repositoryComp->find($idCompetencia);
-                  if($competencia == NULL){
-                    $respJson->success = false;
-                    $statusCode = Response::HTTP_BAD_REQUEST;
-                    $respJson->messaging = "Competencia inexistente";
-                  }
-                  else{
-                    // creamos el predio
-                    $newPredio = new Predio();
-                    $newPredio->setNombre($nombre);
-                    $newPredio->setDireccion($direccion);
-                    $newPredio->setCompetencia($competencia);
-                    $newPredio->setCiudad($ciudad);
-            
-                    $em = $this->getDoctrine()->getManager();
-                    $em->persist($newPredio);
-                    $em->flush();
-            
-                    $statusCode = Response::HTTP_CREATED;
-            
-                    $respJson->success = true;
-                    $respJson->messaging = "Creacion exitosa";
-                  }
-              }
+                $respJson->messaging = "Competencia inexistente";
+            }
+            else{
+                // creamos el juez
+                $newJuez = new Juez();
+                $newJuez->setNombre($nombre);
+                $newJuez->setApellido($apellido);
+                $newJuez->setCompetencia($competencia);
+                $newJuez->setDni($dni);
+        
+                $em = $this->getDoctrine()->getManager();
+                $em->persist($newJuez);
+                $em->flush();
+        
+                $statusCode = Response::HTTP_CREATED;
+        
+                $respJson->success = true;
+                $respJson->messaging = "Creacion exitosa";
+            }
           }
   
         }
@@ -170,7 +162,7 @@ class PredioController extends AbstractFOSRestController
 
     /**
      * Crea un usuario.
-     * @Rest\Delete("/campus/del"), defaults={"_format"="json"})
+     * @Rest\Delete("/judge/del"), defaults={"_format"="json"})
      * 
      * @return Response
      */
@@ -179,29 +171,26 @@ class PredioController extends AbstractFOSRestController
         $respJson = (object) null;
         $statusCode;
 
-        $idPredio = $request->get('idPredio');
+        $idJuez = $request->get('idJuez');
       
         // vemos si recibimos el id de un predio para eliminarlo
-        if(empty($idPredio)){
+        if(empty($idJuez)){
             $respJson->success = false;
             $statusCode = Response::HTTP_BAD_REQUEST;
             $respJson->messaging = "Peticion mal formada. Faltan parametros.";
         }
         else{
-            // ######################################################################
-            // tmb deberiamos borrar todos los campos de este predio
-            // ######################################################################
-            $repository=$this->getDoctrine()->getRepository(Predio::class);
-            $predio = $repository->find($idPredio);
-            if($predio == NULL){
+            $repository=$this->getDoctrine()->getRepository(Juez::class);
+            $juez = $repository->find($idJuez);
+            if($juez == NULL){
                 $respJson->success = true;
                 $statusCode = Response::HTTP_OK;
-                $respJson->messaging = "El predio no existe o ya fue eliminado";
+                $respJson->messaging = "El juez no existe o ya fue eliminado";
             }
             else{
                 // eliminamos el dato y refrescamos la DB
                 $em = $this->getDoctrine()->getManager();
-                $em->remove($predio);
+                $em->remove($juez);
                 $em->flush();
     
                 $respJson->success = true;
@@ -230,10 +219,10 @@ class PredioController extends AbstractFOSRestController
         if(!property_exists((object) $dataRequest,'nombre')){
             return false;
         }
-        if(!property_exists((object) $dataRequest,'direccion')){
+        if(!property_exists((object) $dataRequest,'apellido')){
             return false;
         }
-        if(!property_exists((object) $dataRequest,'ciudad')){
+        if(!property_exists((object) $dataRequest,'dni')){
             return false;
         }
 

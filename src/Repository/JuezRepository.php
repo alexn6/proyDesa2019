@@ -2,9 +2,11 @@
 
 namespace App\Repository;
 
-use App\Entity\Juez;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
+
+use App\Entity\Juez;
+use App\Entity\Competencia;
 
 /**
  * @method Juez|null find($id, $lockMode = null, $lockVersion = null)
@@ -47,4 +49,18 @@ class JuezRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    // Recuperar jueces por id de competencia
+    public function findJudgesByCompetetition($idCompetencia){
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        '   SELECT j
+            FROM App\Entity\Juez j
+            INNER JOIN App\Entity\Competencia c
+            WITH j.competencia = c.id
+            AND c.id = :idCompetencia
+        ')->setParameter('idCompetencia',$idCompetencia);
+        
+        return $query->execute();   
+    }
 }
