@@ -47,4 +47,17 @@ class CampoRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    public function findFieldsByCampus($idPredio){
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        '   SELECT c
+            FROM App\Entity\Campo c
+            INNER JOIN App\Entity\Predio p
+            WITH c.predio = p.id
+            AND p.id = :idPredio
+        ')->setParameter('idPredio',$idPredio);
+    
+        return $query->execute();   
+    }
 }
