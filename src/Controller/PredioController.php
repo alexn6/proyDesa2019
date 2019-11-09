@@ -7,9 +7,15 @@ use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpClient\HttpClient;    // para incorporar servicios rest
 
 use App\Entity\Predio;
 use App\Entity\Competencia;
+use App\Entity\Campo;
+
+use App\Utils\Constant;
+
+use App\Controller\CampoController;
 
  /**
  * Predio controller
@@ -19,24 +25,24 @@ class PredioController extends AbstractFOSRestController
 {
     /**
      * Lista de todos las predios.
-     * @Rest\Get("/campus"), defaults={"_format"="json"})
+     * @Rest\Get("/grounds"), defaults={"_format"="json"})
      * 
      * @return Response
      */
-    public function allCampus()
+    public function allGrounds()
     {
 
         $repository = $this->getDoctrine()->getRepository(Predio::class);
-        $campus = $repository->findall();
+        $grounds = $repository->findall();
 
-        $campus = $this->get('serializer')->serialize($campus, 'json', [
+        $grounds = $this->get('serializer')->serialize($grounds, 'json', [
             'circular_reference_handler' => function ($object) {
                 return $object->getId();
             },
             'ignored_attributes' => ['competencia']
         ]);
 
-        $response = new Response($campus);
+        $response = new Response($grounds);
         $response->setStatusCode(Response::HTTP_OK);
         $response->headers->set('Content-Type', 'application/json');
 
@@ -45,11 +51,11 @@ class PredioController extends AbstractFOSRestController
 
     /**
      * Devuelve todas los predios de una competencia
-     * @Rest\Get("/campus/competition"), defaults={"_format"="json"})
+     * @Rest\Get("/grounds/competition"), defaults={"_format"="json"})
      * 
      * @return Response
      */
-    public function getCampusByCompetition(Request $request){
+    public function getGroundsByCompetition(Request $request){
         $repository=$this->getDoctrine()->getRepository(Predio::class);
       
         $respJson = (object) null;
@@ -58,10 +64,10 @@ class PredioController extends AbstractFOSRestController
 
         // vemos si recibimos algun parametro
         if(!empty($idCompetencia)){
-            $campus = $repository->findCampusByCompetetition($idCompetencia);
+            $grounds = $repository->findGroundsByCompetetition($idCompetencia);
             $statusCode = Response::HTTP_OK;
 
-            $campus = $this->get('serializer')->serialize($campus, 'json', [
+            $grounds = $this->get('serializer')->serialize($grounds, 'json', [
                 'circular_reference_handler' => function ($object) {
                     return $object->getId();
                 },
@@ -70,12 +76,12 @@ class PredioController extends AbstractFOSRestController
             $respJson->messaging = "Operacion con exito";
         }
         else{
-            $campus  = NULL;
+            $grounds  = NULL;
             $statusCode = Response::HTTP_BAD_REQUEST;
             $respJson->messaging = "Faltan parametros";
         }
 
-        $respJson->campus = json_decode($campus);
+        $respJson->grounds = json_decode($grounds);
         $respJson = json_encode($respJson);
         
         $response = new Response($respJson);
@@ -87,7 +93,7 @@ class PredioController extends AbstractFOSRestController
 
     /**
      * Crea un predio.
-     * @Rest\Post("/campus"), defaults={"_format"="json"})
+     * @Rest\Post("/grounds"), defaults={"_format"="json"})
      * 
      * @return Response
      */
@@ -170,7 +176,7 @@ class PredioController extends AbstractFOSRestController
 
     /**
      * Crea un usuario.
-     * @Rest\Delete("/campus/del"), defaults={"_format"="json"})
+     * @Rest\Delete("/grounds/del"), defaults={"_format"="json"})
      * 
      * @return Response
      */
@@ -187,10 +193,7 @@ class PredioController extends AbstractFOSRestController
             $statusCode = Response::HTTP_BAD_REQUEST;
             $respJson->messaging = "Peticion mal formada. Faltan parametros.";
         }
-        else{
-            // ######################################################################
-            // tmb deberiamos borrar todos los campos de este predio
-            // ######################################################################
+        else{            
             $repository=$this->getDoctrine()->getRepository(Predio::class);
             $predio = $repository->find($idPredio);
             if($predio == NULL){
@@ -199,6 +202,21 @@ class PredioController extends AbstractFOSRestController
                 $respJson->messaging = "El predio no existe o ya fue eliminado";
             }
             else{
+                // ######################################################################
+                // tmb deberiamos borrar todos los campos de este predio
+                // ######################################################################
+                // $urlDeleteCampo = Constant::SERVICES_REST_CAMPO.'/fields/del?idPredio='.$idPredio;
+                // $client = HttpClient::create();
+                // $response = $client->request('DELETE', $urlDeleteCampo);
+                //$statusCodeDelete = $response->getStatusCode();
+
+                $repositoryCampos = $this->getDoctrine()->getRepository(Campo::class);
+                $campos = $repositoryCampos->findFieldsByCampus($idPredio);
+                // eliminamos los campos del predio
+                $this->forward('App\Controller\CampoController::deleteSetCampus', [
+                    'campos' => $campos
+                ]);
+
                 // eliminamos el dato y refrescamos la DB
                 $em = $this->getDoctrine()->getManager();
                 $em->remove($predio);

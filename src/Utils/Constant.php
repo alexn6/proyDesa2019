@@ -19,4 +19,6 @@ class Constant{
 
     const MIN_COMPETIDORES_LIGA = 3;
 
+    // servicios propios
+    const SERVICES_REST_CAMPO = 'http://132.255.7.152:20203/api/campus';
 }

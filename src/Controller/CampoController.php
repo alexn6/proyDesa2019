@@ -166,12 +166,8 @@ class CampoController extends AbstractFOSRestController
                     $respJson->messaging = "El predio no tiene campos o fueron eliminados";
                 }
                 else{
-                    // eliminamos el dato y refrescamos la DB
-                    $em = $this->getDoctrine()->getManager();
-                    foreach ($campos as $campo) {
-                        $em->remove($campo);
-                    }
-                    $em->flush();
+                    // eliminamos todos los campos
+                    $this->deleteSetCampus($campos);
     
                     $respJson->success = true;
                     $statusCode = Response::HTTP_OK;
@@ -227,5 +223,15 @@ class CampoController extends AbstractFOSRestController
         }
     
         return true;
+    }
+
+    // eliminamos un cjto de campos
+    public function deleteSetCampus($campos){
+        // eliminamos el dato y refrescamos la DB
+        $em = $this->getDoctrine()->getManager();
+        foreach ($campos as $campo) {
+            $em->remove($campo);
+        }
+        $em->flush();
     }
 }
