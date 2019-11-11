@@ -20,22 +20,26 @@ class CampoController extends AbstractFOSRestController
     
     /**
      * Lista de todos los campos de un predio.
-     * @Rest\Get("/campus/getFieldsByCampus"), defaults={"_format"="json"})
+     * @Rest\Get("/grounds/getFieldsByGounds"), defaults={"_format"="json"})
      * 
      * @return Response
      */
-    public function getFieldsByCampus(Request $request){
+    public function getFieldsByGrounds(Request $request){
   
         $repository = $this->getDoctrine()->getRepository(Campo::class);
       
         $respJson = (object) null;
 
         $idPredio = $request->get('idPredio');
+        $idCampo =  $request->get('idCampo');
   
         // vemos si recibimos algun parametro
+        if(empty($idCampo))
+            $idCampo = null;
+
         if(!empty($idPredio)){
   
-            $field = $repository->findFieldsByCampus($idPredio);
+            $field = $repository->findFieldsByGrounds($idPredio,$idCampo);
             $statusCode = Response::HTTP_OK;
 
             $field = $this->get('serializer')->serialize($field, 'json', [
@@ -59,7 +63,7 @@ class CampoController extends AbstractFOSRestController
 
     /**
      * Crea un campo.
-     * @Rest\Post("/campus/field"), defaults={"_format"="json"})
+     * @Rest\Post("/grounds/field"), defaults={"_format"="json"})
      * 
      * @return Response
      */
@@ -71,7 +75,7 @@ class CampoController extends AbstractFOSRestController
         // vemos si existe un body
         if(!empty($request->getContent())){
   
-          $repository=$this->getDoctrine()->getRepository(Campo::class);
+          $repository = $this->getDoctrine()->getRepository(Campo::class);
     
           // recuperamos los datos del body y pasamos a un array
           $dataCampoRequest = json_decode($request->getContent());
@@ -95,30 +99,37 @@ class CampoController extends AbstractFOSRestController
                     $respJson->messaging = "Predio inexistente";
                   }
                   else{
-                    // creamos el campo
-                    $newCampo = new Campo();
-                    $newCampo->setNombre($nombre);
-              
-                    if(!empty($dataCampoRequest->capacidad)){
-                    $capacidad = $dataCampoRequest->capacidad;
-                    $newCampo->setCapacidad($capacidad);
-                    }
+                    $campoName = $repository->findFieldsByName($idPredio,$nombre);
+                    if($campoName != null){
+                        $respJson->success = false;
+                        $statusCode = Response::HTTP_BAD_REQUEST;
+                        $respJson->messaging = "Nombre de Campo existente";                          
+                    } else {                    
+                        // creamos el campo
+                        $newCampo = new Campo();
+                        $newCampo->setNombre($nombre);
+                        
+                        if(!empty($dataCampoRequest->capacidad)){
+                        $capacidad = $dataCampoRequest->capacidad;
+                        $newCampo->setCapacidad($capacidad);
+                        }
 
-                    if(!empty($dataCampoRequest->dimensiones)){
-                    $dimensiones = $dataCampoRequest->dimensiones;
-                    $newCampo->setDimensiones($dimensiones);
-                    }
-                    $newCampo->setPredio($predio);
+                        if(!empty($dataCampoRequest->dimensiones)){
+                        $dimensiones = $dataCampoRequest->dimensiones;
+                        $newCampo->setDimensiones($dimensiones);
+                        }
+                        $newCampo->setPredio($predio);
+
+                        $em = $this->getDoctrine()->getManager();
+                        $em->persist($newCampo);
+                        $em->flush();
                     
-                    $em = $this->getDoctrine()->getManager();
-                    $em->persist($newCampo);
-                    $em->flush();
-            
-                    $statusCode = Response::HTTP_CREATED;
-            
-                    $respJson->success = true;
-                    $respJson->messaging = "Creacion exitosa";
+                        $statusCode = Response::HTTP_CREATED;
+                    
+                        $respJson->success = true;
+                        $respJson->messaging = "Creacion exitosa";
                   }
+                }
             }   
         }
         else{
@@ -138,7 +149,7 @@ class CampoController extends AbstractFOSRestController
 
     /**
      * Eliminar todos los campos de un predio o elimina un campo de un predio.
-     * @Rest\Delete("/campus/fields/del"), defaults={"_format"="json"})
+     * @Rest\Delete("/grounds/fields/del"), defaults={"_format"="json"})
      * 
      * @return Response
      */
@@ -151,6 +162,7 @@ class CampoController extends AbstractFOSRestController
         $idCampo = $request->get('idCampo');
 
         if(empty($idCampo)){
+            $idCampo = null;
             // vemos si recibimos el id de un predio para eliminarlo
             if(empty($idPredio)){
                 $respJson->success = false;
@@ -159,7 +171,7 @@ class CampoController extends AbstractFOSRestController
             }
             else{
                 $repository=$this->getDoctrine()->getRepository(Campo::class);
-                $campos = $repository->findFieldsByCampus($idPredio);
+                $campos = $repository->findFieldsByGrounds($idPredio,$idCampo);
                 if($campos == NULL){
                     $respJson->success = true;
                     $statusCode = Response::HTTP_OK;
@@ -182,7 +194,7 @@ class CampoController extends AbstractFOSRestController
             }
             else{
                 $repository=$this->getDoctrine()->getRepository(Campo::class);
-                $campo = $repository->find($idCampo);
+                $campo = $repository->findFieldsByGrounds($idPredio, $idCampo);
                 if($campo == NULL){
                     $respJson->success = true;
                     $statusCode = Response::HTTP_OK;
@@ -190,9 +202,7 @@ class CampoController extends AbstractFOSRestController
                 }
                 else{
                     // eliminamos el dato y refrescamos la DB
-                    $em = $this->getDoctrine()->getManager();
-                    $em->remove($campo);
-                    $em->flush();
+                    $this->deleteSetCampus($campo);
     
                     $respJson->success = true;
                     $statusCode = Response::HTTP_OK;

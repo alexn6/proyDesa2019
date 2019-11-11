@@ -48,16 +48,34 @@ class CampoRepository extends ServiceEntityRepository
     }
     */
 
-    public function findFieldsByCampus($idPredio){
+    public function findFieldsByGrounds($idPredio, $idCampo){
+        $entityManager = $this->getEntityManager();
+      
+        $stringQueryBase = 'SELECT c
+                            FROM App\Entity\Campo c
+                            INNER JOIN App\Entity\Predio p
+                            WITH c.predio = p.id
+                            AND p.id =' .$idPredio; 
+        if($idCampo != NULL){
+            $stringQueryCampo = ' AND c.id = '.$idCampo;
+            $stringQueryBase = $stringQueryBase.$stringQueryCampo;
+        }
+        $query = $entityManager->createQuery($stringQueryBase);    
+        return $query->execute();   
+    }
+    
+    public function findFieldsByName($idPredio, $nameField){
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-        '   SELECT c
-            FROM App\Entity\Campo c
-            INNER JOIN App\Entity\Predio p
-            WITH c.predio = p.id
-            AND p.id = :idPredio
-        ')->setParameter('idPredio',$idPredio);
-    
+            '   SELECT c
+                FROM App\Entity\Campo c
+                INNER JOIN App\Entity\Predio p
+                WITH c.predio = p.id
+                AND p.id = :idPredio
+                AND c.nombre = :nameField
+            ')->setParameter('idPredio',$idPredio)
+              ->setParameter('nameField',$nameField);
+        
         return $query->execute();   
     }
 }
