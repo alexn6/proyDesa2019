@@ -20,7 +20,7 @@ class CampoController extends AbstractFOSRestController
     
     /**
      * Lista de todos los campos de un predio.
-     * @Rest\Get("/grounds/getFieldsByGounds"), defaults={"_format"="json"})
+     * @Rest\Get("/grounds/getFieldsByGrounds"), defaults={"_format"="json"})
      * 
      * @return Response
      */
