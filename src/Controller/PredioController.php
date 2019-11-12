@@ -73,7 +73,6 @@ class PredioController extends AbstractFOSRestController
                 },
                 'ignored_attributes' => ['competencia']
             ]);
-            $respJson->messaging = "Operacion con exito";
         }
         else{
             $grounds  = NULL;
@@ -81,7 +80,7 @@ class PredioController extends AbstractFOSRestController
             $respJson->messaging = "Faltan parametros";
         }
 
-        $respJson->grounds = json_decode($grounds);
+        $respJson = json_decode($grounds);
         $respJson = json_encode($respJson);
         
         $response = new Response($respJson);
