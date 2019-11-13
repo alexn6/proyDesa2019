@@ -67,7 +67,6 @@ class JuezController extends AbstractFOSRestController
                 },
                 'ignored_attributes' => ['competencia']
             ]);
-            $respJson->messaging = "Operacion con exito";
         }
         else{
             $judges  = NULL;
@@ -75,7 +74,7 @@ class JuezController extends AbstractFOSRestController
             $respJson->messaging = "Faltan parametros";
         }
         
-        $respJson->judges = json_decode($judges);
+        $respJson = json_decode($judges);
         $respJson = json_encode($respJson);
 
         $response = new Response($respJson);
