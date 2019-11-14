@@ -8,6 +8,8 @@ use Doctrine\ORM\Mapping as ORM;
 
 use App\Entity\Usuario;
 use App\Entity\Competencia;
+use App\Entity\Campo;
+use App\Entity\Turno;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\EncuentroRepository")
@@ -45,9 +47,38 @@ class Encuentro
     private $grupo;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Jornada")
+     * @ORM\JoinColumn(name="jornada_id", referencedColumnName="id")
      */
     private $jornada;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $rdo_comp1;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $rdo_comp2;
+    
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Juez")
+     * @ORM\JoinColumn(name="juez_id", referencedColumnName="id")
+     */
+    private $juez;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Campo")
+     * @ORM\JoinColumn(name="campo_id", referencedColumnName="id")
+     */
+    private $campo;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Turno")
+     * @ORM\JoinColumn(name="turno_id", referencedColumnName="id")
+     */
+    private $turno;
 
     public function getId(): ?int
     {
@@ -102,14 +133,74 @@ class Encuentro
         return $this;
     }
 
-    public function getJornada(): ?int
+    public function getRdoComp1(): ?int
+    {
+        return $this->rdo_comp1;
+    }
+
+    public function setRdoComp1(int $rdo_comp1): self
+    {
+        $this->rdo_comp1 = $rdo_comp1;
+
+        return $this;
+    }
+
+    public function getRdoComp2(): ?int
+    {
+        return $this->rdo_comp2;
+    }
+
+    public function setRdoComp2(int $rdo_comp2): self
+    {
+        $this->rdo_comp2 = $rdo_comp2;
+
+        return $this;
+    }
+
+    public function getJornada(): ?Jornada
     {
         return $this->jornada;
     }
 
-    public function setJornada(int $jornada): self
+    public function setJornada(?Jornada $jornada): self
     {
         $this->jornada = $jornada;
+
+        return $this;
+    }
+
+    public function getJuez(): ?Juez
+    {
+        return $this->juez;
+    }
+
+    public function setJuez(?Juez $juez): self
+    {
+        $this->juez = $juez;
+
+        return $this;
+    }
+
+    public function getCampo(): ?Campo
+    {
+        return $this->campo;
+    }
+
+    public function setCampo(?Campo $campo): self
+    {
+        $this->campo = $campo;
+
+        return $this;
+    }
+
+    public function getTurno(): ?Turno
+    {
+        return $this->turno;
+    }
+
+    public function setTurno(?Turno $turno): self
+    {
+        $this->turno = $turno;
 
         return $this;
     }
