@@ -7,10 +7,14 @@ use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use \Datetime;
 
 use App\Entity\Encuentro;
 use App\Entity\Usuario;
 use App\Entity\Competencia;
+use App\Entity\Jornada;
+
+use App\Controller\JornadaController;
 
 use App\Utils\Constant;
 
@@ -168,207 +172,145 @@ class EncuentroController extends AbstractFOSRestController
       return $response;
     }
 
-    // /**
-    //  * 
-    //  * @Rest\Get("/confrontations/competition")
-    //  * Por nombre de competencia
-    //  * 
-    //  * @return Response
-    //  */
-    // public function getConfratationsByCompetition(Request $request){
-    //   $idCompetition = $request->get('idCompetencia');
-
-    //   $respJson = (object) null;
-    //   $statusCode;
-     
-    //   // vemos si recibimos algun parametro
-    //   if(!empty($idCompetition)){
-    //       // controlamos que exista la competencia
-    //       $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
-    //       $competition = $repositoryComp->find($idCompetition);
-
-    //       if(empty($competition)){
-    //           $respJson->matches = NULL;
-    //           $statusCode = Response::HTTP_BAD_REQUEST;
-    //           $respJson->msg = "La competencia no existe o fue eliminada";
-    //       }
-    //       else{
-    //         $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
-    //         // recuperamos los usuario_competencia de una competencia
-    //         $encuentros = $repositoryEnc->findEncuentrosByCompetencia($idCompetition);
-
-    //         $encuentros = $this->get('serializer')->serialize($encuentros, 'json', [
-    //           'circular_reference_handler' => function($object){
-    //             return $object->getId();
-    //           },
-    //           // 'usuarioscompetencias' evita las referencias circulares y nos permite mostrar el objeto completo
-    //           'ignored_attributes' => ['usuarioscompetencias', 'competencia', 'grupo', 'jornada', '__initializer__','__cloner__','__isInitialized__']
-    //         ]);
-
-    //         $array_encuentros = json_decode($encuentros, true);
- 
-    //         // foreach ($array_encuentros as &$valor) {
-    //         //   $valor['competencia'] = $valor['competencia']['id'];
-    //         // }
-
-    //         //$array_encuentros = json_encode($array_encuentros);
-
-    //         $statusCode = Response::HTTP_OK;
-    //         $respJson = $encuentros;
-    //       }
-    //   }
-    //   else{
-    //     $respJson->encuentros = NULL;
-    //     $respJson->msg = "Solicitud mal formada";
-    //     $statusCode = Response::HTTP_BAD_REQUEST;
-    //   }
-
-    //   $response = new Response($respJson);
-    //   $response->setStatusCode($statusCode);
-    //   $response->headers->set('Content-Type', 'application/json');
-
-    //   return $response;
-    // }
-
     // para ignorar atributos dentro de una entidad a la hora de serializar
     //https://symfony.com/doc/current/components/serializer.html#serializing-an-object
   
 
-  /**
-   * Creamos y persistimos un objeto del tipo Encuentro
-  * @Rest\Get("/saveLiga")
-  */
-  public function saveFixtureLiga()
-  {
-    $fechas = array();
-    $fecha1 = array();
-    $fecha2 = array();
+  // /**
+  //  * Creamos y persistimos un objeto del tipo Encuentro
+  // * @Rest\Get("/saveLiga")
+  // */
+  // public function saveFixtureLiga()
+  // {
+  //   $fechas = array();
+  //   $fecha1 = array();
+  //   $fecha2 = array();
     
-    array_push($fecha1, ["alex6", "sergiov"]);
-    array_push($fecha1, ["lucasa", "algo_t"]);
-    array_push($fecha2, ["alexMovil", "Seguidor"]);
-    array_push($fecha2, ["Organizador", "Participante"]);
-    //print_r($fecha1); 
-    array_push($fechas, $fecha1);
-    array_push($fechas, $fecha2);
+  //   array_push($fecha1, ["alex6", "sergiov"]);
+  //   array_push($fecha1, ["lucasa", "algo_t"]);
+  //   array_push($fecha2, ["alexMovil", "Seguidor"]);
+  //   array_push($fecha2, ["Organizador", "Participante"]);
+  //   //print_r($fecha1); 
+  //   array_push($fechas, $fecha1);
+  //   array_push($fechas, $fecha2);
 
-    $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
-    $competencia = $repositoryComp->find(7);
+  //   $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
+  //   $competencia = $repositoryComp->find(7);
 
-    $this->saveLiga($fechas, $competencia);
+  //   $this->saveLiga($fechas, $competencia);
 
-    $response = new Response();
-    $response->setStatusCode(Response::HTTP_OK);
-    $response->headers->set('Content-Type', 'application/json');
+  //   $response = new Response();
+  //   $response->setStatusCode(Response::HTTP_OK);
+  //   $response->headers->set('Content-Type', 'application/json');
 
-    return $response;
-  }
+  //   return $response;
+  // }
 
-  /** solo de PRUEBA
-   * Creamos y persistimos un objeto del tipo Encuentro
-  * @Rest\Get("/saveElim")
-  */
-  public function saveFixtureEliminatorias()
-  {
-    $fechas = array();
-    $fechaCuartos = array();
+  // /** solo de PRUEBA
+  //  * Creamos y persistimos un objeto del tipo Encuentro
+  // * @Rest\Get("/saveElim")
+  // */
+  // public function saveFixtureEliminatorias()
+  // {
+  //   $fechas = array();
+  //   $fechaCuartos = array();
     
-    array_push($fechaCuartos, ["alex6", "sergiov"]);
-    array_push($fechaCuartos, ["lucasa", "algo_t"]);
-    array_push($fechaCuartos, ["alexMovil", "Seguidor"]);
-    array_push($fechaCuartos, ["Organizador", "Participante"]);
-    //print_r($fecha1); 
-    array_push($fechas, $fechaCuartos);
+  //   array_push($fechaCuartos, ["alex6", "sergiov"]);
+  //   array_push($fechaCuartos, ["lucasa", "algo_t"]);
+  //   array_push($fechaCuartos, ["alexMovil", "Seguidor"]);
+  //   array_push($fechaCuartos, ["Organizador", "Participante"]);
+  //   //print_r($fecha1); 
+  //   array_push($fechas, $fechaCuartos);
 
-    $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
-    $competencia = $repositoryComp->find(7);
+  //   $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
+  //   $competencia = $repositoryComp->find(7);
 
-    $this->saveEliminatorias($fechas, $competencia);
+  //   $this->saveEliminatorias($fechas, $competencia);
 
-    $response = new Response();
-    $response->setStatusCode(Response::HTTP_OK);
-    $response->headers->set('Content-Type', 'application/json');
+  //   $response = new Response();
+  //   $response->setStatusCode(Response::HTTP_OK);
+  //   $response->headers->set('Content-Type', 'application/json');
 
-    return $response;
-  }
+  //   return $response;
+  // }
 
-  /** solo de PRUEBA
-   * Creamos y persistimos un objeto del tipo Encuentro
-  * @Rest\Get("/saveElimdoub")
-  */
-  public function saveFixtureEliminatoriasDoubles()
-  {
-    $fechas = array();
-    $fechaSemiIda = array();
-    $fechaSemiVuelta = array();
+  // /** solo de PRUEBA
+  //  * Creamos y persistimos un objeto del tipo Encuentro
+  // * @Rest\Get("/saveElimdoub")
+  // */
+  // public function saveFixtureEliminatoriasDoubles()
+  // {
+  //   $fechas = array();
+  //   $fechaSemiIda = array();
+  //   $fechaSemiVuelta = array();
     
-    array_push($fechaSemiIda, ["alexMovil", "Seguidor"]);
-    array_push($fechaSemiIda, ["Organizador", "Participante"]);
-    array_push($fechaSemiVuelta, ["Seguidor", "alexMovil"]);
-    array_push($fechaSemiVuelta, ["Participante", "Organizador"]);
-    //print_r($fecha1); 
-    array_push($fechas, $fechaSemiIda);
-    array_push($fechas, $fechaSemiVuelta);
+  //   array_push($fechaSemiIda, ["alexMovil", "Seguidor"]);
+  //   array_push($fechaSemiIda, ["Organizador", "Participante"]);
+  //   array_push($fechaSemiVuelta, ["Seguidor", "alexMovil"]);
+  //   array_push($fechaSemiVuelta, ["Participante", "Organizador"]);
+  //   //print_r($fecha1); 
+  //   array_push($fechas, $fechaSemiIda);
+  //   array_push($fechas, $fechaSemiVuelta);
 
-    $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
-    // asignamos una competencia con tipo LigaDouble
-    $competencia = $repositoryComp->find(4);
+  //   $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
+  //   // asignamos una competencia con tipo LigaDouble
+  //   $competencia = $repositoryComp->find(4);
 
-    $this->saveEliminatorias($fechas, $competencia);
+  //   $this->saveEliminatorias($fechas, $competencia);
 
-    $response = new Response();
-    $response->setStatusCode(Response::HTTP_OK);
-    $response->headers->set('Content-Type', 'application/json');
+  //   $response = new Response();
+  //   $response->setStatusCode(Response::HTTP_OK);
+  //   $response->headers->set('Content-Type', 'application/json');
 
-    return $response;
-  }
+  //   return $response;
+  // }
 
-  /** solo de PRUEBA
-   * Creamos y persistimos un objeto del tipo Encuentro
-  * @Rest\Get("/saveGrup")
-  */
-  public function saveFixtureGrupos()
-  {
-    $fechas = array();
-    $grupo1 = array();
-    $fechaG1 = array();
-    $fechaG2 = array();
+  // /** solo de PRUEBA
+  //  * Creamos y persistimos un objeto del tipo Encuentro
+  // * @Rest\Get("/saveGrup")
+  // */
+  // public function saveFixtureGrupos()
+  // {
+  //   $fechas = array();
+  //   $grupo1 = array();
+  //   $fechaG1 = array();
+  //   $fechaG2 = array();
     
-    array_push($fechaG1, ["alexMovil", "Seguidor"]);
-    array_push($fechaG1, ["Organizador", "Participante"]);
-    array_push($fechaG2, ["Seguidor", "Organizador"]);
-    array_push($fechaG2, ["Participante", "alexMovil"]);
-    //print_r($fecha1); 
-    array_push($grupo1, $fechaG1);
-    array_push($grupo1, $fechaG2);
+  //   array_push($fechaG1, ["alexMovil", "Seguidor"]);
+  //   array_push($fechaG1, ["Organizador", "Participante"]);
+  //   array_push($fechaG2, ["Seguidor", "Organizador"]);
+  //   array_push($fechaG2, ["Participante", "alexMovil"]);
+  //   //print_r($fecha1); 
+  //   array_push($grupo1, $fechaG1);
+  //   array_push($grupo1, $fechaG2);
 
-    $grupo2 = array();
-    $fecha2G1 = array();
-    $fecha2G2 = array();
+  //   $grupo2 = array();
+  //   $fecha2G1 = array();
+  //   $fecha2G2 = array();
     
-    array_push($fecha2G1, ["sergiov", "Seguidor"]);
-    array_push($fecha2G1, ["alex6", "Participante"]);
-    array_push($fecha2G2, ["Participante", "sergiov"]);
-    array_push($fecha2G2, ["Seguidor", "alex6"]);
-    //print_r($fecha1); 
-    array_push($grupo2, $fecha2G1);
-    array_push($grupo2, $fecha2G2);
+  //   array_push($fecha2G1, ["sergiov", "Seguidor"]);
+  //   array_push($fecha2G1, ["alex6", "Participante"]);
+  //   array_push($fecha2G2, ["Participante", "sergiov"]);
+  //   array_push($fecha2G2, ["Seguidor", "alex6"]);
+  //   //print_r($fecha1); 
+  //   array_push($grupo2, $fecha2G1);
+  //   array_push($grupo2, $fecha2G2);
 
-    array_push($fechas, $grupo1);
-    array_push($fechas, $grupo2);
+  //   array_push($fechas, $grupo1);
+  //   array_push($fechas, $grupo2);
 
-    $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
-    // asignamos una competencia con tipo FaseGrupos
-    $competencia = $repositoryComp->find(18);
+  //   $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
+  //   // asignamos una competencia con tipo FaseGrupos
+  //   $competencia = $repositoryComp->find(18);
 
-    $this->saveGrupos($fechas, $competencia);
+  //   $this->saveGrupos($fechas, $competencia);
 
-    $response = new Response();
-    $response->setStatusCode(Response::HTTP_OK);
-    $response->headers->set('Content-Type', 'application/json');
+  //   $response = new Response();
+  //   $response->setStatusCode(Response::HTTP_OK);
+  //   $response->headers->set('Content-Type', 'application/json');
 
-    return $response;
-  }
+  //   return $response;
+  // }
 
 
   // ########################################################################
@@ -394,40 +336,47 @@ class EncuentroController extends AbstractFOSRestController
 
   // gurda en la DB los encuentros generados en una eliminatorio(single y double)
   private function saveEliminatorias($fixtureEncuentros, $competencia){
-    // recuperamos el id y la fase de a copetencia
+    $frec_jornada = 6;
+    //$frec_jornada = $competencia->getFrecuencia();
+    // recuperamos el id y la fase de a competencia
     for ($i=1; $i <= count($fixtureEncuentros); $i++) {
-      // esto desp queda determinadao por la competencia
       $jornada = $competencia->getFase();
-      $this->saveEncuentrosCompetition($fixtureEncuentros[$i], $competencia, $jornada, null);
+      // le vamos agregando la frecuencia de juego de la competencia a la fecha de inicio
+      $dias_frec = $frec_jornada*($i-1);
+      $fecha_jornada = date('Y-m-d', strtotime($competencia->getFechaIni()->format('Y-m-d'). ' + '.$dias_frec.' days'));
+      $this->saveEncuentrosCompetition($fixtureEncuentros[$i], $competencia, $jornada, null, $fecha_jornada);
     }
   }
 
   // guardamos los encuentros generados en una liga (single y double)
   private function saveLiga($fixtureEncuentros, $competencia){
+    $frec_jornada = 6;
+    //$frec_jornada = $competencia->getFrecuencia();
     // recuperamos el id y la fase de a copetencia
     // recorremos la lista de encuentros y persistimos los encuentros
     for ($i=1; $i <= count($fixtureEncuentros); $i++) {
       $jornada = $i;
-      $this->saveEncuentrosCompetition($fixtureEncuentros[$i], $competencia, $jornada, null);
+      // le vamos agregando la frecuencia de juego de la competencia a la fecha de inicio
+      $dias_frec = $frec_jornada*($i-1);
+      $fecha_jornada = date('Y-m-d', strtotime($competencia->getFechaIni()->format('Y-m-d'). ' + '.$dias_frec.' days'));
+      $this->saveEncuentrosCompetition($fixtureEncuentros[$i], $competencia, $jornada, null, $fecha_jornada);
     }
-    // for ($i=0; $i < count($fixtureEncuentros); $i++) {
-    //   $jornada = "FECHA".($i+1);
-    //   $this->saveEncuentrosCompetition($fixtureEncuentros[$i], $competencia, $jornada, null);
-    // }
   }
 
   // guardamos los encuentros generados por una competencia con grupos
   private function saveGrupos($fixtureEncuentros, $competencia){
-    //var_dump($fixtureEncuentros);
-    // el fixture serian los matches
-    // controlar que tengan cant de grupos
+    $frec_jornada = 6;
+    //$frec_jornada = $competencia->getFrecuencia();
+    // el fixture serian los matches, controlar que tengan cant de grupos
     for ($i=0; $i < count($fixtureEncuentros); $i++) {
-      //$fixtureGrupo = $fixtureEncuentros[$encuentros];
       $fixtureGrupo = $fixtureEncuentros[$i]["Encuentros"];
       $grupo = $i+1;
       for ($j=1; $j <= count($fixtureGrupo); $j++) {
         $jornada = $j;
-        $this->saveEncuentrosCompetition($fixtureGrupo[$j], $competencia, $jornada, $grupo);
+        // le vamos agregando la frecuencia de juego de la competencia a la fecha de inicio
+        $dias_frec = $frec_jornada*($j-1);
+        $fecha_jornada = date('Y-m-d', strtotime($competencia->getFechaIni()->format('Y-m-d'). ' + '.$dias_frec.' days'));
+        $this->saveEncuentrosCompetition($fixtureGrupo[$j], $competencia, $jornada, $grupo, $fecha_jornada);
       }      
     }
   }
@@ -435,7 +384,7 @@ class EncuentroController extends AbstractFOSRestController
 
   // solo recibiriamos la lista de encuentros
   // persistimos los encuentros de la competencia
-  private function saveEncuentrosCompetition($encuentros, $competencia, $jornada, $grupo){
+  private function saveEncuentrosCompetition($encuentros, $competencia, $jornada, $grupo, $fecha_jornada){
     $repository = $this->getDoctrine()->getRepository(Encuentro::class);
     $repositoryUser = $this->getDoctrine()->getRepository(Usuario::class);
 
@@ -447,10 +396,12 @@ class EncuentroController extends AbstractFOSRestController
       // vamos a recuperar los competidores del encuentro
       $competitor1 = $repositoryUser->findOneBy(['nombreUsuario' => $nameComp1]);
       $competitor2 = $repositoryUser->findOneBy(['nombreUsuario' => $nameComp2]);
+      // recuperamos la jornada que corresponde
+      $newJornada = $this->getJornada($jornada, $competencia, $fecha_jornada);
       // creamos el encuentro
       $newEncuentro = new Encuentro();
       $newEncuentro->setCompetencia($competencia);
-      $newEncuentro->setJornada($jornada);
+      $newEncuentro->setJornada($newJornada);
       $newEncuentro->setCompetidor1($competitor1);
       $newEncuentro->setCompetidor2($competitor2);
 
@@ -465,7 +416,27 @@ class EncuentroController extends AbstractFOSRestController
     
   }
   
-  private function saveEncuentro($idComp1, $idComp2, $tipoorg){
-    
+  // recupera la jornada de un encuentro segun el nro de jornada
+  private function getJornada($jornada, $competencia, $fecha){
+    $repository = $this->getDoctrine()->getRepository(Jornada::class);
+
+    $jornadaEncuentro = $repository->findOneBy(['numero' => $jornada, 'competencia' => $competencia]);
+
+    // vemos si existe la jornada
+    if($jornadaEncuentro == NULL){
+      $formato = 'Y-m-d';
+      $fecha_date = DateTime::createFromFormat($formato, $fecha);
+      // si no existe la creamos y la guardamos
+      $jornadaEncuentro = new Jornada();
+      $jornadaEncuentro->setCompetencia($competencia);
+      $jornadaEncuentro->setNumero($jornada);
+      $jornadaEncuentro->setFecha($fecha_date);
+
+      $this->forward('App\Controller\JornadaController::save', [
+        'newJornada'  => $jornadaEncuentro
+      ]);
+    }
+
+    return $jornadaEncuentro;
   }
 }

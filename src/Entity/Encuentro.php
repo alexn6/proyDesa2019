@@ -25,58 +25,58 @@ class Encuentro
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Competencia")
-     * @ORM\JoinColumn(name="competencia_id", referencedColumnName="id")
+     * @ORM\JoinColumn(name="competencia_id", referencedColumnName="id", nullable=false)
      */
     private $competencia;
     
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Usuario")
-     * @ORM\JoinColumn(name="compuser1_id", referencedColumnName="id")
+     * @ORM\JoinColumn(name="compuser1_id", referencedColumnName="id", nullable=false)
      */
     private $competidor1;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Usuario")
-     * @ORM\JoinColumn(name="compuser2_id", referencedColumnName="id")
+     * @ORM\JoinColumn(name="compuser2_id", referencedColumnName="id", nullable=false)
      */
     private $competidor2;
 
     /**
-     * @ORM\Column(type="integer",  nullable=true)
+     * @ORM\Column(type="integer", nullable=true)
      */
     private $grupo;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Jornada")
-     * @ORM\JoinColumn(name="jornada_id", referencedColumnName="id")
+     * @ORM\JoinColumn(name="jornada_id", referencedColumnName="id", nullable=false)
      */
     private $jornada;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer", nullable=true)
      */
     private $rdo_comp1;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer", nullable=true)
      */
     private $rdo_comp2;
     
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Juez")
-     * @ORM\JoinColumn(name="juez_id", referencedColumnName="id")
+     * @ORM\JoinColumn(name="juez_id", referencedColumnName="id", nullable=true)
      */
     private $juez;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Campo")
-     * @ORM\JoinColumn(name="campo_id", referencedColumnName="id")
+     * @ORM\JoinColumn(name="campo_id", referencedColumnName="id", nullable=true)
      */
     private $campo;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Turno")
-     * @ORM\JoinColumn(name="turno_id", referencedColumnName="id")
+     * @ORM\JoinColumn(name="turno_id", referencedColumnName="id", nullable=true)
      */
     private $turno;
 
