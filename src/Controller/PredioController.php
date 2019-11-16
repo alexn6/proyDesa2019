@@ -204,7 +204,7 @@ class PredioController extends AbstractFOSRestController
                 if($predio == NULL){
                     $respJson->success = true;
                     $statusCode = Response::HTTP_OK;
-                    $respJson->messaging = "El predio no existe o ya fue eliminado";
+                    $respJson->messaging = "El predio y/o competencia incorrecta o inexistente";
                 }
                 else{
                     // ######################################################################
