@@ -122,6 +122,7 @@ class EncuentroController extends AbstractFOSRestController
             $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
             $fase = null;
             $grupo = null;
+            $idJornada = null;
             // vemos si existe un body
             if(!empty($request->getContent())){
                 // recuperamos los datos del body y pasamos a un array
@@ -130,6 +131,11 @@ class EncuentroController extends AbstractFOSRestController
                 $hayFase = property_exists((object) $dataConfrontationRequest,'fase');
                 if($hayFase){
                   $fase = $dataConfrontationRequest->fase;
+                  // ################################ NO BORRAR #################################
+                  // buscamos el id correspondiente a la fase
+                  $repositoryJornada = $this->getDoctrine()->getRepository(Jornada::class);
+                  $idJornada = $repositoryJornada->findOneBy(['competencia'=> $competition, 'numero'=> $fase])->getId();
+                  // ##############################################################################
                 }
                 $hayGrupo = property_exists((object) $dataConfrontationRequest,'grupo');
                 if($hayGrupo){
@@ -138,7 +144,7 @@ class EncuentroController extends AbstractFOSRestController
             }
 
             // recuperamos inicialmente los datos del competidor1
-            $encuentros = $repositoryEnc->findEncuentrosComp1ByCompetencia($idCompetition, $fase, $grupo);
+            $encuentros = $repositoryEnc->findEncuentrosComp1ByCompetencia($idCompetition, $idJornada, $grupo);
 
             $encuentros = $this->get('serializer')->serialize($encuentros, 'json');
             // pasamos el resultado a un array de objetos para poder trabajarlo
@@ -146,7 +152,7 @@ class EncuentroController extends AbstractFOSRestController
             //var_dump($encuentrosComp1);
 
             // recuperamos los datos del competidor2
-            $encuentrosComp2 = $repositoryEnc->findEncuentrosComp2ByCompetencia($idCompetition, $fase, $grupo);
+            $encuentrosComp2 = $repositoryEnc->findEncuentrosComp2ByCompetencia($idCompetition, $idJornada, $grupo);
 
             // le agregamos la columna del competidor2
             for ($i=0; $i < count($encuentros) ; $i++) {
