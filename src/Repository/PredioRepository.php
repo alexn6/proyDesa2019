@@ -51,16 +51,22 @@ class PredioRepository extends ServiceEntityRepository
     */
 
     //Recuperar predios por id de competencia
-    public function findGroundsByCompetetition($idCompetencia){
+    public function findGroundsByCompetetition($idCompetencia, $idPredio){
         $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        '   SELECT p
-            FROM App\Entity\Predio p
-            INNER JOIN App\Entity\Competencia c
-            WITH p.competencia = c.id
-            AND c.id = :idCompetencia
-        ')->setParameter('idCompetencia',$idCompetencia);
-        
+       
+        $stringQueryBase = 'SELECT p
+                            FROM App\Entity\Predio p
+                            INNER JOIN App\Entity\Competencia c
+                            WITH p.competencia = c.id
+                            AND c.id =' .$idCompetencia;
+                        
+        if($idPredio != NULL){
+            $stringQueryPredio = ' AND p.id = '.$idPredio;
+            $stringQueryBase = $stringQueryBase.$stringQueryPredio;
+                
+        }
+        $query = $entityManager->createQuery($stringQueryBase);    
         return $query->execute();   
     }
+
 }

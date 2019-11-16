@@ -61,10 +61,10 @@ class PredioController extends AbstractFOSRestController
         $respJson = (object) null;
 
         $idCompetencia = $request->get('idCompetencia');
-
+        $idPredio = null;
         // vemos si recibimos algun parametro
         if(!empty($idCompetencia)){
-            $grounds = $repository->findGroundsByCompetetition($idCompetencia);
+            $grounds = $repository->findGroundsByCompetetition($idCompetencia,$idPredio);
             $statusCode = Response::HTTP_OK;
 
             $grounds = $this->get('serializer')->serialize($grounds, 'json', [
@@ -184,49 +184,58 @@ class PredioController extends AbstractFOSRestController
         $respJson = (object) null;
         $statusCode;
 
+        $idCompetencia = $request->get('idCompetencia');
         $idPredio = $request->get('idPredio');
       
         // vemos si recibimos el id de un predio para eliminarlo
-        if(empty($idPredio)){
-            $respJson->success = false;
-            $statusCode = Response::HTTP_BAD_REQUEST;
-            $respJson->messaging = "Peticion mal formada. Faltan parametros.";
-        }
-        else{            
-            $repository=$this->getDoctrine()->getRepository(Predio::class);
-            $predio = $repository->find($idPredio);
-            if($predio == NULL){
-                $respJson->success = true;
-                $statusCode = Response::HTTP_OK;
-                $respJson->messaging = "El predio no existe o ya fue eliminado";
+        if(empty($idCompetencia)){
+                $respJson->success = false;
+                $statusCode = Response::HTTP_BAD_REQUEST;
+                $respJson->messaging = "Peticion mal formada.";
+        }else{
+            if(empty($idPredio)){
+                $respJson->success = false;
+                $statusCode = Response::HTTP_BAD_REQUEST;
+                $respJson->messaging = "Peticion mal formada. Faltan parametros.";
             }
-            else{
-                // ######################################################################
-                // tmb deberiamos borrar todos los campos de este predio
-                // ######################################################################
-                // $urlDeleteCampo = Constant::SERVICES_REST_CAMPO.'/fields/del?idPredio='.$idPredio;
-                // $client = HttpClient::create();
-                // $response = $client->request('DELETE', $urlDeleteCampo);
-                //$statusCodeDelete = $response->getStatusCode();
+            else{            
+                $repository=$this->getDoctrine()->getRepository(Predio::class);
+                $predio = $repository->findGroundsByCompetetition($idCompetencia,$idPredio);
+                if($predio == NULL){
+                    $respJson->success = true;
+                    $statusCode = Response::HTTP_OK;
+                    $respJson->messaging = "El predio no existe o ya fue eliminado";
+                }
+                else{
+                    // ######################################################################
+                    // tmb deberiamos borrar todos los campos de este predio
+                    // ######################################################################
+                    // $urlDeleteCampo = Constant::SERVICES_REST_CAMPO.'/fields/del?idPredio='.$idPredio;
+                    // $client = HttpClient::create();
+                    // $response = $client->request('DELETE', $urlDeleteCampo);
+                    //$statusCodeDelete = $response->getStatusCode();
 
-                $repositoryCampos = $this->getDoctrine()->getRepository(Campo::class);
-                $campos = $repositoryCampos->findFieldsByCampus($idPredio);
-                // eliminamos los campos del predio
-                $this->forward('App\Controller\CampoController::deleteSetCampus', [
-                    'campos' => $campos
-                ]);
+                    $repositoryCampos = $this->getDoctrine()->getRepository(Campo::class);
+                    $campos = $repositoryCampos->findFieldsByGrounds($idPredio,null);
+                    // eliminamos los campos del predio
+                    $this->forward('App\Controller\CampoController::deleteSetCampus', [
+                        'campos' => $campos
+                    ]);
 
-                // eliminamos el dato y refrescamos la DB
-                $em = $this->getDoctrine()->getManager();
-                $em->remove($predio);
-                $em->flush();
-    
-                $respJson->success = true;
-                $statusCode = Response::HTTP_OK;
-                $respJson->messaging = "Eiminacion correcta";
+                    // eliminamos el dato y refrescamos la DB
+                    $em = $this->getDoctrine()->getManager();
+                    foreach ($predio as $predios) {
+                        $em->remove($predios);
+                    }
+                    $em->flush();
+        
+                    $respJson->success = true;
+                    $statusCode = Response::HTTP_OK;
+                    $respJson->messaging = "Eiminacion correcta";
+                }
             }
+        
         }
-
         $respJson = json_encode($respJson);
 
         $response = new Response($respJson);
@@ -253,7 +262,8 @@ class PredioController extends AbstractFOSRestController
         if(!property_exists((object) $dataRequest,'ciudad')){
             return false;
         }
-
         return true;
     }
+
+
 }
