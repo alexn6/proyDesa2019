@@ -17,6 +17,7 @@ use App\Entity\TipoOrganizacion;
 use App\Entity\Usuario;
 use App\Entity\UsuarioCompetencia;
 use App\Entity\Rol;
+use App\Entity\Jornada;
 
 use App\Utils\Constant;
 
@@ -225,6 +226,49 @@ class CompetenciaController extends AbstractFOSRestController
         return $response;
     }
 
+    /**
+     * 
+     * @Rest\Post("/competition/org")
+     * 
+     * @return Response
+     */
+    public function faseGrupoCompetition(Request $request){
+      $respJson = (object) null;
+
+      $idCompetencia = $request->get('idCompetencia');
+
+      if(!empty($idCompetencia)){
+        $repository = $this->getDoctrine()->getRepository(Competencia::class);
+        $competition = $repository->find($idCompetencia);
+
+        if(!$competition) {
+          $respJson->messaging = "La competencia no existe.";
+          $statusCode = Response::HTTP_OK;
+        }
+        else{
+          $repositoryJornada = $this->getDoctrine()->getRepository(Jornada::class);
+          
+          $respJson->cant_grupo = $competition->getCantGrupos();
+          $stringCantJornada = $repositoryJornada->nJornadaCompetetion($idCompetencia)[0][1];
+          $respJson->cant_jornada = (int)$stringCantJornada;
+          $respJson->messaging = "Operacion realizada con exito";
+        }
+      }
+      else{
+        $respJson->messaging = "Solicitud mal formada. Faltan parametros.";
+        $statusCode = Response::HTTP_BAD_REQUEST;
+      }
+      
+
+      $respJson = json_encode($respJson);
+
+      $response = new Response($respJson);
+      $response->setStatusCode(Response::HTTP_OK);
+      $response->headers->set('Content-Type', 'application/json');
+
+      return $response;
+  }
+
     // filtros para buscar competencias
     /**
      * 
@@ -296,32 +340,32 @@ class CompetenciaController extends AbstractFOSRestController
       // $name = $nameCompetiton;
  
        if(!empty($nameCompetition)){
-       $competitions = $repository->findCompetitionsByName($nameCompetition);
- 
-       $competitions = $this->get('serializer')->serialize($competitions, 'json', [
-         'circular_reference_handler' => function ($object) {
-           return $object->getId();
-         },
-         'ignored_attributes' => ['usuarioscompetencias', '__initializer__', '__cloner__', '__isInitialized__']
-       ]);
-   
-       $array_comp = json_decode($competitions, true);
- 
-     foreach ($array_comp as &$valor) {
-       $valor['categoria']['deporte'] = $valor['categoria']['deporte']['nombre'];
-     }
- 
-     $array_comp = json_encode($array_comp);
- 
-     // $response = new Response($competitions);
-     $response = new Response($array_comp);
-     
-       $statusCode = Response::HTTP_OK;
+          $competitions = $repository->findCompetitionsByName($nameCompetition);
+    
+          $competitions = $this->get('serializer')->serialize($competitions, 'json', [
+            'circular_reference_handler' => function ($object) {
+              return $object->getId();
+            },
+            'ignored_attributes' => ['usuarioscompetencias', '__initializer__', '__cloner__', '__isInitialized__']
+          ]);
       
-       }else{
-         $respJson->competitions = NULL;
-         $statusCode = Response::HTTP_BAD_REQUEST;
-       }
+          $array_comp = json_decode($competitions, true);
+    
+          foreach ($array_comp as &$valor) {
+            $valor['categoria']['deporte'] = $valor['categoria']['deporte']['nombre'];
+          }
+      
+          $array_comp = json_encode($array_comp);
+      
+          // $response = new Response($competitions);
+          $response = new Response($array_comp);
+        
+          $statusCode = Response::HTTP_OK;
+        
+      }else{
+          $respJson->competitions = NULL;
+          $statusCode = Response::HTTP_BAD_REQUEST;
+      }
      
      //  $respJson = json_encode($respJson);
  

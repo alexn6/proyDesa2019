@@ -47,4 +47,18 @@ class JornadaRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    // recuperacion de la cantidad de jornadas de una competencia
+    public function nJornadaCompetetion($idCompetencia){
+        $entityManager = $this->getEntityManager();
+        //SELECT DISTINCT MAX(`jornada`) as n_fechas FROM `encuentro` WHERE `competencia_id` = 3
+        $query = $entityManager->createQuery(
+            ' SELECT DISTINCT MAX(j.numero)
+            FROM App\Entity\Jornada j
+            WHERE j.competencia = :idCompetencia
+            ')->setParameter('idCompetencia', $idCompetencia);
+
+            
+        return $query->execute();
+    }
 }
