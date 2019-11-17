@@ -143,23 +143,32 @@ class EncuentroController extends AbstractFOSRestController
                 }
             }
 
-            // recuperamos inicialmente los datos del competidor1
-            $encuentros = $repositoryEnc->findEncuentrosComp1ByCompetencia($idCompetition, $idJornada, $grupo);
+            // // recuperamos inicialmente los datos del competidor1
+            // $encuentros = $repositoryEnc->findEncuentrosComp1ByCompetencia($idCompetition, $idJornada, $grupo);
 
-            $encuentros = $this->get('serializer')->serialize($encuentros, 'json');
-            // pasamos el resultado a un array de objetos para poder trabajarlo
-            $encuentros = json_decode($encuentros, true);
-            //var_dump($encuentrosComp1);
+            // $encuentros = $this->get('serializer')->serialize($encuentros, 'json');
+            // // pasamos el resultado a un array de objetos para poder trabajarlo
+            // $encuentros = json_decode($encuentros, true);
+            // //var_dump($encuentrosComp1);
 
-            // recuperamos los datos del competidor2
-            $encuentrosComp2 = $repositoryEnc->findEncuentrosComp2ByCompetencia($idCompetition, $idJornada, $grupo);
+            // // recuperamos los datos del competidor2
+            // $encuentrosComp2 = $repositoryEnc->findEncuentrosComp2ByCompetencia($idCompetition, $idJornada, $grupo);
 
-            // le agregamos la columna del competidor2
-            for ($i=0; $i < count($encuentros) ; $i++) {
-              $encuentros[$i]['competidor2'] = $encuentrosComp2[$i]['competidor2'];
-            }
+            // // le agregamos la columna del competidor2
+            // for ($i=0; $i < count($encuentros) ; $i++) {
+            //   $encuentros[$i]['competidor2'] = $encuentrosComp2[$i]['competidor2'];
+            // }
 
-            $encuentros = json_encode($encuentros);
+            $encuentros = $repositoryEnc->findEncuentrosByCompetenciaFaseGrupo($idCompetition, $idJornada, $grupo);
+            //$encuentros = $this->get('serializer')->serialize($encuentros, 'json');
+            $encuentros = $this->get('serializer')->serialize($encuentros, 'json', [
+              'circular_reference_handler' => function ($object) {
+                return $object->getId();
+              },
+              'ignored_attributes' => ['usuarioscompetencias', 'competencia', 'pass', 'token', 'password', 'roles', 'salt', 'jornada', '__initializer__','__cloner__', '__isInitialized__']
+            ]);
+
+            //$encuentros = json_encode($encuentros);
 
             $statusCode = Response::HTTP_OK;
             $respJson = $encuentros;
