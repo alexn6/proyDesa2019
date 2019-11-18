@@ -174,7 +174,7 @@ class PredioController extends AbstractFOSRestController
     }
 
     /**
-     * Crea un usuario.
+     * Elimina un predio
      * @Rest\Delete("/grounds/del"), defaults={"_format"="json"})
      * 
      * @return Response
