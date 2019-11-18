@@ -96,7 +96,7 @@ class EncuentroController extends AbstractFOSRestController
 
     /**
      * 
-     * @Rest\Get("/confrontations/competition")
+     * @Rest\Post("/confrontations/competition")
      * Por nombre de competencia
      * 
      * @return Response
