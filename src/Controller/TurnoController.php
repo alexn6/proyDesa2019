@@ -45,6 +45,15 @@ class TurnoController extends AbstractFOSRestController
               },
               'ignored_attributes' => ['competencia']
           ]);
+
+          // pasamos los datos a un array para poder trabajarlos
+          $turnos = json_decode($turnos, true);
+
+          // pasamos el dato de la a un formato mas simple
+          for ($i=0; $i < count($turnos); $i++) {
+            $turnos[$i]["hora_desde"] = substr($turnos[$i]["hora_desde"], 11, 5);
+            $turnos[$i]['hora_hasta'] = substr($turnos[$i]['hora_hasta'], 11, 5);
+          }
       }
       else{
           $turnos  = NULL;
@@ -52,8 +61,7 @@ class TurnoController extends AbstractFOSRestController
           $respJson->messaging = "Faltan parametros";
       }
 
-      $respJson = json_decode($turnos);
-      $respJson = json_encode($respJson);
+      $respJson = json_encode($turnos);
       
       $response = new Response($respJson);
       $response->setStatusCode(Response::HTTP_OK);
@@ -171,10 +179,8 @@ class TurnoController extends AbstractFOSRestController
     if($turno != null){
       return false;
     }
-<<<<<<< HEAD
-     return true; 
+
+    return true; 
   }
-=======
->>>>>>> 801779b47b245e5349a9d8d09465d1dda9b1d2a9
 
 }
