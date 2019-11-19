@@ -60,7 +60,8 @@ class TurnoRepository extends ServiceEntityRepository
         ')->setParameter('id_competencia',$idCompetencia);
         
 
-        return $query->execute();   
+        //return $query->execute();
+        return null;
 
 
     }

@@ -149,7 +149,7 @@ class EncuentroController extends AbstractFOSRestController
               'circular_reference_handler' => function ($object) {
                 return $object->getId();
               },
-              'ignored_attributes' => ['usuarioscompetencias', 'competencia', 'pass', 'token', 'password', 'roles', 'salt', 'username', 'jornada', '__initializer__','__cloner__', '__isInitialized__']
+              'ignored_attributes' => ['usuarioscompetencias', 'grupo', 'competencia', 'pass', 'token', 'password', 'roles', 'salt', 'username', 'jornada', '__initializer__','__cloner__', '__isInitialized__']
             ]);
             // pasamos los datos a un array para poder trabajarlos
             $encuentros = json_decode($encuentros, true);
@@ -160,7 +160,7 @@ class EncuentroController extends AbstractFOSRestController
               'circular_reference_handler' => function ($object) {
                 return $object->getId();
               },
-              'ignored_attributes' => ['usuarioscompetencias', 'competencia', 'pass', 'token', 'password', 'roles', 'salt', 'username', 'jornada', '__initializer__','__cloner__', '__isInitialized__']
+              'ignored_attributes' => ['usuarioscompetencias', 'grupo', 'competencia', 'pass', 'token', 'password', 'roles', 'salt', 'username', 'jornada', '__initializer__','__cloner__', '__isInitialized__']
             ]);
             // pasamos los datos a un array para poder trabajarlos
             $encuentrosComp2 = json_decode($encuentrosComp2, true);
