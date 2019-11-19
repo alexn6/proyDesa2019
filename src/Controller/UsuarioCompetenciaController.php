@@ -70,10 +70,10 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
           $dataRequest = json_decode($request->getContent());
 
           // vemos si existen los datos necesarios
-          if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->idCompetencia))){
+          if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->idCompetencia))&&(!empty($dataRequest->alias))){
             $idUser = $dataRequest->idUsuario;
             $idCompetition = $dataRequest->idCompetencia;
-        
+            $alias = $dataRequest->alias;
             // controlamos que el nombre de usuario este disponible
             $repository=$this->getDoctrine()->getRepository(UsuarioCompetencia::class);
 
@@ -100,44 +100,52 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
                 // recuperamos los token de los organizadores
                 $arrayToken = $repository->findOrganizatorsCompetencia($competition->getId());
 
-                if(($solicitante == NULL)&&($participante == NULL)){
-                  // creamos un usuario_competencia aun sin rol
-                  $newUser = new UsuarioCompetencia();
-                  $newUser->setUsuario($user);
-                  $newUser->setCompetencia($competition);
-                  // atacamos el caso en que el usuario es organizador de la competencia
-                  // pasaria derecho a ser un participante de la misma
-                  if($organizador != NULL){
-                    $newUser->setRol($rolCompetidor);
-                    $newUser->setAlias("el_org");
+                $aliasNoRep = $repository->comprobarAlias($idCompetition, $alias);
 
-                    $respJson->messaging = "Por ser organizador de la competencia su solicitud es aprobada. Ya es un competidor";
-                  }
-                  else{
-                    $newUser->setRol($rolSolicitante);
-                    $newUser->setAlias("solicit");
+              if(empty($aliasNoRep)){
+                      
+                    if(($solicitante == NULL)&&($participante == NULL)){
+                      // creamos un usuario_competencia aun sin rol
+                      $newUser = new UsuarioCompetencia();
+                      $newUser->setUsuario($user);
+                      $newUser->setCompetencia($competition);
+                      // atacamos el caso en que el usuario es organizador de la competencia
+                      // pasaria derecho a ser un participante de la misma
+                      if($organizador != NULL){
+                        $newUser->setRol($rolCompetidor);
+                        $newUser->setAlias($alias);
 
-                    $respJson->messaging = "Solicitud registrada";
-                                
-                    // notificamos a los organizadores de la solicitud de inscripcion
-                    $this->notifyInscriptionToOrganizators($arrayToken, $nameCompetition, $nameUser);
-                  }
-                  // persistimos el nuevo dato
-                  $em = $this->getDoctrine()->getManager();
-                  $em->persist($newUser);
-                  $em->flush();
+                        $respJson->messaging = "Por ser organizador de la competencia su solicitud es aprobada. Ya es un competidor";
+                      }
+                      else{
+                        $newUser->setRol($rolSolicitante);
+                        $newUser->setAlias($alias);
 
-                  $statusCode = Response::HTTP_OK;
-                }
-                else{
-                    $statusCode = Response::HTTP_BAD_REQUEST;
-                    if($solicitante != NULL){
-                        $respJson->messaging = "El usuario ya es SOLICITANTE de la competencia";
+                        $respJson->messaging = "Solicitud registrada";
+                                    
+                        // notificamos a los organizadores de la solicitud de inscripcion
+                        $this->notifyInscriptionToOrganizators($arrayToken, $nameCompetition, $nameUser);
+                      }
+                      // persistimos el nuevo dato
+                      $em = $this->getDoctrine()->getManager();
+                      $em->persist($newUser);
+                      $em->flush();
+
+                      $statusCode = Response::HTTP_OK;
                     }
                     else{
-                        $respJson->messaging = "El usuario ya es PARTICIPANTE de la competencia";
+                        $statusCode = Response::HTTP_BAD_REQUEST;
+                        if($solicitante != NULL){
+                            $respJson->messaging = "El usuario ya es SOLICITANTE de la competencia";
+                        }
+                        else{
+                            $respJson->messaging = "El usuario ya es PARTICIPANTE de la competencia";
+                        }
                     }
-                }
+              }else{
+                $statusCode = Response::HTTP_BAD_REQUEST;
+                    $respJson->messaging = "Alias registrado";
+              }
             }
             else{
                 $statusCode = Response::HTTP_BAD_REQUEST;
