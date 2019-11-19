@@ -23,85 +23,7 @@ class TurnoController extends AbstractFOSRestController
      * @return Response
      */
     public function create(Request $request){
-
-        $respJson = (object) null;
-        $statusCode;
-
-        $idCompetencia = $request->get('idCompetencia');
       
-        // vemos si recibimos el id de un predio para eliminarlo
-        if(!empty($idCompetencia)){
-            // vemos si existe un body
-        if(!empty($request->getContent())){
-            // recuperamos los datos del body y pasamos a un array
-            $dataTurnoRequest = json_decode($request->getContent());
-            
-            if(!$this->correctDataCreate($dataPredioRequest)){
-              $respJson->success = false;
-              $statusCode = Response::HTTP_BAD_REQUEST;
-              $respJson->messaging = "Peticion mal formada. Faltan parametros o cuentan con nombres erroneos.";
-            }
-            else{
-                // recuperamos los datos del body
-                $hora = $dataPredioRequest->hora;
-                
-                $this->correctTurno($idCompetencia, $hora);
-                
-                // tmb deberiamos controlar que no haya un turno con una distancia de tiempo
-                // cercana a la frecuencia de la competencia
-                if($predio){
-                  $respJson->success = false;
-                  $statusCode = Response::HTTP_BAD_REQUEST;
-                  $respJson->messaging = "El nombre del predio esta en uso";
-                }
-                else{
-                    // controlamos que la competencia exista
-                    $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
-                    $competencia = $repositoryComp->find($idCompetencia);
-                    if($competencia == NULL){
-                      $respJson->success = false;
-                      $statusCode = Response::HTTP_BAD_REQUEST;
-                      $respJson->messaging = "Competencia inexistente";
-                    }
-                    else{
-                      // creamos el predio
-                      $newPredio = new Predio();
-                      $newPredio->setNombre($nombre);
-                      $newPredio->setDireccion($direccion);
-                      $newPredio->setCompetencia($competencia);
-                      $newPredio->setCiudad($ciudad);
-              
-                      $em = $this->getDoctrine()->getManager();
-                      $em->persist($newPredio);
-                      $em->flush();
-              
-                      $statusCode = Response::HTTP_CREATED;
-              
-                      $respJson->success = true;
-                      $respJson->messaging = "Creacion exitosa";
-                    }
-                }
-            }
-    
-          }
-          else{
-            $respJson->success = false;
-            $statusCode = Response::HTTP_BAD_REQUEST;
-            $respJson->messaging = "Peticion mal formada";
-          }
-        }
-        else{
-            $respJson->success = false;
-            $statusCode = Response::HTTP_BAD_REQUEST;
-            $respJson->messaging = "Peticion mal formada";
-        }
-             
-        $respJson = json_encode($respJson);
-  
-        $response = new Response($respJson);
-        $response->headers->set('Content-Type', 'application/json');
-        $response->setStatusCode($statusCode);
-  
         return $response;
     }
 
@@ -113,24 +35,27 @@ class TurnoController extends AbstractFOSRestController
       if(!property_exists((object) $dataRequest,'idCompetencia')){
           return false;
       }
-      if(!property_exists((object) $dataRequest,'nombre')){
-          return false;
+      if(!property_exists((object) $dataRequest,'hora_desde')){
+        return false;
+
       }
-      return true;
-    }
-
-    // controlamos que no exista un turno igual al q se quiere crear o cercano en hs y la
-    // frecuencia de la competencia
-    private function correctTurno($idCompetencia, $hora){
-      $repositoryTurno = $this->getDoctrine()->getRepository(Turno::class);
-      // controlamos que no haya un turno igual
-      $turno = $repositoryTurno->findOneBy(['competencia' => $idCompetencia, 'hora' => $hora]);
-
-      if($turno != null){
+      if(!property_exists((object) $dataRequest,'hora_hasta')){
         return false;
       }
 
-      
-      
+    return true;
+  }
+
+  // controlamos que no exista un turno igual al q se quiere crear o cercano en hs y la
+  // frecuencia de la competencia
+  private function correctTurno($idCompetencia, $hora_desde, $hora_hasta){
+    $repositoryTurno = $this->getDoctrine()->getRepository(Turno::class);
+    // controlamos que no haya un turno igual
+    $turno = $repositoryTurno->findOneBy(['competencia' => $idCompetencia, 'hora_desde' => $hora_desde, 'hora_hasta' => $hora_hasta]);
+    if($turno != null){
+      return false;
+    }     
+    $turno = $repositoryTurno->validarTurno($idCompetencia, $hora_desde, $hora_hasta);
+     return true; 
     }
 }

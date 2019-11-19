@@ -47,4 +47,21 @@ class TurnoRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    public function validarTurno($idCompetencia, $hora_desde, $hora_hasta){
+
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        '   SELECT t
+            FROM App\Entity\Turno t
+            INNER JOIN App\Entity\Competencia c
+            WITH c.id = t.competencia 
+            AND c.id = :id_competencia
+        ')->setParameter('id_competencia',$idCompetencia);
+        
+
+        return $query->execute();   
+
+
+    }
 }

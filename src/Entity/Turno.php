@@ -28,25 +28,19 @@ use App\Entity\Competencia;
     private $competencia;
 
     /**
-    * @ORM\Column(type="date", nullable=false)
+    * @ORM\Column(type="time", nullable=false)
     */
-    private $hora;
+    private $hora_desde;
+
+    /**
+    * @ORM\Column(type="time", nullable=false)
+    */
+    private $hora_hasta;
+
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getHora(): ?\DateTimeInterface
-    {
-        return $this->hora;
-    }
-
-    public function setHora(\DateTimeInterface $hora): self
-    {
-        $this->hora = $hora;
-
-        return $this;
     }
 
     public function getCompetencia(): ?Competencia
