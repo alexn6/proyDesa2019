@@ -60,9 +60,32 @@ class TurnoRepository extends ServiceEntityRepository
         ')->setParameter('id_competencia',$idCompetencia);
         
 
+<<<<<<< HEAD
         //return $query->execute();
         return null;
-
-
+=======
+        return $query->execute();   
     }
+>>>>>>> 801779b47b245e5349a9d8d09465d1dda9b1d2a9
+
+       //Recuperar turnos por id de competencia
+       public function findTurnByCompetetition($idCompetencia, $idTurno){
+        $entityManager = $this->getEntityManager();
+       
+        $stringQueryBase = 'SELECT t.id, t.hora_desde, t.hora_hasta 
+                            FROM App\Entity\Turno t
+                            INNER JOIN App\Entity\Competencia c
+                            WITH t.competencia = c.id
+                            AND c.id =' .$idCompetencia;
+                        
+        if($idTurno != NULL){
+            $stringQueryTurno = ' AND t.id = '.$idTurno;
+            $stringQueryBase = $stringQueryBase.$stringQueryTurno;
+                
+        }
+
+        $query = $entityManager->createQuery($stringQueryBase);    
+        return $query->execute();   
+    }
+
 }
