@@ -26,12 +26,30 @@ class EncuentroController extends AbstractFOSRestController
 {
 
   /**
-   * Creamos y persistimos un objeto del tipo Encuentro
-  * @Rest\Get("/confrontation")
+   * Editamos los datos de los Encuentros
+  * @Rest\Put("/confrontation")
   */
-  public function save()
+  public function edit()
   {
-    
+    $respJson = (object) null;
+    $statusCode;
+
+    // vemos si existe un body
+    if(!empty($request->getContent())){
+      // recuperamos los parametros recibidos
+      $idCompetencia = $request->get('idCompetencia');
+      $idEncuentro = $request->get('idEncuentro');
+      $rdoComp1 = $request->get('rdo_comp1');
+      $rdoComp2 = $request->get('rdo_comp2');
+      $idJuez = $request->get('idJuez');
+      $idcampo = $request->get('idcampo');
+      $idTurno = $request->get('idTurno');
+      
+      // en el caso de no recibir datos le asginamos un null para mantener
+      if(empty($idCategoria)){
+        $idCategoria = null;
+      }
+    }
     // $repository=$this->getDoctrine()->getRepository(TipoOrganizacion::class);
     // $typesorg=$repository->findall();
 
