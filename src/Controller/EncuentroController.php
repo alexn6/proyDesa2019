@@ -13,6 +13,9 @@ use App\Entity\Encuentro;
 use App\Entity\Usuario;
 use App\Entity\Competencia;
 use App\Entity\Jornada;
+use App\Entity\Campo;
+use App\Entity\Turno;
+use App\Entity\Juez;
 
 use App\Controller\JornadaController;
 
@@ -29,39 +32,67 @@ class EncuentroController extends AbstractFOSRestController
    * Editamos los datos de los Encuentros
   * @Rest\Put("/confrontation")
   */
-  public function edit()
+  public function edit(Request $request)
   {
     $respJson = (object) null;
     $statusCode;
 
     // vemos si existe un body
     if(!empty($request->getContent())){
-      // recuperamos los parametros recibidos
-      $idCompetencia = $request->get('idCompetencia');
-      $idEncuentro = $request->get('idEncuentro');
-      $rdoComp1 = $request->get('rdo_comp1');
-      $rdoComp2 = $request->get('rdo_comp2');
-      $idJuez = $request->get('idJuez');
-      $idcampo = $request->get('idcampo');
-      $idTurno = $request->get('idTurno');
+      // recuperamos los datos del body y pasamos a un array
+      $dataRequest = json_decode($request->getContent());
       
       // en el caso de no recibir datos le asginamos un null para mantener
-      if(empty($idCategoria)){
-        $idCategoria = null;
+      if(!property_exists((object) $dataRequest,'idCompetencia') || !property_exists((object) $dataRequest,'idEncuentro')){
+        $respJson->msg = "La competencia y/o encuentro son obligatorios";
+        $statusCode = Response::HTTP_BAD_REQUEST;
+      }
+      else{
+        $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
+        $competencia = $repositoryComp->find($dataRequest->idCompetencia);
+
+        // recuperamos el encuentro 
+        $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
+        $encuentro = $repositoryEnc->findOneBy(['id'=> $dataRequest->idEncuentro, 'competencia'=> $competencia]);
+
+        // editamos los campos que corresponda
+        if(property_exists((object) $dataRequest,'rdo_comp1')){
+          $encuentro->setRdoComp1($dataRequest->rdo_comp1);
+        }
+        if(property_exists((object) $dataRequest,'rdo_comp2')){
+          $encuentro->setRdoComp2($dataRequest->rdo_comp2);
+        }
+        if(property_exists((object) $dataRequest,'idJuez')){
+          $repositoryJuez = $this->getDoctrine()->getRepository(Juez::class);
+          $juez = $repositoryJuez->find($dataRequest->idJuez);
+          $encuentro->setJuez($juez);
+        }
+        if(property_exists((object) $dataRequest,'idCampo')){
+          $repositoryCampo = $this->getDoctrine()->getRepository(Campo::class);
+          $campo = $repositoryCampo->find($dataRequest->idCampo);
+          $encuentro->setCampo($campo);
+        }
+        if(property_exists((object) $dataRequest,'idTurno')){
+          $repositoryTurno = $this->getDoctrine()->getRepository(Turno::class);
+          $turno = $repositoryTurno->findOneBy(['id'=> $dataRequest->idTurno, 'competencia'=> $competencia]);
+          $encuentro->setTurno($turno);
+        }
+
+        $em = $this->getDoctrine()->getManager();
+        $em->flush();
+
+        $respJson->msg = "Datos actualizados correctamente";
+        $statusCode = Response::HTTP_OK;
       }
     }
-    // $repository=$this->getDoctrine()->getRepository(TipoOrganizacion::class);
-    // $typesorg=$repository->findall();
+    
+    $respJson = json_encode($respJson);
 
-    // // hacemos el string serializable , controlamos las autoreferencias
-    // $typesorg = $this->get('serializer')->serialize($typesorg, 'json');
-   
-    // $response = new Response($typesorg);
-    // $response->setStatusCode(Response::HTTP_OK);
-    // $response->headers->set('Content-Type', 'application/json');
-
-    // return $response;
-    return null;
+    $response = new Response($respJson);
+    $response->headers->set('Content-Type', 'application/json');
+    $response->setStatusCode($statusCode);
+    
+    return $response;
   }
 
   /**
