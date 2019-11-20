@@ -74,7 +74,7 @@ class EncuentroController extends AbstractFOSRestController
         }
         if(property_exists((object) $dataRequest,'idTurno')){
           $repositoryTurno = $this->getDoctrine()->getRepository(Turno::class);
-          $turno = $repositoryTurno->findOneBy(['id'=> $dataRequest->idTurno, 'competencia'=> $competencia]);
+          $turno = $repositoryTurno->find($dataRequest->idTurno);
           $encuentro->setTurno($turno);
         }
 
