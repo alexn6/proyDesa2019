@@ -122,7 +122,7 @@ class PredioController extends AbstractFOSRestController
               $ciudad = $dataPredioRequest->ciudad;
                 
               // controlamos que el nombre de predio este disponible
-              $predio = $repository->findOneBy(['nombre' => $nombre]);
+              $predio = $repository->findOneBy(['nombre' => $nombre, 'competencia' => $idCompetencia]);
               if($predio){
                 $respJson->success = false;
                 $statusCode = Response::HTTP_BAD_REQUEST;
