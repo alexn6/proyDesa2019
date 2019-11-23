@@ -208,17 +208,14 @@ class EncuentroController extends AbstractFOSRestController
         // editamos los campos que corresponda
         if(property_exists((object) $dataRequest,'rdo_comp1')){
           $encuentro->setRdoComp1($dataRequest->rdo_comp1);
+          $respJson->msg = "Campos actualizados correctamente";
+          $statusCode = Response::HTTP_OK;
         }
         if(property_exists((object) $dataRequest,'rdo_comp2')){
           $encuentro->setRdoComp2($dataRequest->rdo_comp2);
+          $respJson->msg = "Campos actualizados correctamente";
+          $statusCode = Response::HTTP_OK;
         }
-
-        // $em = $this->getDoctrine()->getManager();
-        // $em->flush();
-
-        //$respJson->msg = "Datos actualizados correctamente";
-        // $statusCode = Response::HTTP_OK;
-        
       }
     }
     else{
