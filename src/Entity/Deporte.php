@@ -23,6 +23,21 @@ class Deporte
      */
     private $nombre;
 
+    /**
+     * @ORM\Column(type="integer", nullable=false)
+     */
+    private $puntos_pganado;
+
+    /**
+     * @ORM\Column(type="integer", nullable=false)
+     */
+    private $puntos_pempetado;
+
+    /**
+     * @ORM\Column(type="integer", nullable=false)
+     */
+    private $puntos_pperdido;
+
     public function getId(): ?int
     {
         return $this->id;

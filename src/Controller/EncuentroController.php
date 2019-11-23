@@ -58,6 +58,7 @@ class EncuentroController extends AbstractFOSRestController
         $turno;
         $campo;
         $juez;
+        $hayCamposActualizados = false;
 
         // ###########################################################################################
         // ############ controlamos que la asignacion de campo, juez y turno sea correcta ############
@@ -92,10 +93,11 @@ class EncuentroController extends AbstractFOSRestController
               if(property_exists((object) $dataRequest,'idTurno')){
                 // solo seteamos el campo si lo recibimos desde la peticion
                 $encuentro->setTurno($turno);
-                $respJson->msg = "Turno actualizado correctamente";
-                $statusCode = Response::HTTP_OK;
-                $em = $this->getDoctrine()->getManager();
-                $em->flush();
+                $hayCamposActualizados = true;
+                //$respJson->msg = "Turno actualizado correctamente";
+                //$statusCode = Response::HTTP_OK;
+                // $em = $this->getDoctrine()->getManager();
+                // $em->flush();
               }
             }
             // si existe un juez, ya sea de la peticion o ya almacenado
@@ -116,10 +118,11 @@ class EncuentroController extends AbstractFOSRestController
                 if(property_exists((object) $dataRequest,'idJuez')){
                   $encuentro->setJuez($juez);
                 }
-                $respJson->msg = "Campos actualizados correctamente";
-                $statusCode = Response::HTTP_OK;
-                $em = $this->getDoctrine()->getManager();
-                $em->flush();
+                //$respJson->msg = "Campos actualizados correctamente";
+                $hayCamposActualizados = true;
+                // $statusCode = Response::HTTP_OK;
+                // $em = $this->getDoctrine()->getManager();
+                // $em->flush();
               }
               else{
                 $respJson->msg = "El juez no esta disponible en el turno del encuentro";
@@ -153,10 +156,11 @@ class EncuentroController extends AbstractFOSRestController
               if(property_exists((object) $dataRequest,'idCampo')){
                 $encuentro->setCampo($campo);
               }
-              $respJson->msg = "Campos actualizados correctamente";
-              $statusCode = Response::HTTP_OK;
-              $em = $this->getDoctrine()->getManager();
-              $em->flush();
+              //$respJson->msg = "Campos actualizados correctamente";
+              $hayCamposActualizados = true;
+              // $statusCode = Response::HTTP_OK;
+              // $em = $this->getDoctrine()->getManager();
+              // $em->flush();
             }
             else{
               $respJson->msg = "El campo no esta disponible en el turno del encuentro";
@@ -186,10 +190,11 @@ class EncuentroController extends AbstractFOSRestController
               if(property_exists((object) $dataRequest,'idJuez')){
                 $encuentro->setJuez($juez);
               }
-              $respJson->msg = "Campos actualizados correctamente";
-              $statusCode = Response::HTTP_OK;
-              $em = $this->getDoctrine()->getManager();
-              $em->flush();
+              $hayCamposActualizados = true;
+              //$respJson->msg = "Campos actualizados correctamente";
+              // $statusCode = Response::HTTP_OK;
+              // $em = $this->getDoctrine()->getManager();
+              // $em->flush();
             }
             else{
               $respJson->msg = "El juez no esta disponible en el turno del encuentro";
@@ -208,13 +213,22 @@ class EncuentroController extends AbstractFOSRestController
         // editamos los campos que corresponda
         if(property_exists((object) $dataRequest,'rdo_comp1')){
           $encuentro->setRdoComp1($dataRequest->rdo_comp1);
-          $respJson->msg = "Campos actualizados correctamente";
-          $statusCode = Response::HTTP_OK;
+          $hayCamposActualizados = true;
+          // $respJson->msg = "Campos actualizados correctamente";
+          // $statusCode = Response::HTTP_OK;
         }
         if(property_exists((object) $dataRequest,'rdo_comp2')){
           $encuentro->setRdoComp2($dataRequest->rdo_comp2);
+          $hayCamposActualizados = true;
+          // $respJson->msg = "Campos actualizados correctamente";
+          // $statusCode = Response::HTTP_OK;
+        }
+
+        if($hayCamposActualizados){
           $respJson->msg = "Campos actualizados correctamente";
           $statusCode = Response::HTTP_OK;
+          $em = $this->getDoctrine()->getManager();
+          $em->flush();
         }
       }
     }
