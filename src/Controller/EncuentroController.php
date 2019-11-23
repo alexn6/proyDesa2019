@@ -47,57 +47,183 @@ class EncuentroController extends AbstractFOSRestController
         $respJson->msg = "La competencia y/o encuentro son obligatorios";
         $statusCode = Response::HTTP_BAD_REQUEST;
       }
-      else{
-        // se podria recuperar los objetos campo, turno, juez (si se reciben o no: si no se reciben
-        // buscar los campos desde el encuentro) y en base
-        // a cuales existen o no realizar el control de que esten campos no se superpongan
-        // 1: si el turno=null se podria asignar cualquier campo y juez
-        // 2: si el campo=null, solo se deberia controlar q el juez este disponible
-        // 3: si juez=null, solo controlar q el campo este disponible
-        // 4: si son todos null entonces no hacemos control
-        // 5: si estan todos completos realizar el control de abajo
-        if($this->correctDataConfrontation($dataRequest->idCompetencia, $dataRequest->idJuez, $dataRequest->idCampo, $dataRequest->idTurno)){
-          $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
-          $competencia = $repositoryComp->find($dataRequest->idCompetencia);
-  
-          // recuperamos el encuentro 
-          $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
-          $encuentro = $repositoryEnc->findOneBy(['id'=> $dataRequest->idEncuentro, 'competencia'=> $competencia]);
-  
-          // editamos los campos que corresponda
-          if(property_exists((object) $dataRequest,'rdo_comp1')){
-            $encuentro->setRdoComp1($dataRequest->rdo_comp1);
-          }
-          if(property_exists((object) $dataRequest,'rdo_comp2')){
-            $encuentro->setRdoComp2($dataRequest->rdo_comp2);
-          }
+      else{        
+        $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
+        $competencia = $repositoryComp->find($dataRequest->idCompetencia);
+
+        // recuperamos el encuentro 
+        $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
+        $encuentro = $repositoryEnc->findOneBy(['id'=> $dataRequest->idEncuentro, 'competencia'=> $competencia]);
+
+        $turno;
+        $campo;
+        $juez;
+
+        // ###########################################################################################
+        // ############ controlamos que la asignacion de campo, juez y turno sea correcta ############
+        // si no hay turno entonces se realiza la asignacion sin ningun control
+        if((!property_exists((object) $dataRequest,'idTurno')) && ($encuentro->getTurno() == null)){
+          // si existe agregamos el juez
           if(property_exists((object) $dataRequest,'idJuez')){
             $repositoryJuez = $this->getDoctrine()->getRepository(Juez::class);
             $juez = $repositoryJuez->find($dataRequest->idJuez);
             $encuentro->setJuez($juez);
           }
+          // si existe agregamos el campo
           if(property_exists((object) $dataRequest,'idCampo')){
             $repositoryCampo = $this->getDoctrine()->getRepository(Campo::class);
             $campo = $repositoryCampo->find($dataRequest->idCampo);
             $encuentro->setCampo($campo);
           }
+        }
+        else{
+          // recuperamos el valor del turno
           if(property_exists((object) $dataRequest,'idTurno')){
             $repositoryTurno = $this->getDoctrine()->getRepository(Turno::class);
             $turno = $repositoryTurno->find($dataRequest->idTurno);
-            $encuentro->setTurno($turno);
           }
-  
-          $em = $this->getDoctrine()->getManager();
-          $em->flush();
-  
-          $respJson->msg = "Datos actualizados correctamente";
-          $statusCode = Response::HTTP_OK;
+          else{
+            $turno = $encuentro->getTurno();
+          }
+          // si no existe un campo debemos controlar solo el juez, si existe
+          if((!property_exists((object) $dataRequest,'idCampo')) && ($encuentro->getCampo() == null)){
+            // si tmpoco tenemos juez entonces solo seteamos el turno
+            if((!property_exists((object) $dataRequest,'idJuez')) && ($encuentro->getJuez() == null)){
+              if(property_exists((object) $dataRequest,'idTurno')){
+                // solo seteamos el campo si lo recibimos desde la peticion
+                $encuentro->setTurno($turno);
+                $respJson->msg = "Turno actualizado correctamente";
+                $statusCode = Response::HTTP_OK;
+                $em = $this->getDoctrine()->getManager();
+                $em->flush();
+              }
+            }
+            // si existe un juez, ya sea de la peticion o ya almacenado
+            else{
+              // recuperamos el valor del juez
+              if(property_exists((object) $dataRequest,'idJuez')){
+                $repositoryJuez = $this->getDoctrine()->getRepository(Juez::class);
+                $juez = $repositoryJuez->find($dataRequest->idJuez);
+              }
+              else{
+                $juez = $encuentro->getJuez();
+              }
+              // con los datos del juez y turno, pasamos a controlar que sean correctos
+              if($this->availableJudge($dataRequest->idEncuentro, $competencia, $juez, $turno)){
+                if(property_exists((object) $dataRequest,'idTurno')){
+                  $encuentro->setTurno($turno);
+                }
+                if(property_exists((object) $dataRequest,'idJuez')){
+                  $encuentro->setJuez($juez);
+                }
+                $respJson->msg = "Campos actualizados correctamente";
+                $statusCode = Response::HTTP_OK;
+                $em = $this->getDoctrine()->getManager();
+                $em->flush();
+              }
+              else{
+                $respJson->msg = "El juez no esta disponible en el turno del encuentro";
+                $statusCode = Response::HTTP_BAD_REQUEST;
+                $respJson = json_encode($respJson);
+
+                $response = new Response($respJson);
+                $response->headers->set('Content-Type', 'application/json');
+                $response->setStatusCode($statusCode);
+                
+                return $response;
+              }
+            }
+          }
+          // en el caso de que haya campo, ya sea de la peticion o el del objeto persistido
+          else{
+            // recuperamos el valor del campo
+            if(property_exists((object) $dataRequest,'idCampo')){
+              $repositoryCampo = $this->getDoctrine()->getRepository(Campo::class);
+              $campo = $repositoryCampo->find($dataRequest->idCampo);
+            }
+            else{
+              $campo = $encuentro->getCampo();
+              //var_dump("recupera campo de la DB");
+            }
+            // controlamos que el campo este disponible
+            if($this->availableField($dataRequest->idEncuentro, $competencia, $campo, $turno)){
+              if(property_exists((object) $dataRequest,'idTurno')){
+                $encuentro->setTurno($turno);
+              }
+              if(property_exists((object) $dataRequest,'idCampo')){
+                $encuentro->setCampo($campo);
+              }
+              $respJson->msg = "Campos actualizados correctamente";
+              $statusCode = Response::HTTP_OK;
+              $em = $this->getDoctrine()->getManager();
+              $em->flush();
+            }
+            else{
+              $respJson->msg = "El campo no esta disponible en el turno del encuentro";
+              $statusCode = Response::HTTP_BAD_REQUEST;
+              $respJson = json_encode($respJson);
+
+              $response = new Response($respJson);
+              $response->headers->set('Content-Type', 'application/json');
+              $response->setStatusCode($statusCode);
+              
+              return $response;
+            }
+
+            // recuperamos el valor del juez
+            if(property_exists((object) $dataRequest,'idJuez')){
+              $repositoryJuez = $this->getDoctrine()->getRepository(Juez::class);
+              $juez = $repositoryJuez->find($dataRequest->idJuez);
+            }
+            else{
+              $juez = $encuentro->getJuez();
+            }
+            // con los datos del juez y turno, pasamos a controlar que sean correctos
+            if($this->availableJudge($dataRequest->idEncuentro, $competencia, $juez, $turno)){
+              if(property_exists((object) $dataRequest,'idTurno')){
+                $encuentro->setTurno($turno);
+              }
+              if(property_exists((object) $dataRequest,'idJuez')){
+                $encuentro->setJuez($juez);
+              }
+              $respJson->msg = "Campos actualizados correctamente";
+              $statusCode = Response::HTTP_OK;
+              $em = $this->getDoctrine()->getManager();
+              $em->flush();
+            }
+            else{
+              $respJson->msg = "El juez no esta disponible en el turno del encuentro";
+              $statusCode = Response::HTTP_BAD_REQUEST;
+              $respJson = json_encode($respJson);
+
+              $response = new Response($respJson);
+              $response->headers->set('Content-Type', 'application/json');
+              $response->setStatusCode($statusCode);
+              
+              return $response;
+            }
+          }
         }
-        else{
-          $respJson->msg = "Verifique que los datos, turnos, jueces y campos, no se encuentren superpuestos.";
-          $statusCode = Response::HTTP_OK;
+
+        // editamos los campos que corresponda
+        if(property_exists((object) $dataRequest,'rdo_comp1')){
+          $encuentro->setRdoComp1($dataRequest->rdo_comp1);
         }
+        if(property_exists((object) $dataRequest,'rdo_comp2')){
+          $encuentro->setRdoComp2($dataRequest->rdo_comp2);
+        }
+
+        // $em = $this->getDoctrine()->getManager();
+        // $em->flush();
+
+        //$respJson->msg = "Datos actualizados correctamente";
+        // $statusCode = Response::HTTP_OK;
+        
       }
+    }
+    else{
+      $respJson->msg = "Peticion mal formada";
+      $statusCode = Response::HTTP_BAD_REQUEST;
     }
     
     $respJson = json_encode($respJson);
@@ -533,45 +659,55 @@ class EncuentroController extends AbstractFOSRestController
   // controlamos que los datos de los encuentros sean correctos
   // que un encuentro no se le asigne el mismo campo, ni el mismo juez en la mismo turno que otro encuentro
   // esto para la edicion de todos los campos en simultaneo
-  private function correctDataConfrontation($idCompetencia, $idJuez, $idCampo, $idTurno){
-    $repositoryCompetencia = $this->getDoctrine()->getRepository(Competencia::class);
-    $repositoryTurno = $this->getDoctrine()->getRepository(Turno::class);
-    $repositoryJuez = $this->getDoctrine()->getRepository(Juez::class);
-    $repositoryCampo = $this->getDoctrine()->getRepository(Campo::class);
+  // private function correctDataConfrontation($idCompetencia, $idJuez, $idCampo, $idTurno){
+  //   $repositoryCompetencia = $this->getDoctrine()->getRepository(Competencia::class);
+  //   $repositoryTurno = $this->getDoctrine()->getRepository(Turno::class);
+  //   $repositoryJuez = $this->getDoctrine()->getRepository(Juez::class);
+  //   $repositoryCampo = $this->getDoctrine()->getRepository(Campo::class);
 
-    $competencia = $repositoryCompetencia->find($idCompetencia);
-    $turno = $repositoryTurno->find($idTurno);
-    $juez = $repositoryJuez->find($idJuez);
-    $campo = $repositoryCampo->find($idCampo);
+  //   $competencia = $repositoryCompetencia->find($idCompetencia);
+  //   $turno = $repositoryTurno->find($idTurno);
+  //   $juez = $repositoryJuez->find($idJuez);
+  //   $campo = $repositoryCampo->find($idCampo);
 
-    if(!$this->availableJudge($competencia, $juez, $turno)){
-        return false;
-    }
+  //   if(!$this->availableJudge($competencia, $juez, $turno)){
+  //       return false;
+  //   }
 
-    if(!$this->availableField($competencia, $campo, $turno)){
-        return false;
-    }
+  //   if(!$this->availableField($competencia, $campo, $turno)){
+  //       return false;
+  //   }
 
-    return true;
-  }
+  //   return true;
+  // }
 
   // controlamos si existe un encuentro con el mismo juez y en el mismo turno
-  private function availableJudge($competencia, $juez, $turno){
+  private function availableJudge($idEncuentro, $competencia, $juez, $turno){
     $repository = $this->getDoctrine()->getRepository(Encuentro::class);
     $encuentro = $repository->findOneBy(['competencia' => $competencia, 'turno' => $turno, 'juez' => $juez]);
     if($encuentro == null){
       return true;
+    }
+    else{
+      if($idEncuentro == $encuentro->getId()){
+        return true;
+      }
     }
 
     return false;
   }
 
   // controlamos si existe un encuentro con el mismo campo y en el mismo turno
-  private function availableField($competencia, $campo, $turno){
+  private function availableField($idEncuentro, $competencia, $campo, $turno){
     $repository = $this->getDoctrine()->getRepository(Encuentro::class);
     $encuentro = $repository->findOneBy(['competencia' => $competencia, 'turno' => $turno, 'campo' => $campo]);
     if($encuentro == null){
       return true;
+    }
+    else{
+      if($idEncuentro == $encuentro->getId()){
+        return true;
+      }
     }
 
     return false;
