@@ -39,5 +39,70 @@ class Resultado
      * @ORM\Column(type="integer", nullable=true)
      */
     private $perdidos;
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getJugados(): ?int
+    {
+        return $this->jugados;
+    }
+
+    public function setJugados(?int $jugados): self
+    {
+        $this->jugados = $jugados;
+
+        return $this;
+    }
+
+    public function getGanados(): ?int
+    {
+        return $this->ganados;
+    }
+
+    public function setGanados(?int $ganados): self
+    {
+        $this->ganados = $ganados;
+
+        return $this;
+    }
+
+    public function getEmpatados(): ?int
+    {
+        return $this->empatados;
+    }
+
+    public function setEmpatados(?int $empatados): self
+    {
+        $this->empatados = $empatados;
+
+        return $this;
+    }
+
+    public function getPerdidos(): ?int
+    {
+        return $this->perdidos;
+    }
+
+    public function setPerdidos(?int $perdidos): self
+    {
+        $this->perdidos = $perdidos;
+
+        return $this;
+    }
+
+    public function getCompetidor(): ?UsuarioCompetencia
+    {
+        return $this->competidor;
+    }
+
+    public function setCompetidor(?UsuarioCompetencia $competidor): self
+    {
+        $this->competidor = $competidor;
+
+        return $this;
+    }
     
 }

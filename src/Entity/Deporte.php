@@ -55,4 +55,40 @@ class Deporte
         return $this;
     }
 
+    public function getPuntosPganado(): ?int
+    {
+        return $this->puntos_pganado;
+    }
+
+    public function setPuntosPganado(int $puntos_pganado): self
+    {
+        $this->puntos_pganado = $puntos_pganado;
+
+        return $this;
+    }
+
+    public function getPuntosPempetado(): ?int
+    {
+        return $this->puntos_pempetado;
+    }
+
+    public function setPuntosPempetado(int $puntos_pempetado): self
+    {
+        $this->puntos_pempetado = $puntos_pempetado;
+
+        return $this;
+    }
+
+    public function getPuntosPperdido(): ?int
+    {
+        return $this->puntos_pperdido;
+    }
+
+    public function setPuntosPperdido(int $puntos_pperdido): self
+    {
+        $this->puntos_pperdido = $puntos_pperdido;
+
+        return $this;
+    }
+
 }
