@@ -2,9 +2,11 @@
 
 namespace App\Repository;
 
-use App\Entity\Resultado;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
+
+use App\Entity\Resultado;
+use App\Entity\UsuarioCompetencia;
 
 /**
  * @method Resultado|null find($id, $lockMode = null, $lockVersion = null)
@@ -47,4 +49,19 @@ class ResultadoRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    // recuperamos los datos de resultado de los competidores
+    public function findResultCompetitors($idCompetencia)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            '   SELECT uc.alias, r.jugados PJ, r.ganados PG, r.empatados PE, r.perdidos PP
+                FROM App\Entity\UsuarioCompetencia uc
+                INNER JOIN App\Entity\Resultado r
+                WITH uc.id = r.competidor
+                WHERE uc.competencia = :idCompetencia
+            ')->setParameter('idCompetencia', $idCompetencia);
+
+        return $query->execute();
+    }
 }

@@ -47,4 +47,17 @@ class DeporteRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    // recuperamos los puntos segun el resultado de cada deporte
+    public function findPointByResultSport($idDeporte)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            '   SELECT d.puntos_pganado ppg, d.puntos_pempetado ppe, d.puntos_pperdido ppp
+                FROM App\Entity\Deporte d
+                WHERE d.id = :idDeporte
+            ')->setParameter('idDeporte', $idDeporte);
+
+        return $query->execute();
+    }
 }
