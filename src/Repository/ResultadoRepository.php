@@ -66,30 +66,87 @@ class ResultadoRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    // recuperamos los datos de resultado de los competidores
+    public function findCompetitorsByGroup($idCompetencia, $grupo)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            '   SELECT e.id
+                FROM App\Entity\Encuentro e
+                WHERE e.competencia = :idCompetencia
+                AND e.grupo = :grupo
+            ')->setParameter('idCompetencia', $idCompetencia)
+            ->setParameter('grupo', $grupo);
+
+        return $query->execute();
+    }
+
     // recuperamos los datos de resultado de los competidores por grupo
     public function findResultCompetitorsGroup($idCompetencia, $grupo)
     {
         $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            '   SELECT uc.alias, r.jugados PJ, r.ganados PG, r.empatados PE, r.perdidos PP
-                FROM App\Entity\UsuarioCompetencia uc
-                INNER JOIN App\Entity\Resultado r
-                WITH uc.id = r.competidor
-                INNER JOIN App\Entity\Encuentro e
-                WITH e.competencia = uc.competencia
-                AND e.grupo = :grupo
-                WHERE uc.competencia = :idCompetencia
-            ')->setParameter('idCompetencia', $idCompetencia)
-            ->setParameter('grupo', $grupo);
         // $query = $entityManager->createQuery(
-        //     '   SELECT uc.alias
+        //      '   SELECT uc.alias, r.jugados PJ, r.ganados PG, r.empatados PE, r.perdidos PP
+        //          FROM App\Entity\UsuarioCompetencia uc
+        //          INNER JOIN App\Entity\Resultado r
+        //          WITH uc.id = r.competidor
+        //          INNER JOIN App\Entity\Encuentro e
+        //          WITH e.competencia = uc.competencia
+        //          AND e.grupo = :grupo
+        //          WHERE uc.competencia = :idCompetencia
+        //      ')->setParameter('idCompetencia', $idCompetencia)
+        //      ->setParameter('grupo', $grupo);
+
+        $resultQueryCompetitorByGroup = $this->findCompetitorsByGroup($idCompetencia, $grupo);
+        $array_idCompetitors = array();
+        // pasamos solo los id de las competencias a un array
+        foreach ($resultQueryCompetitorByGroup as &$valor) {
+            array_push($array_idCompetitors, $valor['id']);
+        }
+        // los pasamos a string para incorporarlo a la query
+        $array_idCompetitors = implode(", ", $array_idCompetitors);
+        $stringIdCompetitors = "(".$array_idCompetitors.")";
+
+        $stringQuery =' SELECT DISTINCT uc.alias, r.jugados PJ, r.ganados PG, r.empatados PE, r.perdidos PP, e.grupo
+                             FROM App\Entity\UsuarioCompetencia uc
+                             INNER JOIN App\Entity\Encuentro e
+                             WITH e.competencia = uc.competencia
+                             AND uc.competencia = :idCompetencia
+                             AND e.grupo = :grupo
+                             INNER JOIN App\Entity\Resultado r
+                             WITH uc.id = r.competidor
+                             AND r.competidor IN (96)';
+
+        var_dump($stringQuery);
+        
+        $query = $entityManager->createQuery($stringQuery);
+        
+        //  $query = $entityManager->createQuery(
+        //       '   SELECT DISTINCT uc.alias, r.jugados PJ, r.ganados PG, r.empatados PE, r.perdidos PP, e.grupo
+        //           FROM App\Entity\UsuarioCompetencia uc
+        //           INNER JOIN App\Entity\Encuentro e
+        //           WITH e.competencia = uc.competencia
+        //           AND uc.competencia = :idCompetencia
+        //           AND e.grupo = :grupo
+        //           INNER JOIN App\Entity\Resultado r
+        //           WITH uc.id = r.competidor
+        //       ')->setParameter('idCompetencia', $idCompetencia)
+        //      ->setParameter('grupo', $grupo);
+
+        // $query = $entityManager->createQuery(
+        //     '   SELECT uc.alias, r.jugados PJ, r.ganados PG, r.empatados PE, r.perdidos PP
         //         FROM App\Entity\UsuarioCompetencia uc
+        //         INNER JOIN App\Entity\Resultado r
+        //         WITH uc.id = r.competidor
+        //         AND uc.competencia = :idCompetencia
         //         INNER JOIN App\Entity\Encuentro e
         //         WITH e.competencia = uc.competencia
         //         AND e.grupo = :grupo
-        //         WHERE uc.competencia = :idCompetencia
         //     ')->setParameter('idCompetencia', $idCompetencia)
         //     ->setParameter('grupo', $grupo);
+        // le seteamos los parametros
+        $query->setParameter('idCompetencia',$idCompetencia);
+        $query->setParameter('grupo',$grupo);
 
         return $query->execute();
     }
