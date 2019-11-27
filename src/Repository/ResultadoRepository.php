@@ -7,6 +7,7 @@ use Doctrine\Common\Persistence\ManagerRegistry;
 
 use App\Entity\Resultado;
 use App\Entity\UsuarioCompetencia;
+use App\Entity\Encuentro;
 
 /**
  * @method Resultado|null find($id, $lockMode = null, $lockVersion = null)
@@ -61,6 +62,34 @@ class ResultadoRepository extends ServiceEntityRepository
                 WITH uc.id = r.competidor
                 WHERE uc.competencia = :idCompetencia
             ')->setParameter('idCompetencia', $idCompetencia);
+
+        return $query->execute();
+    }
+
+    // recuperamos los datos de resultado de los competidores por grupo
+    public function findResultCompetitorsGroup($idCompetencia, $grupo)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            '   SELECT uc.alias, r.jugados PJ, r.ganados PG, r.empatados PE, r.perdidos PP
+                FROM App\Entity\UsuarioCompetencia uc
+                INNER JOIN App\Entity\Resultado r
+                WITH uc.id = r.competidor
+                INNER JOIN App\Entity\Encuentro e
+                WITH e.competencia = uc.competencia
+                AND e.grupo = :grupo
+                WHERE uc.competencia = :idCompetencia
+            ')->setParameter('idCompetencia', $idCompetencia)
+            ->setParameter('grupo', $grupo);
+        // $query = $entityManager->createQuery(
+        //     '   SELECT uc.alias
+        //         FROM App\Entity\UsuarioCompetencia uc
+        //         INNER JOIN App\Entity\Encuentro e
+        //         WITH e.competencia = uc.competencia
+        //         AND e.grupo = :grupo
+        //         WHERE uc.competencia = :idCompetencia
+        //     ')->setParameter('idCompetencia', $idCompetencia)
+        //     ->setParameter('grupo', $grupo);
 
         return $query->execute();
     }

@@ -40,23 +40,48 @@ class ResultadoController extends AbstractFOSRestController
             $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
             $competencia = $repositoryComp->find($idCompetencia);
             if($competencia != null){
-                $repository = $this->getDoctrine()->getRepository(Resultado::class);
-                $resultados = $repository->findResultCompetitors($idCompetencia);
-                $statusCode = Response::HTTP_OK;
-    
-                $resultados = $this->get('serializer')->serialize($resultados, 'json', [
-                    'circular_reference_handler' => function ($object) {
-                        return $object->getId();
-                    },
-                    'ignored_attributes' => ['competencia', 'competidor']
-                ]);
-    
-                // pasamos los reultados a un array para poder trabajarlos
-                $resultados = json_decode($resultados, true);
-                // buscamos los puntos por resultado segun deporte
-                $ptsByResult = $this->getPointsBySport($competencia);
-                // calculamos la tabla de posiciones de la competencia
-                $resultResp = $this->getTablePosition($resultados, $ptsByResult);
+                $codTipoOrg = $competencia->getOrganizacion()->getCodigo();
+                $resultResp;
+                // si es una liga mandamos una sola tabla de posiciones
+                if(($codTipoOrg == Constant::COD_TIPO_LIGA_SINGLE) || ($codTipoOrg == Constant::COD_TIPO_LIGA_DOUBLE)){
+                    $repository = $this->getDoctrine()->getRepository(Resultado::class);
+                    $resultados = $repository->findResultCompetitors($idCompetencia);
+                    $statusCode = Response::HTTP_OK;
+        
+                    $resultados = $this->get('serializer')->serialize($resultados, 'json', [
+                        'circular_reference_handler' => function ($object) {
+                            return $object->getId();
+                        },
+                        'ignored_attributes' => ['competencia', 'competidor']
+                    ]);
+        
+                    // pasamos los reultados a un array para poder trabajarlos
+                    $resultados = json_decode($resultados, true);
+                    // buscamos los puntos por resultado segun deporte
+                    $ptsByResult = $this->getPointsBySport($competencia);
+                    // calculamos la tabla de posiciones de la competencia
+                    $resultResp = $this->getTablePosition($resultados, $ptsByResult);
+                }
+                else{
+                    // si es una eliminatoria devolvemos un mje indicando una redireccion
+                    if(($codTipoOrg == Constant::COD_TIPO_ELIMINATORIAS) || ($codTipoOrg == Constant::COD_TIPO_ELIMINATORIAS_DOUBLE)){
+                        $resultResp->msg = "No cuenta con una tabla de posiciones";
+                    }
+                    // sino, es por fase de grupos, recuperamos la tabla de cada grupo
+                    else{
+                        $repository = $this->getDoctrine()->getRepository(Resultado::class);
+                        $resultados = $repository->findResultCompetitorsGroup($idCompetencia, 1);
+                        $statusCode = Response::HTTP_OK;
+            
+                        $resultados = $this->get('serializer')->serialize($resultados, 'json', [
+                            'circular_reference_handler' => function ($object) {
+                                return $object->getId();
+                            },
+                            'ignored_attributes' => ['competencia', 'competidor']
+                        ]);
+                        $resultResp = json_decode($resultados);
+                    }
+                }
                 
                 $statusCode = Response::HTTP_OK;
             }

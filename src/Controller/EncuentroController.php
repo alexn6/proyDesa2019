@@ -94,10 +94,6 @@ class EncuentroController extends AbstractFOSRestController
                 // solo seteamos el campo si lo recibimos desde la peticion
                 $encuentro->setTurno($turno);
                 $hayCamposActualizados = true;
-                //$respJson->msg = "Turno actualizado correctamente";
-                //$statusCode = Response::HTTP_OK;
-                // $em = $this->getDoctrine()->getManager();
-                // $em->flush();
               }
             }
             // si existe un juez, ya sea de la peticion o ya almacenado
@@ -118,11 +114,7 @@ class EncuentroController extends AbstractFOSRestController
                 if(property_exists((object) $dataRequest,'idJuez')){
                   $encuentro->setJuez($juez);
                 }
-                //$respJson->msg = "Campos actualizados correctamente";
                 $hayCamposActualizados = true;
-                // $statusCode = Response::HTTP_OK;
-                // $em = $this->getDoctrine()->getManager();
-                // $em->flush();
               }
               else{
                 $respJson->msg = "El juez no esta disponible en el turno del encuentro";
@@ -156,11 +148,7 @@ class EncuentroController extends AbstractFOSRestController
               if(property_exists((object) $dataRequest,'idCampo')){
                 $encuentro->setCampo($campo);
               }
-              //$respJson->msg = "Campos actualizados correctamente";
               $hayCamposActualizados = true;
-              // $statusCode = Response::HTTP_OK;
-              // $em = $this->getDoctrine()->getManager();
-              // $em->flush();
             }
             else{
               $respJson->msg = "El campo no esta disponible en el turno del encuentro";
@@ -191,10 +179,6 @@ class EncuentroController extends AbstractFOSRestController
                 $encuentro->setJuez($juez);
               }
               $hayCamposActualizados = true;
-              //$respJson->msg = "Campos actualizados correctamente";
-              // $statusCode = Response::HTTP_OK;
-              // $em = $this->getDoctrine()->getManager();
-              // $em->flush();
             }
             else{
               $respJson->msg = "El juez no esta disponible en el turno del encuentro";
@@ -214,14 +198,10 @@ class EncuentroController extends AbstractFOSRestController
         if(property_exists((object) $dataRequest,'rdo_comp1')){
           $encuentro->setRdoComp1($dataRequest->rdo_comp1);
           $hayCamposActualizados = true;
-          // $respJson->msg = "Campos actualizados correctamente";
-          // $statusCode = Response::HTTP_OK;
         }
         if(property_exists((object) $dataRequest,'rdo_comp2')){
           $encuentro->setRdoComp2($dataRequest->rdo_comp2);
           $hayCamposActualizados = true;
-          // $respJson->msg = "Campos actualizados correctamente";
-          // $statusCode = Response::HTTP_OK;
         }
 
         if($hayCamposActualizados){
@@ -592,6 +572,7 @@ class EncuentroController extends AbstractFOSRestController
 
   // guardamos los encuentros generados por una competencia con grupos
   private function saveGrupos($fixtureEncuentros, $competencia){
+    // var_dump("Entro a saveGrupos()");
     $frec_jornada = 6;
     //$frec_jornada = $competencia->getFrecuencia();
     // el fixture serian los matches, controlar que tengan cant de grupos
@@ -604,7 +585,7 @@ class EncuentroController extends AbstractFOSRestController
         $dias_frec = $frec_jornada*($j-1);
         $fecha_jornada = date('Y-m-d', strtotime($competencia->getFechaIni()->format('Y-m-d'). ' + '.$dias_frec.' days'));
         $this->saveEncuentrosCompetition($fixtureGrupo[$j], $competencia, $jornada, $grupo, $fecha_jornada);
-      }      
+      }
     }
   }
 
