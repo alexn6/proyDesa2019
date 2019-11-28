@@ -334,6 +334,7 @@ class EncuentroController extends AbstractFOSRestController
             ]);
             // pasamos los datos a un array para poder trabajarlos
             $encuentros = json_decode($encuentros, true);
+            //var_dump($encuentros);
 
             // recuperamos los datos del competidor2
             $encuentrosComp2 = $repositoryEnc->findEncuentrosComp2ByCompetencia($idCompetition, $idJornada, $grupo);
@@ -360,6 +361,8 @@ class EncuentroController extends AbstractFOSRestController
               $encuentrosFull[$i]['competidor1'] = $aliasComp1;
               $encuentrosFull[$i]['competidor2'] = $aliasComp2;
             }
+
+            //var_dump($encuentrosFull);
 
             $encuentrosFull = $this->get('serializer')->serialize($encuentrosFull, 'json');
 
