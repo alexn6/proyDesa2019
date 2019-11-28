@@ -31,7 +31,7 @@ class ResultadoController extends AbstractFOSRestController
               
         $respJson = (object) null;
         $statusCode;
-        $resultResp = (object) null;
+        $resultResp;
 
         $idCompetencia = $request->get('idCompetencia');
         
@@ -41,9 +41,9 @@ class ResultadoController extends AbstractFOSRestController
             $competencia = $repositoryComp->find($idCompetencia);
             if($competencia != null){
                 $codTipoOrg = $competencia->getOrganizacion()->getCodigo();
-                $resultResp;
                 // si es una liga mandamos una sola tabla de posiciones
                 if(($codTipoOrg == Constant::COD_TIPO_LIGA_SINGLE) || ($codTipoOrg == Constant::COD_TIPO_LIGA_DOUBLE)){
+                    $resultResp = (object) null;
                     $repository = $this->getDoctrine()->getRepository(Resultado::class);
                     $resultados = $repository->findResultCompetitors($idCompetencia);
                     $statusCode = Response::HTTP_OK;
@@ -63,13 +63,14 @@ class ResultadoController extends AbstractFOSRestController
                     $resultResp = $this->getTablePosition($resultados, $ptsByResult);
                 }
                 else{
-                    $resultResp = array();
                     // si es una eliminatoria devolvemos un mje indicando una redireccion
                     if(($codTipoOrg == Constant::COD_TIPO_ELIMINATORIAS) || ($codTipoOrg == Constant::COD_TIPO_ELIMINATORIAS_DOUBLE)){
+                        $resultResp = (object) null;
                         $resultResp->msg = "Las eliminatorias no cuentan con una tabla de posiciones";
                     }
                     // sino, es por fase de grupos, recuperamos la tabla de cada grupo
                     else{
+                        $resultResp = array();
                         $repository = $this->getDoctrine()->getRepository(Resultado::class);
 
                         // recuperamos la tabla de posiciones por cada grupo
