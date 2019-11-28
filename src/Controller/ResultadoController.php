@@ -63,6 +63,7 @@ class ResultadoController extends AbstractFOSRestController
                     $resultResp = $this->getTablePosition($resultados, $ptsByResult);
                 }
                 else{
+                    $resultResp = array();
                     // si es una eliminatoria devolvemos un mje indicando una redireccion
                     if(($codTipoOrg == Constant::COD_TIPO_ELIMINATORIAS) || ($codTipoOrg == Constant::COD_TIPO_ELIMINATORIAS_DOUBLE)){
                         $resultResp->msg = "Las eliminatorias no cuentan con una tabla de posiciones";
@@ -70,16 +71,28 @@ class ResultadoController extends AbstractFOSRestController
                     // sino, es por fase de grupos, recuperamos la tabla de cada grupo
                     else{
                         $repository = $this->getDoctrine()->getRepository(Resultado::class);
-                        $resultados = $repository->findResultCompetitorsGroup($idCompetencia, 1);
-                        $statusCode = Response::HTTP_OK;
-            
-                        $resultados = $this->get('serializer')->serialize($resultados, 'json', [
-                            'circular_reference_handler' => function ($object) {
-                                return $object->getId();
-                            },
-                            'ignored_attributes' => ['competencia', 'competidor']
-                        ]);
-                        $resultResp = json_decode($resultados);
+
+                        // recuperamos la tabla de posiciones por cada grupo
+                        for ($i=0; $i < $competencia->getCantGrupos(); $i++) {
+                            // recuperamos los resultados del grupo
+                            $resultadosGrupo = $repository->findResultCompetitorsGroup($idCompetencia, $i+1);
+                            // pasamos los resultado a un array para poder trabajarlo
+                            $resultadosGrupo = $this->get('serializer')->serialize($resultadosGrupo, 'json', [
+                                'circular_reference_handler' => function ($object) {
+                                    return $object->getId();
+                                },
+                                'ignored_attributes' => ['competencia', 'competidor']
+                            ]);
+                
+                            // pasamos los reultados a un array para poder trabajarlos
+                            $resultadosGrupo = json_decode($resultadosGrupo, true);
+                            // buscamos los puntos por resultado segun deporte
+                            $ptsByResult = $this->getPointsBySport($competencia);
+                            // calculamos la tabla de posiciones de la competencia
+                            $resultRespByGroup = $this->getTablePosition($resultadosGrupo, $ptsByResult);
+                            // agregamos la tabla a la resp del servicio
+                            array_push($resultResp, $resultRespByGroup);
+                        }
                     }
                 }
                 

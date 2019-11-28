@@ -17,6 +17,9 @@ use App\Entity\Encuentro;
  */
 class ResultadoRepository extends ServiceEntityRepository
 {
+    const COMPETIDOR1 = 1;
+    const COMPETIDOR2 = 2;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Resultado::class);
@@ -67,50 +70,6 @@ class ResultadoRepository extends ServiceEntityRepository
     }
 
     // recuperamos los datos de resultado de los competidores
-    public function findCompetitors1ByGroup($idCompetencia, $grupo)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            '   SELECT uc.id
-                FROM App\Entity\Encuentro e
-                INNER JOIN App\Entity\UsuarioCompetencia uc
-                WITH e.competidor1 = uc.id
-                WHERE e.competencia = :idCompetencia
-                AND e.grupo = :grupo
-            ')->setParameter('idCompetencia', $idCompetencia)
-            ->setParameter('grupo', $grupo);
-
-        // $query = $entityManager->createQuery(
-        //     '   SELECT DISTINCT e.id
-        //         FROM App\Entity\Encuentro e
-        //         INNER JOIN App\Entity\UsuarioCompetencia uc
-        //         WITH uc.competencia = e.competencia
-        //         WHERE e.competencia = :idCompetencia
-        //         AND e.grupo = :grupo
-        //     ')->setParameter('idCompetencia', $idCompetencia)
-        //     ->setParameter('grupo', $grupo);
-
-        return $query->execute();
-    }
-
-    // recuperamos los datos de resultado de los competidores
-    public function findCompetitors2ByGroup($idCompetencia, $grupo)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            '   SELECT uc.id
-                FROM App\Entity\Encuentro e
-                INNER JOIN App\Entity\UsuarioCompetencia uc
-                WITH e.competidor2 = uc.id
-                WHERE e.competencia = :idCompetencia
-                AND e.grupo = :grupo
-            ')->setParameter('idCompetencia', $idCompetencia)
-            ->setParameter('grupo', $grupo);
-
-        return $query->execute();
-    }
-
-    // recuperamos los datos de resultado de los competidores
     public function findCompetitorsByGroup($idCompetencia, $grupo)
     {
         $entityManager = $this->getEntityManager();
@@ -128,32 +87,16 @@ class ResultadoRepository extends ServiceEntityRepository
     // recuperamos los datos de resultado de los competidores por grupo
     public function findResultCompetitorsGroup($idCompetencia, $grupo)
     {
-        $entityManager = $this->getEntityManager();
-        // $query = $entityManager->createQuery(
-        //      '   SELECT uc.alias, r.jugados PJ, r.ganados PG, r.empatados PE, r.perdidos PP
-        //          FROM App\Entity\UsuarioCompetencia uc
-        //          INNER JOIN App\Entity\Resultado r
-        //          WITH uc.id = r.competidor
-        //          INNER JOIN App\Entity\Encuentro e
-        //          WITH e.competencia = uc.competencia
-        //          AND e.grupo = :grupo
-        //          WHERE uc.competencia = :idCompetencia
-        //      ')->setParameter('idCompetencia', $idCompetencia)
-        //      ->setParameter('grupo', $grupo);
+        $userComp1 = $this->findCompetitorsNumberByGroup($idCompetencia, $grupo, 1);
+        $userComp2 = $this->findCompetitorsNumberByGroup($idCompetencia, $grupo, 2);
 
-        $userComp1 = $this->findCompetitors1ByGroup($idCompetencia, $grupo);
-        $userComp2 = $this->findCompetitors2ByGroup($idCompetencia, $grupo);
         $userCompetitors = array_merge($userComp1, $userComp2);
-        var_dump($userCompetitors);
-        // ################ eliminar los numeros repetidos
-        //$userCompetitors = array_unique($userCompetitors);
+        // eliminar los numeros repetidos
+        $userCompetitors = array_unique($userCompetitors, SORT_REGULAR);
 
-        // var_dump($userCompetitors);
-
-        $resultQueryCompetitorByGroup = $this->findCompetitorsByGroup($idCompetencia, $grupo);
         $array_idCompetitors = array();
         // pasamos solo los id de las competencias a un array
-        foreach ($resultQueryCompetitorByGroup as &$valor) {
+        foreach ($userCompetitors as &$valor) {
             array_push($array_idCompetitors, $valor['id']);
         }
         // los pasamos a string para incorporarlo a la query
@@ -172,8 +115,38 @@ class ResultadoRepository extends ServiceEntityRepository
 
         // var_dump($stringQuery);
         
+        $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery($stringQuery);
         
+        // le seteamos los parametros
+        $query->setParameter('idCompetencia',$idCompetencia);
+        $query->setParameter('grupo',$grupo);
+
+        return $query->execute();
+    }
+
+    // ################################################################################################
+    // ################################ funciones auxiliares ################################
+    
+    // recuperamos los id de los competidores(comp1, comp2) segun demande
+    private function findCompetitorsNumberByGroup($idCompetencia, $grupo, $nroCompetidor)
+    {
+        $competidor;
+        if($nroCompetidor == $this::COMPETIDOR1){
+            $competidor = "competidor1";
+        }
+        if($nroCompetidor == $this::COMPETIDOR2){
+            $competidor = "competidor2";
+        }
+
+        $stringQuery =' SELECT uc.id
+                        FROM App\Entity\Encuentro e
+                        INNER JOIN App\Entity\UsuarioCompetencia uc ';
+        $stringQuery = $stringQuery.' WITH e.'.$competidor.' = uc.id WHERE e.competencia = :idCompetencia AND e.grupo = :grupo';
+
+        //var_dump($stringQuery);
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery($stringQuery);
         // le seteamos los parametros
         $query->setParameter('idCompetencia',$idCompetencia);
         $query->setParameter('grupo',$grupo);
