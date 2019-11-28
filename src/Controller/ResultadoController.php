@@ -12,7 +12,6 @@ use Symfony\Component\HttpClient\HttpClient;    // para incorporar servicios res
 use App\Entity\Deporte;
 use App\Entity\Competencia;
 use App\Entity\Resultado;
-// use App\Entity\UsuarioCompetencia;
 
 use App\Utils\Constant;
 
@@ -66,15 +65,10 @@ class ResultadoController extends AbstractFOSRestController
                 else{
                     // si es una eliminatoria devolvemos un mje indicando una redireccion
                     if(($codTipoOrg == Constant::COD_TIPO_ELIMINATORIAS) || ($codTipoOrg == Constant::COD_TIPO_ELIMINATORIAS_DOUBLE)){
-                        $resultResp->msg = "No cuenta con una tabla de posiciones";
+                        $resultResp->msg = "Las eliminatorias no cuentan con una tabla de posiciones";
                     }
                     // sino, es por fase de grupos, recuperamos la tabla de cada grupo
                     else{
-                        // ######## probamos
-                        // $repository = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
-                        // $alias = $repository->findAliasCompetidoresByCompetencia($idCompetencia);
-                        // var_dump($alias);
-                        // ########3
                         $repository = $this->getDoctrine()->getRepository(Resultado::class);
                         $resultados = $repository->findResultCompetitorsGroup($idCompetencia, 1);
                         $statusCode = Response::HTTP_OK;

@@ -70,25 +70,25 @@ class ResultadoRepository extends ServiceEntityRepository
     public function findCompetitors1ByGroup($idCompetencia, $grupo)
     {
         $entityManager = $this->getEntityManager();
-        // $query = $entityManager->createQuery(
-        //     '   SELECT e.id, uc.id
-        //         FROM App\Entity\Encuentro e
-        //         INNER JOIN App\Entity\UsuarioCompetencia uc
-        //         WITH e.competidor1 = uc.id
-        //         WHERE e.competencia = :idCompetencia
-        //         AND e.grupo = :grupo
-        //     ')->setParameter('idCompetencia', $idCompetencia)
-        //     ->setParameter('grupo', $grupo);
-
         $query = $entityManager->createQuery(
-            '   SELECT DISTINCT e.id
+            '   SELECT uc.id
                 FROM App\Entity\Encuentro e
                 INNER JOIN App\Entity\UsuarioCompetencia uc
-                WITH uc.competencia = e.competencia
+                WITH e.competidor1 = uc.id
                 WHERE e.competencia = :idCompetencia
                 AND e.grupo = :grupo
             ')->setParameter('idCompetencia', $idCompetencia)
             ->setParameter('grupo', $grupo);
+
+        // $query = $entityManager->createQuery(
+        //     '   SELECT DISTINCT e.id
+        //         FROM App\Entity\Encuentro e
+        //         INNER JOIN App\Entity\UsuarioCompetencia uc
+        //         WITH uc.competencia = e.competencia
+        //         WHERE e.competencia = :idCompetencia
+        //         AND e.grupo = :grupo
+        //     ')->setParameter('idCompetencia', $idCompetencia)
+        //     ->setParameter('grupo', $grupo);
 
         return $query->execute();
     }
@@ -141,7 +141,14 @@ class ResultadoRepository extends ServiceEntityRepository
         //      ')->setParameter('idCompetencia', $idCompetencia)
         //      ->setParameter('grupo', $grupo);
 
-        var_dump($this->findCompetitors1ByGroup($idCompetencia, $grupo));
+        $userComp1 = $this->findCompetitors1ByGroup($idCompetencia, $grupo);
+        $userComp2 = $this->findCompetitors2ByGroup($idCompetencia, $grupo);
+        $userCompetitors = array_merge($userComp1, $userComp2);
+        var_dump($userCompetitors);
+        // ################ eliminar los numeros repetidos
+        //$userCompetitors = array_unique($userCompetitors);
+
+        // var_dump($userCompetitors);
 
         $resultQueryCompetitorByGroup = $this->findCompetitorsByGroup($idCompetencia, $grupo);
         $array_idCompetitors = array();
@@ -163,7 +170,7 @@ class ResultadoRepository extends ServiceEntityRepository
                              WITH uc.id = r.competidor
                              AND uc.id IN '.$stringIdCompetitors.' ';
 
-        var_dump($stringQuery);
+        // var_dump($stringQuery);
         
         $query = $entityManager->createQuery($stringQuery);
         
