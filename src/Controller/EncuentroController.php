@@ -356,10 +356,10 @@ class EncuentroController extends AbstractFOSRestController
             
             // harcode de los resultados con null
             for ($i=0; $i < count($encuentrosFull); $i++) {
-              if($encuentrosFull[$i]['rdoComp1'] == null){
+              if($encuentrosFull[$i]['rdoComp1'] === null){
                 $encuentrosFull[$i]['rdoComp1'] = -1;
               }
-              if($encuentrosFull[$i]['rdoComp2'] == null){
+              if($encuentrosFull[$i]['rdoComp2'] === null){
                 $encuentrosFull[$i]['rdoComp2'] = -1;
               }
             }
