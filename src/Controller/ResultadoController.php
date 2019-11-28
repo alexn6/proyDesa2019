@@ -12,6 +12,7 @@ use Symfony\Component\HttpClient\HttpClient;    // para incorporar servicios res
 use App\Entity\Deporte;
 use App\Entity\Competencia;
 use App\Entity\Resultado;
+// use App\Entity\UsuarioCompetencia;
 
 use App\Utils\Constant;
 
@@ -69,6 +70,11 @@ class ResultadoController extends AbstractFOSRestController
                     }
                     // sino, es por fase de grupos, recuperamos la tabla de cada grupo
                     else{
+                        // ######## probamos
+                        // $repository = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+                        // $alias = $repository->findAliasCompetidoresByCompetencia($idCompetencia);
+                        // var_dump($alias);
+                        // ########3
                         $repository = $this->getDoctrine()->getRepository(Resultado::class);
                         $resultados = $repository->findResultCompetitorsGroup($idCompetencia, 1);
                         $statusCode = Response::HTTP_OK;

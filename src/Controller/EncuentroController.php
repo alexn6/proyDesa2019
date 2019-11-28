@@ -11,6 +11,7 @@ use \Datetime;
 
 use App\Entity\Encuentro;
 use App\Entity\Usuario;
+use App\Entity\UsuarioCompetencia;
 use App\Entity\Competencia;
 use App\Entity\Jornada;
 use App\Entity\Campo;
@@ -594,7 +595,8 @@ class EncuentroController extends AbstractFOSRestController
   // persistimos los encuentros de la competencia
   private function saveEncuentrosCompetition($encuentros, $competencia, $jornada, $grupo, $fecha_jornada){
     $repository = $this->getDoctrine()->getRepository(Encuentro::class);
-    $repositoryUser = $this->getDoctrine()->getRepository(Usuario::class);
+    // $repositoryUser = $this->getDoctrine()->getRepository(Usuario::class);
+    $repositoryUserComp = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
 
     $em = $this->getDoctrine()->getManager();
     // recorremos todos los encuentros
@@ -602,8 +604,10 @@ class EncuentroController extends AbstractFOSRestController
       $nameComp1 = $encuentros[$i][0];
       $nameComp2 = $encuentros[$i][1];
       // vamos a recuperar los competidores del encuentro
-      $competitor1 = $repositoryUser->findOneBy(['nombreUsuario' => $nameComp1]);
-      $competitor2 = $repositoryUser->findOneBy(['nombreUsuario' => $nameComp2]);
+      // $competitor1 = $repositoryUser->findOneBy(['nombreUsuario' => $nameComp1]);
+      // $competitor2 = $repositoryUser->findOneBy(['nombreUsuario' => $nameComp2]);
+      $competitor1 = $repositoryUserComp->findOneBy(['alias' => $nameComp1]);
+      $competitor2 = $repositoryUserComp->findOneBy(['alias' => $nameComp2]);
       // recuperamos la jornada que corresponde
       $newJornada = $this->getJornada($jornada, $competencia, $fecha_jornada);
       // creamos el encuentro

@@ -144,6 +144,23 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
       return $query->execute();
   }
 
+  // recuperamos el alias de los competidortes de una competencia
+  public function findAliasCompetidoresByCompetencia($idCompetencia)
+  {
+      $entityManager = $this->getEntityManager();
+      $query = $entityManager->createQuery(
+          '   SELECT uc.alias
+              FROM App\Entity\UsuarioCompetencia uc
+              INNER JOIN App\Entity\Rol r
+              WITH uc.rol = r.id
+              AND r.nombre = :rol
+              AND uc.competencia = :idCompetencia
+          ')->setParameter('rol', Constant::ROL_COMPETIDOR)
+          ->setParameter('idCompetencia', $idCompetencia);    
+
+      return $query->execute();
+  }
+
   // recuperamos los tokenFirebase de los organizadores de una competencia
   public function findOrganizatorsCompetencia($idCompetencia)
   {

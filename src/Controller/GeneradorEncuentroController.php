@@ -285,13 +285,9 @@ class GeneradorEncuentroController extends AbstractFOSRestController
                 $repositoryUsComp = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
                 $idCompetencia = $competition->getId();
                 // recuperamos los usuario_competencia de una competencia
-                $participantes = $repositoryUsComp->findNameCompetidoresByCompetencia($idCompetencia);
+                // $participantes = $repositoryUsComp->findNameCompetidoresByCompetencia($idCompetencia);
+                $participantes = $repositoryUsComp->findAliasCompetidoresByCompetencia($idCompetencia);
 
-                // if(count($participantes) < 2){
-                //     $respJson->matches = NULL;
-                //     $statusCode = Response::HTTP_BAD_REQUEST;
-                //     $respJson->msg = "No cuenta con suficientes participantes para crear la competencia";
-                // }
                 if(!($this->validarCantCompetidores($competition, $participantes))){
                     $respJson->matches = NULL;
                     $statusCode = Response::HTTP_BAD_REQUEST;
@@ -301,7 +297,8 @@ class GeneradorEncuentroController extends AbstractFOSRestController
                     // recuperamos la lista de los nombres de los participantes
                     $nombre_participantes = array();
                     foreach ($participantes as &$valor) {
-                        array_push($nombre_participantes, $valor['nombreUsuario']);
+                        // array_push($nombre_participantes, $valor['nombreUsuario']);
+                        array_push($nombre_participantes, $valor['alias']);
                     }
 
                     // recuperamos el tipo de org de la competencia
@@ -309,9 +306,6 @@ class GeneradorEncuentroController extends AbstractFOSRestController
                     $tipoorg = $repositoryTypeorg->find($competition->getOrganizacion());
                     $codigo_tipo = $tipoorg->getCodigo();
     
-                    // esto ponerlo en el control de competidores mas arriba
-                    // $this->validarCantCompetidores($competition, $nombre_participantes);
-
                     $generatorMatches = new CreatorEncuentros();
                     if(strcmp($codigo_tipo, "FASEGRUP") == 0){
                         $matchesCompetition = $generatorMatches->createMatches($nombre_participantes, $codigo_tipo, $competition->getCantGrupos());
