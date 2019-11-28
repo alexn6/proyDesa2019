@@ -354,6 +354,16 @@ class EncuentroController extends AbstractFOSRestController
               array_push($encuentrosFull, $encuentros[$i][0]);
             }
             
+            // harcode de los resultados con null
+            for ($i=0; $i < count($encuentrosFull); $i++) {
+              if($encuentrosFull[$i]['rdoComp1'] == null){
+                $encuentrosFull[$i]['rdoComp1'] = -1;
+              }
+              if($encuentrosFull[$i]['rdoComp2'] == null){
+                $encuentrosFull[$i]['rdoComp2'] = -1;
+              }
+            }
+
             // colocamos los alias de los competidores
             for ($i=0; $i < count($encuentrosFull); $i++) { 
               $aliasComp1 = $encuentros[$i]['competidor1'];
