@@ -30,13 +30,13 @@ class Encuentro
     private $competencia;
     
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Usuario")
+     * @ORM\ManyToOne(targetEntity="App\Entity\UsuarioCompetencia")
      * @ORM\JoinColumn(name="compuser1_id", referencedColumnName="id", nullable=false)
      */
     private $competidor1;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Usuario")
+     * @ORM\ManyToOne(targetEntity="App\Entity\UsuarioCompetencia")
      * @ORM\JoinColumn(name="compuser2_id", referencedColumnName="id", nullable=false)
      */
     private $competidor2;
@@ -109,30 +109,6 @@ class Encuentro
         return $this;
     }
 
-    public function getCompetidor1(): ?Usuario
-    {
-        return $this->competidor1;
-    }
-
-    public function setCompetidor1(?Usuario $competidor1): self
-    {
-        $this->competidor1 = $competidor1;
-
-        return $this;
-    }
-
-    public function getCompetidor2(): ?Usuario
-    {
-        return $this->competidor2;
-    }
-
-    public function setCompetidor2(?Usuario $competidor2): self
-    {
-        $this->competidor2 = $competidor2;
-
-        return $this;
-    }
-
     public function getRdoComp1(): ?int
     {
         return $this->rdo_comp1;
@@ -201,6 +177,30 @@ class Encuentro
     public function setTurno(?Turno $turno): self
     {
         $this->turno = $turno;
+
+        return $this;
+    }
+
+    public function getCompetidor1(): ?UsuarioCompetencia
+    {
+        return $this->competidor1;
+    }
+
+    public function setCompetidor1(?UsuarioCompetencia $competidor1): self
+    {
+        $this->competidor1 = $competidor1;
+
+        return $this;
+    }
+
+    public function getCompetidor2(): ?UsuarioCompetencia
+    {
+        return $this->competidor2;
+    }
+
+    public function setCompetidor2(?UsuarioCompetencia $competidor2): self
+    {
+        $this->competidor2 = $competidor2;
 
         return $this;
     }

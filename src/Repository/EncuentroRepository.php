@@ -150,10 +150,10 @@ class EncuentroRepository extends ServiceEntityRepository
         $stringQueryCompetidor;
         // seteamos el competidor
         if($competidor == $this::COMPETIDOR1){
-            $stringQueryCompetidor = ' AND e.competidor1 = uc.usuario';
+            $stringQueryCompetidor = ' AND e.competidor1 = uc.id';
         }
         if($competidor == $this::COMPETIDOR2){
-            $stringQueryCompetidor = ' AND e.competidor2 = uc.usuario';
+            $stringQueryCompetidor = ' AND e.competidor2 = uc.id';
         }
         $stringQuery = $stringQuery.$stringQueryCompetidor;
 
@@ -170,6 +170,7 @@ class EncuentroRepository extends ServiceEntityRepository
             $stringQuery = $stringQuery.$stringQueryGrupo;
         }
 
+        // var_dump($stringQuery);
         return $stringQuery;
     }
 }

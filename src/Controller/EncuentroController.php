@@ -11,6 +11,7 @@ use \Datetime;
 
 use App\Entity\Encuentro;
 use App\Entity\Usuario;
+use App\Entity\UsuarioCompetencia;
 use App\Entity\Competencia;
 use App\Entity\Jornada;
 use App\Entity\Campo;
@@ -94,10 +95,6 @@ class EncuentroController extends AbstractFOSRestController
                 // solo seteamos el campo si lo recibimos desde la peticion
                 $encuentro->setTurno($turno);
                 $hayCamposActualizados = true;
-                //$respJson->msg = "Turno actualizado correctamente";
-                //$statusCode = Response::HTTP_OK;
-                // $em = $this->getDoctrine()->getManager();
-                // $em->flush();
               }
             }
             // si existe un juez, ya sea de la peticion o ya almacenado
@@ -118,11 +115,7 @@ class EncuentroController extends AbstractFOSRestController
                 if(property_exists((object) $dataRequest,'idJuez')){
                   $encuentro->setJuez($juez);
                 }
-                //$respJson->msg = "Campos actualizados correctamente";
                 $hayCamposActualizados = true;
-                // $statusCode = Response::HTTP_OK;
-                // $em = $this->getDoctrine()->getManager();
-                // $em->flush();
               }
               else{
                 $respJson->msg = "El juez no esta disponible en el turno del encuentro";
@@ -156,11 +149,7 @@ class EncuentroController extends AbstractFOSRestController
               if(property_exists((object) $dataRequest,'idCampo')){
                 $encuentro->setCampo($campo);
               }
-              //$respJson->msg = "Campos actualizados correctamente";
               $hayCamposActualizados = true;
-              // $statusCode = Response::HTTP_OK;
-              // $em = $this->getDoctrine()->getManager();
-              // $em->flush();
             }
             else{
               $respJson->msg = "El campo no esta disponible en el turno del encuentro";
@@ -191,10 +180,6 @@ class EncuentroController extends AbstractFOSRestController
                 $encuentro->setJuez($juez);
               }
               $hayCamposActualizados = true;
-              //$respJson->msg = "Campos actualizados correctamente";
-              // $statusCode = Response::HTTP_OK;
-              // $em = $this->getDoctrine()->getManager();
-              // $em->flush();
             }
             else{
               $respJson->msg = "El juez no esta disponible en el turno del encuentro";
@@ -214,14 +199,10 @@ class EncuentroController extends AbstractFOSRestController
         if(property_exists((object) $dataRequest,'rdo_comp1')){
           $encuentro->setRdoComp1($dataRequest->rdo_comp1);
           $hayCamposActualizados = true;
-          // $respJson->msg = "Campos actualizados correctamente";
-          // $statusCode = Response::HTTP_OK;
         }
         if(property_exists((object) $dataRequest,'rdo_comp2')){
           $encuentro->setRdoComp2($dataRequest->rdo_comp2);
           $hayCamposActualizados = true;
-          // $respJson->msg = "Campos actualizados correctamente";
-          // $statusCode = Response::HTTP_OK;
         }
 
         if($hayCamposActualizados){
@@ -353,6 +334,7 @@ class EncuentroController extends AbstractFOSRestController
             ]);
             // pasamos los datos a un array para poder trabajarlos
             $encuentros = json_decode($encuentros, true);
+            //var_dump($encuentros);
 
             // recuperamos los datos del competidor2
             $encuentrosComp2 = $repositoryEnc->findEncuentrosComp2ByCompetencia($idCompetition, $idJornada, $grupo);
@@ -372,6 +354,16 @@ class EncuentroController extends AbstractFOSRestController
               array_push($encuentrosFull, $encuentros[$i][0]);
             }
             
+            // harcode de los resultados con null
+            for ($i=0; $i < count($encuentrosFull); $i++) {
+              if($encuentrosFull[$i]['rdoComp1'] === null){
+                $encuentrosFull[$i]['rdoComp1'] = -1;
+              }
+              if($encuentrosFull[$i]['rdoComp2'] === null){
+                $encuentrosFull[$i]['rdoComp2'] = -1;
+              }
+            }
+
             // colocamos los alias de los competidores
             for ($i=0; $i < count($encuentrosFull); $i++) { 
               $aliasComp1 = $encuentros[$i]['competidor1'];
@@ -379,6 +371,8 @@ class EncuentroController extends AbstractFOSRestController
               $encuentrosFull[$i]['competidor1'] = $aliasComp1;
               $encuentrosFull[$i]['competidor2'] = $aliasComp2;
             }
+
+            //var_dump($encuentrosFull);
 
             $encuentrosFull = $this->get('serializer')->serialize($encuentrosFull, 'json');
 
@@ -592,6 +586,7 @@ class EncuentroController extends AbstractFOSRestController
 
   // guardamos los encuentros generados por una competencia con grupos
   private function saveGrupos($fixtureEncuentros, $competencia){
+    // var_dump("Entro a saveGrupos()");
     $frec_jornada = 6;
     //$frec_jornada = $competencia->getFrecuencia();
     // el fixture serian los matches, controlar que tengan cant de grupos
@@ -604,7 +599,7 @@ class EncuentroController extends AbstractFOSRestController
         $dias_frec = $frec_jornada*($j-1);
         $fecha_jornada = date('Y-m-d', strtotime($competencia->getFechaIni()->format('Y-m-d'). ' + '.$dias_frec.' days'));
         $this->saveEncuentrosCompetition($fixtureGrupo[$j], $competencia, $jornada, $grupo, $fecha_jornada);
-      }      
+      }
     }
   }
 
@@ -613,7 +608,8 @@ class EncuentroController extends AbstractFOSRestController
   // persistimos los encuentros de la competencia
   private function saveEncuentrosCompetition($encuentros, $competencia, $jornada, $grupo, $fecha_jornada){
     $repository = $this->getDoctrine()->getRepository(Encuentro::class);
-    $repositoryUser = $this->getDoctrine()->getRepository(Usuario::class);
+    // $repositoryUser = $this->getDoctrine()->getRepository(Usuario::class);
+    $repositoryUserComp = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
 
     $em = $this->getDoctrine()->getManager();
     // recorremos todos los encuentros
@@ -621,8 +617,10 @@ class EncuentroController extends AbstractFOSRestController
       $nameComp1 = $encuentros[$i][0];
       $nameComp2 = $encuentros[$i][1];
       // vamos a recuperar los competidores del encuentro
-      $competitor1 = $repositoryUser->findOneBy(['nombreUsuario' => $nameComp1]);
-      $competitor2 = $repositoryUser->findOneBy(['nombreUsuario' => $nameComp2]);
+      // $competitor1 = $repositoryUser->findOneBy(['nombreUsuario' => $nameComp1]);
+      // $competitor2 = $repositoryUser->findOneBy(['nombreUsuario' => $nameComp2]);
+      $competitor1 = $repositoryUserComp->findOneBy(['alias' => $nameComp1]);
+      $competitor2 = $repositoryUserComp->findOneBy(['alias' => $nameComp2]);
       // recuperamos la jornada que corresponde
       $newJornada = $this->getJornada($jornada, $competencia, $fecha_jornada);
       // creamos el encuentro

@@ -59,7 +59,7 @@ class Validation{
         }
 
         $cant_minima = $n_grupos * $cant_minima_grupo;
-        var_dump($cant_minima);
+        
         if($n_competidores < $cant_minima){
             return false;
         }
