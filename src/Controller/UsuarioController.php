@@ -187,4 +187,47 @@ class UsuarioController extends AbstractFOSRestController
 
       return $response;
   }
+
+  /**
+     * Lista de todos los usuarios que contengan el nombre de usuario pasado por parametro.
+     * @Rest\Get("/users/getUsersByUsername"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function getUsersByUsername(Request $request){
+      $respJson = (object) null;
+      $users = null;
+      $statusCode;
+      $repository=$this->getDoctrine()->getRepository(Usuario::class);
+
+      if(empty($request->get('username'))){
+        $respJson->success = false;
+        $statusCode = Response::HTTP_BAD_REQUEST;
+        $respJson->messaging = "Peticion mal formada. Faltan parametros.";
+        
+      }else{
+        $username = $request->get('username');
+        $statusCode = Response::HTTP_OK;
+      
+        $users=$repository->getUsersByUsername($username);
+  
+        // hacemos el string serializable , controlamos las autoreferencias
+        $users = $this->get('serializer')->serialize($users, 'json', [
+          'circular_reference_handler' => function ($object) {
+            return $object->getId();
+          },
+          'ignored_attributes' => ['usuarioscompetencias', 'token', 'roles', 'password', 'pass', 'salt']
+        ]);
+        $respJson = json_decode($users);
+      }
+
+      $respJson = json_encode($respJson);
+       
+      $response = new Response($respJson);
+      $response->setStatusCode($statusCode);
+      $response->headers->set('Content-Type', 'application/json');
+  
+      return $response;
+    }
+
 }

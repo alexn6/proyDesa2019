@@ -27,7 +27,7 @@ class TurnoController extends AbstractFOSRestController
      * 
      * @return Response
      */
-    public function getGroundsByCompetition(Request $request){
+    public function getTurnsByCompetition(Request $request){
       $repository=$this->getDoctrine()->getRepository(Turno::class);
     
       $respJson = (object) null;

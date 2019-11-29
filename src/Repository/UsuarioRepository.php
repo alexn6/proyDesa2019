@@ -47,4 +47,15 @@ class UsuarioRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    public function getUsersByUsername($username){
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        '   SELECT u
+            FROM App\Entity\Usuario u
+            WHERE u.nombreUsuario LIKE :username
+            ')->setParameter('username','%'.$username.'%');
+        
+        return $query->execute();
+    }
 }
