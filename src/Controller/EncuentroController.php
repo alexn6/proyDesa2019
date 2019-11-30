@@ -17,6 +17,7 @@ use App\Entity\Jornada;
 use App\Entity\Campo;
 use App\Entity\Turno;
 use App\Entity\Juez;
+use App\Entity\Resultado;
 
 use App\Controller\JornadaController;
 
@@ -28,6 +29,10 @@ use App\Utils\Constant;
  */
 class EncuentroController extends AbstractFOSRestController
 {
+
+  const GANADOR_COMPETIDOR1 = 1;
+  const EMPATE = 0;
+  const GANADOR_COMPETIDOR2 = -1;
 
   /**
    * Editamos los datos de los Encuentros
@@ -60,6 +65,7 @@ class EncuentroController extends AbstractFOSRestController
         $campo;
         $juez;
         $hayCamposActualizados = false;
+        $reciboResultados = false;
 
         // ###########################################################################################
         // ############ controlamos que la asignacion de campo, juez y turno sea correcta ############
@@ -196,11 +202,35 @@ class EncuentroController extends AbstractFOSRestController
         }
 
         // editamos los campos que corresponda
-        if(property_exists((object) $dataRequest,'rdo_comp1')){
-          $encuentro->setRdoComp1($dataRequest->rdo_comp1);
-          $hayCamposActualizados = true;
+        // if(property_exists((object) $dataRequest,'rdo_comp1')){
+        //   $encuentro->setRdoComp1($dataRequest->rdo_comp1);
+        //   $hayCamposActualizados = true;
+        // }
+        // if(property_exists((object) $dataRequest,'rdo_comp2')){
+        //   $encuentro->setRdoComp2($dataRequest->rdo_comp2);
+        //   $hayCamposActualizados = true;
+        // }
+        if((property_exists((object) $dataRequest,'rdo_comp1')) || property_exists((object) $dataRequest,'rdo_comp2')){
+          $reciboResultados = true;
         }
-        if(property_exists((object) $dataRequest,'rdo_comp2')){
+
+        if($reciboResultados){
+          $rdoDBEncuentroComp1 = $encuentro->getRdoComp1();
+          $rdoDBEncuentroComp2 = $encuentro->getRdoComp2();
+          // vemos si el encuentro ya contenia resultados
+          if(($rdoDBEncuentroComp1 != NULL) || ($rdoDBEncuentroComp2 != NULL)){
+            // TODO: actualizar(-) con encuentro DB
+            $this->reverseUpdateResult($encuentro, $encuentro->getRdoComp1(), $encuentro->getRdoComp2());
+            // TODO: actualizar(+) con datos recibidos
+            $this->updateResult($encuentro, $dataRequest->rdo_comp1, $dataRequest->rdo_comp2);
+          }
+          else{
+            // actualizamos los partidos jugados y los PG, PE, PP, con los datos recibidos
+            $this->updateResult($encuentro, $dataRequest->rdo_comp1, $dataRequest->rdo_comp2);
+            //$this->updateJugadosCompetitors($encuentro);
+          }
+          // asigno los resultados al encuentro
+          $encuentro->setRdoComp1($dataRequest->rdo_comp1);
           $encuentro->setRdoComp2($dataRequest->rdo_comp2);
           $hayCamposActualizados = true;
         }
@@ -665,31 +695,6 @@ class EncuentroController extends AbstractFOSRestController
     return $jornadaEncuentro;
   }
 
-  // controlamos que los datos de los encuentros sean correctos
-  // que un encuentro no se le asigne el mismo campo, ni el mismo juez en la mismo turno que otro encuentro
-  // esto para la edicion de todos los campos en simultaneo
-  // private function correctDataConfrontation($idCompetencia, $idJuez, $idCampo, $idTurno){
-  //   $repositoryCompetencia = $this->getDoctrine()->getRepository(Competencia::class);
-  //   $repositoryTurno = $this->getDoctrine()->getRepository(Turno::class);
-  //   $repositoryJuez = $this->getDoctrine()->getRepository(Juez::class);
-  //   $repositoryCampo = $this->getDoctrine()->getRepository(Campo::class);
-
-  //   $competencia = $repositoryCompetencia->find($idCompetencia);
-  //   $turno = $repositoryTurno->find($idTurno);
-  //   $juez = $repositoryJuez->find($idJuez);
-  //   $campo = $repositoryCampo->find($idCampo);
-
-  //   if(!$this->availableJudge($competencia, $juez, $turno)){
-  //       return false;
-  //   }
-
-  //   if(!$this->availableField($competencia, $campo, $turno)){
-  //       return false;
-  //   }
-
-  //   return true;
-  // }
-
   // controlamos si existe un encuentro con el mismo juez y en el mismo turno
   private function availableJudge($idEncuentro, $competencia, $juez, $turno){
     $repository = $this->getDoctrine()->getRepository(Encuentro::class);
@@ -720,5 +725,114 @@ class EncuentroController extends AbstractFOSRestController
     }
 
     return false;
+  }
+
+  // segun el resultado(ya creado) del encuentro actualizamos los campos de resultado de cada uno
+  private function updateResult($encuentro, $rdoComp1, $rdoComp2){
+    $entityCreated = false;
+    // calculo el resultado
+    $rdoEncuentro = $this->resolvedResultConfrontation($rdoComp1, $rdoComp2);
+    
+    $repositoryUSerComp = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+    $userComp1 = $repositoryUSerComp->find($encuentro->getCompetidor1()->getId());
+    $userComp2 = $repositoryUSerComp->find($encuentro->getCompetidor2()->getId());
+    // TODO: incorporar el caso de que no exista un resultado (CREARLO)
+    $repository = $this->getDoctrine()->getRepository(Resultado::class);
+    $resultCompetidor1 = $repository->findOneBy(['competidor' => $userComp1]);
+    $resultCompetidor2 = $repository->findOneBy(['competidor' => $userComp2]);
+
+    // si los resultados de las competencias no existen, los creamos
+    if($resultCompetidor1 == NULL){
+      $resultCompetidor1 = $this->createResult($userComp1);
+      $entityCreated = true;
+    }
+    if($resultCompetidor2 == NULL){
+      $resultCompetidor2 = $this->createResult($userComp2);
+      $entityCreated = true;
+    }
+
+    // buscamos los datos de resultado de cada competidor
+    // TODO: tener en cuenta q al principio esta en NULL
+    if($rdoEncuentro === $this::GANADOR_COMPETIDOR1){
+      $resultCompetidor1->setGanados($resultCompetidor1->getGanados() + 1);
+      $resultCompetidor2->setPerdidos($resultCompetidor2->getPerdidos() + 1);
+    }
+    if($rdoEncuentro === $this::GANADOR_COMPETIDOR2){
+      $resultCompetidor2->setGanados($resultCompetidor2->getGanados() + 1);
+      $resultCompetidor1->setPerdidos($resultCompetidor1->getPerdidos() + 1);
+    }
+    if($rdoEncuentro === $this::EMPATE){
+      $resultCompetidor1->setEmpatados($resultCompetidor1->getEmpatados() + 1);
+      $resultCompetidor2->setEmpatados($resultCompetidor2->getEmpatados() + 1);
+    }
+
+    if($entityCreated){
+      $em = $this->getDoctrine()->getManager();
+      $em->persist($resultCompetidor1);
+      $em->persist($resultCompetidor2);
+      $em->flush();
+    }
+  }
+
+  // segun el resultado(datos recibidos en la peticion) del encuentro actualizamos los campos de resultado de cada uno
+  private function reverseUpdateResult($encuentro, $rdoComp1, $rdoComp2){
+    // calculo el resultado
+    $rdoEncuentro = $this->resolvedResultConfrontation($rdoComp1, $rdoComp2);
+    
+    $repositoryUSerComp = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+    $userComp1 = $repositoryUSerComp->find($encuentro->getCompetidor1()->getId());
+    $userComp2 = $repositoryUSerComp->find($encuentro->getCompetidor2()->getId());
+
+    $repository = $this->getDoctrine()->getRepository(Resultado::class);
+    $resultCompetidor1 = $repository->findOneBy(['competidor' => $userComp1]);
+    $resultCompetidor2 = $repository->findOneBy(['competidor' => $userComp2]);
+
+    // buscamos los datos de resultado de cada competidor
+    // TODO: tener en cuenta q al principio esta en NULL
+    if($rdoEncuentro === $this::GANADOR_COMPETIDOR1){
+      $resultCompetidor1->setGanados($resultCompetidor1->getGanados() - 1);
+      $resultCompetidor2->setPerdidos($resultCompetidor2->getPerdidos() - 1);
+    }
+    if($rdoEncuentro === $this::GANADOR_COMPETIDOR2){
+      $resultCompetidor2->setGanados($resultCompetidor2->getGanados() - 1);
+      $resultCompetidor1->setPerdidos($resultCompetidor1->getPerdidos() - 1);
+    }
+    if($rdoEncuentro === $this::EMPATE){
+      $resultCompetidor1->setEmpatados($resultCompetidor1->getEmpatados() - 1);
+      $resultCompetidor2->setEmpatados($resultCompetidor2->getEmpatados() - 1);
+    }
+  }
+
+  // actualizamos los PJ de cada competidor del encuentro
+  private function updateJugadosCompetitors($encuentro){
+    
+    $repositoryUSerComp = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+    $userComp1 = $repositoryUSerComp->find($encuentro->getCompetidor1()->getId());
+    $userComp2 = $repositoryUSerComp->find($encuentro->getCompetidor2()->getId());
+    $repository = $this->getDoctrine()->getRepository(Resultado::class);
+    $resultCompetidor1 = $repository->findOneBy(['competidor' => $userComp1]);
+    $resultCompetidor2 = $repository->findOneBy(['competidor' => $userComp2]);
+
+    // buscamos los datos de resultado de cada competidor
+    // TODO: tener en cuenta q al principio esta en NULL
+    $resultCompetidor1->setJugados($resultCompetidor1->getJugados() + 1);
+    $resultCompetidor2->setJugados($resultCompetidor2->getJugados() + 1);
+  }
+
+  // determina el resultado de un encuentro
+  private function resolvedResultConfrontation($rdoComp1, $rdoComp2){
+    return $rdoComp1 <=> $rdoComp2;
+  }
+
+  // crea y devuelve un objeto Resultado
+  private function createResult($competidor){
+    $resultado = new Resultado();
+    $resultado->setCompetidor($competidor);
+    $resultado->setJugados(1);
+    $resultado->setGanados(0);
+    $resultado->setEmpatados(0);
+    $resultado->setPerdidos(0);
+
+    return $resultado;
   }
 }
