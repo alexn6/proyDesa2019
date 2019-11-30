@@ -22,38 +22,38 @@ class NotificacionController extends AbstractFOSRestController
      * 
      * @return Response
      */
-    public function sendSimpleNotification(Request $request){
-        $respJson = (object) null;
-        $statusCode;
+    // public function sendSimpleNotification(Request $request){
+    //     $respJson = (object) null;
+    //     $statusCode;
 
-        // vemos si existe un body
-        if(!empty($request->getContent())){
-            // recuperamos los datos del body y pasamos a un objecto
-            $requestBody = json_decode($request->getContent());
-            $titleNotification = $requestBody->titulo;
-            $bodyNotification = $requestBody->body;
-            $tokenDevice = $requestBody->token;
+    //     // vemos si existe un body
+    //     if(!empty($request->getContent())){
+    //         // recuperamos los datos del body y pasamos a un objecto
+    //         $requestBody = json_decode($request->getContent());
+    //         $titleNotification = $requestBody->titulo;
+    //         $bodyNotification = $requestBody->body;
+    //         $tokenDevice = $requestBody->token;
 
-            $servNotification = new NotificationService();
-            $resultSend = $servNotification->sendSimpleNotificationFCM($titleNotification, $tokenDevice, $bodyNotification);
+    //         $servNotification = new NotificationService();
+    //         $resultSend = $servNotification->sendSimpleNotificationFCM($titleNotification, $tokenDevice, $bodyNotification);
 
-            $resultSend = json_decode($resultSend, true);
+    //         $resultSend = json_decode($resultSend, true);
 
-            $statusCode = Response::HTTP_OK;
-            $respJson->msg = $resultSend;
-        }
-        else{
-            $statusCode = Response::HTTP_BAD_REQUEST;
-            $respJson->msg = "Peticion mal formada. No se realizao el envio de la notificacion";
-        }
+    //         $statusCode = Response::HTTP_OK;
+    //         $respJson->msg = $resultSend;
+    //     }
+    //     else{
+    //         $statusCode = Response::HTTP_BAD_REQUEST;
+    //         $respJson->msg = "Peticion mal formada. No se realizao el envio de la notificacion";
+    //     }
 
-        $respJson = json_encode($respJson);
+    //     $respJson = json_encode($respJson);
 
-        $response = new Response($respJson);
-        $response->headers->set('Content-Type', 'application/json');
-        $response->setStatusCode($statusCode);
+    //     $response = new Response($respJson);
+    //     $response->headers->set('Content-Type', 'application/json');
+    //     $response->setStatusCode($statusCode);
 
-        return $response;
-    }
+    //     return $response;
+    // }
 
 }

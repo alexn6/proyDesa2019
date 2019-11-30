@@ -551,6 +551,62 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
     }
 
     // ##################################################################
+    // ###################### manejo de notificaciones ##################
+
+    /**
+     * Recibe los datos de a quien mandarle la notificacion de co-organizador
+     * Pre: el usuario existe
+     * @Rest\GET("/invitation-coorg"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function receiveInvitationCoorganizator(Request $request){
+      $respJson = (object) null;
+      $statusCode;
+
+      // controlamos que se haya recibido algo en el body
+      if(!empty($request->getContent())){
+        // recuperamos los datos del body y pasamos a un array
+        $dataRequest = json_decode($request->getContent());
+
+        // vemos si existen los datos necesarios
+        if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->idCompetencia))){
+          $idUser = $dataRequest->idUsuario;
+          $idCompetition = $dataRequest->idCompetencia;
+
+          // buscamos los datos correspodientes a los id recibidos
+          $repositoryUser=$this->getDoctrine()->getRepository(Usuario::class);
+          $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
+          $user = $repositoryUser->find($idUser);
+          $competition = $repositoryComp->find($idCompetition);
+
+          // enviamos la invitacion al usuario
+          $msg = "Has sido invitado a ser CO-ORGANIZADOR de la competencia: ".$competition->getNombre();
+          $this->notifyInvitationCoorg($user->getToken(), $competition->getNombre(), $msg);
+
+          $statusCode = Response::HTTP_OK;
+          $respJson->messaging = "Invitacion enviada con exito.";
+        }
+        else{
+          $statusCode = Response::HTTP_BAD_REQUEST;
+          $respJson->messaging = "Solicitud mal formada. Faltan parametros.";
+          }
+      }
+      else{
+          $statusCode = Response::HTTP_BAD_REQUEST;
+          $respJson->messaging = "Solicitud mal formada. Faltan parametros.";
+      }
+
+      $respJson = json_encode($respJson);
+
+      $response = new Response($respJson);
+      $response->headers->set('Content-Type', 'application/json');
+      $response->setStatusCode($statusCode);
+
+      return $response;
+  }
+
+    // ##################################################################
     // ###################### actualizacion de roles ####################
 
     /**
@@ -842,6 +898,14 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         $servNotification = new NotificationService();
         $servNotification->sendSimpleNotificationFCM($title, $tokenUser, $msg);
     }
+
+    // notifica al usuario que su solicitud de incripcion a la competencia fue rechazada
+    private function notifyInvitationCoorg($tokenUser, $nameCompetition, $msg){
+      $title = "Invitacion a CO-ORGANIZADOR";
+
+      $servNotification = new NotificationService();
+      $servNotification->sendSimpleNotificationFCM($title, $tokenUser, $msg);
+  }
 
     // notifica al usuario que su solicitud de incripcion a la competencia fue rechazada
     private function notifyInscriptionToOrganizators($arrayTokens, $nameCompetition, $nameUser){
