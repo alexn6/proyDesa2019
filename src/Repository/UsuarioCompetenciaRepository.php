@@ -182,6 +182,26 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
       return $query->execute();
   }
 
+  // recuperamos el tokenFirebase del organizador de una competencia
+  public function findOrganizatorCompetencia($idCompetencia)
+  {
+      $entityManager = $this->getEntityManager();
+
+      $query = $entityManager->createQuery(
+          '   SELECT u.token
+              FROM App\Entity\UsuarioCompetencia uc
+              INNER JOIN App\Entity\Usuario u
+              WITH uc.usuario = u.id
+              INNER JOIN App\Entity\Rol r
+              WITH uc.rol = r.id
+              AND uc.competencia = :idCompetencia
+              AND r.nombre = :rol
+          ')->setParameter('rol', Constant::ROL_ORGANIZADOR)
+          ->setParameter('idCompetencia', $idCompetencia);
+
+      return $query->execute();
+  }
+
   // ######################################################################
   // #################### COMPETENCIA SEGUN ROL USUARIO ##################
 
