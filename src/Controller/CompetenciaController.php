@@ -16,6 +16,7 @@ use App\Entity\Usuario;
 use App\Entity\UsuarioCompetencia;
 use App\Entity\Rol;
 use App\Entity\Jornada;
+use App\Entity\Encuentro;
 
 use App\Utils\Constant;
 
@@ -319,7 +320,86 @@ class CompetenciaController extends AbstractFOSRestController
       $response->headers->set('Content-Type', 'application/json');
 
       return $response;
-  } 
+  }
+
+  /**
+     * 
+     * @Rest\Get("/competition/classified")
+     * Pre: solo comptempla competencias del tipo Eliminatorias y FaseGrupos
+     * Buscamos los clasificados de una competencia
+     * 
+     * @return Response
+     */
+    public function getClassifiedCompetition(Request $request){
+      $idCompetition = $request->get('idCompetencia');
+
+      $respJson = (object) null;
+      $statusCode;
+     
+      // vemos si recibimos algun parametro
+      if(!empty($idCompetition)){
+          $repository = $this->getDoctrine()->getRepository(Competencia::class);
+          $competition = $repository->find($idCompetition);
+
+          if(empty($competition)){
+              $respJson->matches = NULL;
+              $statusCode = Response::HTTP_BAD_REQUEST;
+              $respJson->msg = "La competencia no existe o fue eliminada";
+          }
+          else{
+            $msg;
+            $winners = NULL;
+            // controlamos el tipo de organizacion
+            $typeOrganization = $competition->getOrganizacion()->getCodigo();
+            if($typeOrganization == Constant::COD_TIPO_ELIMINATORIAS){
+              // recuperamos los encuentros de una competencia por fase(de grupos en este caso)
+              $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
+              $encuentrosFase = $repositoryEnc->findEncuentrosByCompetencia($idCompetition, $competition->getFaseActual(), null);
+              // vemos si la fase esta completada
+              if($this->faseCompleted($encuentrosFase)){
+                $msg = "Obtenidos clasificados con exito";
+                $winners = $this->getWinners($encuentrosFase);
+                // serializamos y decodificamos los resultados
+                $winners = $this->get('serializer')->serialize($winners, 'json', [
+                    'circular_reference_handler' => function ($object) {
+                      return $object->getId();
+                    },
+                    'ignored_attributes' => ['usuario', 'competencia', '__initializer__', '__cloner__', '__isInitialized__']
+                  ]);
+                json_decode($winners, true);
+                // para actu
+              }
+              else{
+                $msg = "Aun faltan definirse resultados de la fase de la competencia";
+              }
+            }
+            if($typeOrganization == Constant::COD_TIPO_ELIMINATORIAS_DOUBLE){
+              // (en el caso de ser doble eliminatoria ver como determinar el ganador)
+            }
+            if($typeOrganization == Constant::COD_TIPO_FASE_GRUPOS){
+              
+            }
+            $respJson->msg = $msg;
+            $respJson->classified = $winners;
+
+            $statusCode = Response::HTTP_OK;
+          }
+      }
+      else{
+        $respJson->encuentros = NULL;
+        $respJson->msg = "Solicitud mal formada";
+        $statusCode = Response::HTTP_BAD_REQUEST;
+      }
+
+      //$respJson = json_encode($winners);
+
+      // $response = new Response($respJson);
+      $response = new Response($winners);
+      $response->setStatusCode($statusCode);
+      $response->headers->set('Content-Type', 'application/json');
+
+      return $response;
+    }
   
     // ########################################################
     // ################### funciones auxiliares ################
@@ -364,9 +444,6 @@ class CompetenciaController extends AbstractFOSRestController
           $respJson->competitions = NULL;
           $statusCode = Response::HTTP_BAD_REQUEST;
       }
-     
-     //  $respJson = json_encode($respJson);
- 
  
        $response = new Response($array_comp);
        $response->setStatusCode($statusCode);
@@ -541,7 +618,7 @@ class CompetenciaController extends AbstractFOSRestController
     }
 
     // #####################################################################################
-    // ################# seteamos la fase de la competencia ################################
+    // ################################ funciones privadas ################################
 
     // controlamos que la cant de competidores se adecue a la competencia
     private function setFaseCompetition($competencia, $fase){
@@ -563,6 +640,39 @@ class CompetenciaController extends AbstractFOSRestController
             $competencia->setFaseActual(0);
           }
       }
-  }
+    }
+
+    // controlamos que los encuentros recibidos cuenten con un resultado
+    private function faseCompleted($encuentrosFase){
+      for ($i=0; $i < count($encuentrosFase); $i++) {
+        $rdoC1 = $encuentrosFase[$i]->getRdoComp1();
+        $rdoC2 = $encuentrosFase[$i]->getRdoComp2();
+        if(($rdoC1 === NULL) || ($rdoC2 === NULL)){
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    /* Determina los ganadores de los encuentros recibidos
+    ** Pre: los encuentros cuentan con resultados sin empates
+    */
+    private function getWinners($encuentrosFase){
+      $winners = array();
+      for ($i=0; $i < count($encuentrosFase); $i++) {
+        $rdoC1 = $encuentrosFase[$i]->getRdoComp1();
+        $rdoC2 = $encuentrosFase[$i]->getRdoComp2();
+        // guardamos el ganador
+        if($rdoC1 > $rdoC2){
+          array_push($winners, $encuentrosFase[$i]->getCompetidor1());
+        }
+        else{
+          array_push($winners, $encuentrosFase[$i]->getCompetidor2());
+        }
+      }
+
+      return $winners;
+    }
  
 }

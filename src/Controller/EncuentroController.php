@@ -281,13 +281,11 @@ class EncuentroController extends AbstractFOSRestController
               $respJson->msg = "La competencia no existe o fue eliminada";
           }
           else{
+            // recuperamos los encuentros de una competencia
             $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
-            // recuperamos los usuario_competencia de una competencia
             $respJson = $repositoryEnc->findEncuentrosByCompetencia($idCompetition);
 
             $statusCode = Response::HTTP_OK;
-            //$respJson->msg = "Operacion exitosa";
-             //= $encuentros;
           }
       }
       else{
@@ -402,8 +400,6 @@ class EncuentroController extends AbstractFOSRestController
               $encuentrosFull[$i]['competidor2'] = $aliasComp2;
             }
 
-            //var_dump($encuentrosFull);
-
             $encuentrosFull = $this->get('serializer')->serialize($encuentrosFull, 'json');
 
             $statusCode = Response::HTTP_OK;
@@ -425,144 +421,6 @@ class EncuentroController extends AbstractFOSRestController
 
     // para ignorar atributos dentro de una entidad a la hora de serializar
     //https://symfony.com/doc/current/components/serializer.html#serializing-an-object
-  
-
-  // /**
-  //  * Creamos y persistimos un objeto del tipo Encuentro
-  // * @Rest\Get("/saveLiga")
-  // */
-  // public function saveFixtureLiga()
-  // {
-  //   $fechas = array();
-  //   $fecha1 = array();
-  //   $fecha2 = array();
-    
-  //   array_push($fecha1, ["alex6", "sergiov"]);
-  //   array_push($fecha1, ["lucasa", "algo_t"]);
-  //   array_push($fecha2, ["alexMovil", "Seguidor"]);
-  //   array_push($fecha2, ["Organizador", "Participante"]);
-  //   //print_r($fecha1); 
-  //   array_push($fechas, $fecha1);
-  //   array_push($fechas, $fecha2);
-
-  //   $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
-  //   $competencia = $repositoryComp->find(7);
-
-  //   $this->saveLiga($fechas, $competencia);
-
-  //   $response = new Response();
-  //   $response->setStatusCode(Response::HTTP_OK);
-  //   $response->headers->set('Content-Type', 'application/json');
-
-  //   return $response;
-  // }
-
-  // /** solo de PRUEBA
-  //  * Creamos y persistimos un objeto del tipo Encuentro
-  // * @Rest\Get("/saveElim")
-  // */
-  // public function saveFixtureEliminatorias()
-  // {
-  //   $fechas = array();
-  //   $fechaCuartos = array();
-    
-  //   array_push($fechaCuartos, ["alex6", "sergiov"]);
-  //   array_push($fechaCuartos, ["lucasa", "algo_t"]);
-  //   array_push($fechaCuartos, ["alexMovil", "Seguidor"]);
-  //   array_push($fechaCuartos, ["Organizador", "Participante"]);
-  //   //print_r($fecha1); 
-  //   array_push($fechas, $fechaCuartos);
-
-  //   $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
-  //   $competencia = $repositoryComp->find(7);
-
-  //   $this->saveEliminatorias($fechas, $competencia);
-
-  //   $response = new Response();
-  //   $response->setStatusCode(Response::HTTP_OK);
-  //   $response->headers->set('Content-Type', 'application/json');
-
-  //   return $response;
-  // }
-
-  // /** solo de PRUEBA
-  //  * Creamos y persistimos un objeto del tipo Encuentro
-  // * @Rest\Get("/saveElimdoub")
-  // */
-  // public function saveFixtureEliminatoriasDoubles()
-  // {
-  //   $fechas = array();
-  //   $fechaSemiIda = array();
-  //   $fechaSemiVuelta = array();
-    
-  //   array_push($fechaSemiIda, ["alexMovil", "Seguidor"]);
-  //   array_push($fechaSemiIda, ["Organizador", "Participante"]);
-  //   array_push($fechaSemiVuelta, ["Seguidor", "alexMovil"]);
-  //   array_push($fechaSemiVuelta, ["Participante", "Organizador"]);
-  //   //print_r($fecha1); 
-  //   array_push($fechas, $fechaSemiIda);
-  //   array_push($fechas, $fechaSemiVuelta);
-
-  //   $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
-  //   // asignamos una competencia con tipo LigaDouble
-  //   $competencia = $repositoryComp->find(4);
-
-  //   $this->saveEliminatorias($fechas, $competencia);
-
-  //   $response = new Response();
-  //   $response->setStatusCode(Response::HTTP_OK);
-  //   $response->headers->set('Content-Type', 'application/json');
-
-  //   return $response;
-  // }
-
-  // /** solo de PRUEBA
-  //  * Creamos y persistimos un objeto del tipo Encuentro
-  // * @Rest\Get("/saveGrup")
-  // */
-  // public function saveFixtureGrupos()
-  // {
-  //   $fechas = array();
-  //   $grupo1 = array();
-  //   $fechaG1 = array();
-  //   $fechaG2 = array();
-    
-  //   array_push($fechaG1, ["alexMovil", "Seguidor"]);
-  //   array_push($fechaG1, ["Organizador", "Participante"]);
-  //   array_push($fechaG2, ["Seguidor", "Organizador"]);
-  //   array_push($fechaG2, ["Participante", "alexMovil"]);
-  //   //print_r($fecha1); 
-  //   array_push($grupo1, $fechaG1);
-  //   array_push($grupo1, $fechaG2);
-
-  //   $grupo2 = array();
-  //   $fecha2G1 = array();
-  //   $fecha2G2 = array();
-    
-  //   array_push($fecha2G1, ["sergiov", "Seguidor"]);
-  //   array_push($fecha2G1, ["alex6", "Participante"]);
-  //   array_push($fecha2G2, ["Participante", "sergiov"]);
-  //   array_push($fecha2G2, ["Seguidor", "alex6"]);
-  //   //print_r($fecha1); 
-  //   array_push($grupo2, $fecha2G1);
-  //   array_push($grupo2, $fecha2G2);
-
-  //   array_push($fechas, $grupo1);
-  //   array_push($fechas, $grupo2);
-
-  //   $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
-  //   // asignamos una competencia con tipo FaseGrupos
-  //   $competencia = $repositoryComp->find(18);
-
-  //   $this->saveGrupos($fechas, $competencia);
-
-  //   $response = new Response();
-  //   $response->setStatusCode(Response::HTTP_OK);
-  //   $response->headers->set('Content-Type', 'application/json');
-
-  //   return $response;
-  // }
-
 
   // ########################################################################
   // ########### deberia llamarse a la hora de generar encuentros ############
