@@ -341,8 +341,9 @@ class CompetenciaController extends AbstractFOSRestController
           $repository = $this->getDoctrine()->getRepository(Competencia::class);
           $competition = $repository->find($idCompetition);
 
+          $existWinners = false;
+
           if(empty($competition)){
-              $respJson->matches = NULL;
               $statusCode = Response::HTTP_BAD_REQUEST;
               $respJson->msg = "La competencia no existe o fue eliminada";
           }
@@ -357,7 +358,7 @@ class CompetenciaController extends AbstractFOSRestController
               $encuentrosFase = $repositoryEnc->findEncuentrosByCompetencia($idCompetition, $competition->getFaseActual(), null);
               // vemos si la fase esta completada
               if($this->faseCompleted($encuentrosFase)){
-                $msg = "Obtenidos clasificados con exito";
+                //$msg = "Obtenidos clasificados con exito";
                 $winners = $this->getWinners($encuentrosFase);
                 // serializamos y decodificamos los resultados
                 $winners = $this->get('serializer')->serialize($winners, 'json', [
@@ -366,11 +367,11 @@ class CompetenciaController extends AbstractFOSRestController
                     },
                     'ignored_attributes' => ['usuario', 'competencia', '__initializer__', '__cloner__', '__isInitialized__']
                   ]);
-                json_decode($winners, true);
-                // para actu
+                $respJson = $winners;
+                $existWinners = true;
               }
               else{
-                $msg = "Aun faltan definirse resultados de la fase de la competencia";
+                $respJson->msg = "Aun faltan definirse resultados de la fase de la competencia";
               }
             }
             if($typeOrganization == Constant::COD_TIPO_ELIMINATORIAS_DOUBLE){
@@ -379,22 +380,21 @@ class CompetenciaController extends AbstractFOSRestController
             if($typeOrganization == Constant::COD_TIPO_FASE_GRUPOS){
               
             }
-            $respJson->msg = $msg;
-            $respJson->classified = $winners;
 
             $statusCode = Response::HTTP_OK;
           }
       }
       else{
-        $respJson->encuentros = NULL;
         $respJson->msg = "Solicitud mal formada";
         $statusCode = Response::HTTP_BAD_REQUEST;
       }
 
-      //$respJson = json_encode($winners);
-
-      // $response = new Response($respJson);
-      $response = new Response($winners);
+      if(!$existWinners){
+        $respJson = json_encode($respJson);
+      }
+      $response = new Response($respJson);
+      
+      //$response = new Response($winners);
       $response->setStatusCode($statusCode);
       $response->headers->set('Content-Type', 'application/json');
 
