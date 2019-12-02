@@ -368,7 +368,7 @@ class CompetenciaController extends AbstractFOSRestController
                     'circular_reference_handler' => function ($object) {
                       return $object->getId();
                     },
-                    'ignored_attributes' => ['usuario', 'competencia', '__initializer__', '__cloner__', '__isInitialized__']
+                    'ignored_attributes' => ['usuario', 'competencia','rol', '__initializer__', '__cloner__', '__isInitialized__']
                   ]);
                 $respJson = $winners;
                 $existWinners = true;
@@ -412,7 +412,7 @@ class CompetenciaController extends AbstractFOSRestController
                     'circular_reference_handler' => function ($object) {
                       return $object->getId();
                     },
-                    'ignored_attributes' => ['usuario', 'competencia', '__initializer__', '__cloner__', '__isInitialized__']
+                    'ignored_attributes' => ['usuario', 'competencia', 'rol','__initializer__', '__cloner__', '__isInitialized__']
                   ]);
 
                   $respJson = $winners;

@@ -19,6 +19,15 @@ class Constant{
 
     const MIN_COMPETIDORES_LIGA = 3;
 
+    const FASE_IDA = -1;
+    const FASE_VUELTA = -2;
+    const FASE_FINAL = 1;
+    const FASE_SEMIFINAL = 2;
+    const FASE_CUARTOS = 3;
+    const FASE_OCTAVOS = 4;
+    const FASE_16AVOS = 5;
+    const FASE_32AVOS = 6;
+
     // servicios propios
     const SERVICES_REST_CAMPO = 'http://132.255.7.152:20203/api/campus';
 }

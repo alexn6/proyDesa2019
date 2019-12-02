@@ -227,7 +227,7 @@ class EncuentroController extends AbstractFOSRestController
           else{
             // actualizamos los partidos jugados y los PG, PE, PP, con los datos recibidos
             $this->updateResult($encuentro, $dataRequest->rdo_comp1, $dataRequest->rdo_comp2);
-            //$this->updateJugadosCompetitors($encuentro);
+            $this->updateJugadosCompetitors($encuentro);
           }
           // asigno los resultados al encuentro
           $encuentro->setRdoComp1($dataRequest->rdo_comp1);
