@@ -334,6 +334,7 @@ class EncuentroController extends AbstractFOSRestController
             $idJornada = null;
             // vemos si existe un body
             if(!empty($request->getContent())){
+                //var_dump("body vacio");
                 // recuperamos los datos del body y pasamos a un array
                 $dataConfrontationRequest = json_decode($request->getContent());
 
@@ -362,7 +363,6 @@ class EncuentroController extends AbstractFOSRestController
             ]);
             // pasamos los datos a un array para poder trabajarlos
             $encuentros = json_decode($encuentros, true);
-            //var_dump($encuentros);
 
             // recuperamos los datos del competidor2
             $encuentrosComp2 = $repositoryEnc->findEncuentrosComp2ByCompetencia($idCompetition, $idJornada, $grupo);
