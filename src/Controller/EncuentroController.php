@@ -659,6 +659,11 @@ class EncuentroController extends AbstractFOSRestController
       $resultCompetidor1->setEmpatados($resultCompetidor1->getEmpatados() - 1);
       $resultCompetidor2->setEmpatados($resultCompetidor2->getEmpatados() - 1);
     }
+
+    $em = $this->getDoctrine()->getManager();
+    $em->persist($resultCompetidor1);
+    $em->persist($resultCompetidor2);
+    $em->flush();
   }
 
   // actualizamos los PJ de cada competidor del encuentro
