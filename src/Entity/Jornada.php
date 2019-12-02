@@ -36,6 +36,11 @@ class Jornada
      */
     private $competencia;
 
+    /**
+     * @ORM\Column(type="integer", nullable=false)
+     */
+    private $fase;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -73,6 +78,18 @@ class Jornada
     public function setCompetencia(?Competencia $competencia): self
     {
         $this->competencia = $competencia;
+
+        return $this;
+    }
+
+    public function getFase(): ?int
+    {
+        return $this->fase;
+    }
+
+    public function setFase(int $fase): self
+    {
+        $this->fase = $fase;
 
         return $this;
     }

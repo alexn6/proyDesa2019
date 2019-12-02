@@ -67,6 +67,23 @@ class EncuentroRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    // recuperamos los encuentros de una competencia por determinada fase
+    public function findEncuentrosByCompetenciaFase($idCompetencia, $fase)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            '   SELECT e
+                FROM App\Entity\Encuentro e
+                INNER JOIN App\Entity\Jornada j
+                WITH e.jornada = j.id
+                WHERE e.competencia = :idCompetencia
+                AND j.fase = :fase
+            ')->setParameter('idCompetencia', $idCompetencia)
+            ->setParameter('fase', $fase);
+
+        return $query->execute();
+    }
+
     // recuperamos los encuentros de una competencia, por fase y grupo
     public function findEncuentrosByCompetenciaFaseGrupo($idCompetencia, $fase, $grupo)
     {

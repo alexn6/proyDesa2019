@@ -335,6 +335,7 @@ class CompetenciaController extends AbstractFOSRestController
      */
     public function getClassifiedCompetition(Request $request){
       $idCompetition = $request->get('idCompetencia');
+      $fase = $request->get('fase');
 
       $respJson = (object) null;
       $statusCode;
@@ -353,16 +354,15 @@ class CompetenciaController extends AbstractFOSRestController
           else{
             $msg;
             $winners = NULL;
-            // controlamos el tipo de organizacion
-            $typeOrganization = $competition->getOrganizacion()->getCodigo();
-            if($typeOrganization == Constant::COD_TIPO_ELIMINATORIAS){
-              // recuperamos los encuentros de una competencia por fase(de grupos en este caso)
-              $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
-              $encuentrosFase = $repositoryEnc->findEncuentrosByCompetencia($idCompetition, $competition->getFaseActual(), null);
-              // vemos si la fase esta completada
-              if($this->faseCompleted($encuentrosFase)){
-                //$msg = "Obtenidos clasificados con exito";
-                $winners = $this->getWinners($encuentrosFase);
+            // buscamos todos los encuentros de la fase actual de la competencia
+            $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
+            $encuentrosFase = $repositoryEnc->findEncuentrosByCompetenciaFase($idCompetition, $competition->getFaseActual());
+            if($this->faseCompleted($encuentrosFase)){
+              // controlamos el tipo de organizacion
+              $typeOrganization = $competition->getOrganizacion()->getCodigo();
+              // ################################## ELIMINATORIAS ########################################
+              if($typeOrganization == Constant::COD_TIPO_ELIMINATORIAS){
+                $winners = $this->getWinnersEliminatorias($encuentrosFase);
                 // serializamos y decodificamos los resultados
                 $winners = $this->get('serializer')->serialize($winners, 'json', [
                     'circular_reference_handler' => function ($object) {
@@ -373,46 +373,58 @@ class CompetenciaController extends AbstractFOSRestController
                 $respJson = $winners;
                 $existWinners = true;
               }
-              else{
-                $respJson->msg = "Aun faltan definirse resultados de la fase de la competencia";
-              }
-            }
-            if($typeOrganization == Constant::COD_TIPO_ELIMINATORIAS_DOUBLE){
+              // ############################# ELIMINATORIAS DOBLES #####################################
+              if($typeOrganization == Constant::COD_TIPO_ELIMINATORIAS_DOUBLE){
               // (en el caso de ser doble eliminatoria ver como determinar el ganador)
-            }
-            if($typeOrganization == Constant::COD_TIPO_FASE_GRUPOS){
-              $tableGral = null;
-              // TODO: controlar q se hayan completado las fases de todos los grupos, con resultado
-              if($this->phaseGroupsCompleted($competition)){
-                // recuperamos la tabla de cada grupo
-                $tablesAllGroup = array();
-                $repository = $this->getDoctrine()->getRepository(Resultado::class);
-                for ($i=0; $i < $competition->getCantGrupos() ; $i++) {
-                  $resultados = $repository->findResultCompetitorsGroup($competition->getId(), $i+1);
-                  // pasamos los resultado a un array para poder trabajarlo
-                  $resultados = $this->get('serializer')->serialize($resultados, 'json', [
-                      'circular_reference_handler' => function ($object) {
-                          return $object->getId();
-                      },
-                      'ignored_attributes' => ['competencia', 'competidor']
+              }
+              // ############################# FASE DE GRUPOS #####################################
+              if($typeOrganization == Constant::COD_TIPO_FASE_GRUPOS){
+                if(!empty($fase)){
+                  $tableGral = null;
+                  $cantClassified = pow(2, $fase);
+                  // recuperamos la tabla de cada grupo
+                  $tablesAllGroup = array();
+                  $repository = $this->getDoctrine()->getRepository(Resultado::class);
+                  for ($i=0; $i < $competition->getCantGrupos() ; $i++) {
+                    $resultados = $repository->findResultCompetitorsGroup($competition->getId(), $i+1);
+                    // pasamos los resultado a un array para poder trabajarlo
+                    $resultados = $this->get('serializer')->serialize($resultados, 'json', [
+                        'circular_reference_handler' => function ($object) {
+                            return $object->getId();
+                        },
+                        'ignored_attributes' => ['competencia', 'competidor']
+                    ]);
+                    // pasamos los reultados a un array para poder trabajarlos
+                    $resultados = json_decode($resultados, true);
+  
+                    $servPosition = new TablePositionService();
+                    $pointsBySport = $this->getPointsBySport($competition);
+                    $tableGroup = $servPosition->getTablePosition($resultados, $pointsBySport);
+                    array_push($tablesAllGroup, $tableGroup);
+                  }
+                  // hacemos una tabla general a partir de todas las tablas
+                  $tableGral = $this->getTableComplete($tablesAllGroup);
+                  //var_dump($tableGral);
+                  $tableMin = array_slice($tableGral, 0, $cantClassified);
+                  $winners = $this->getWinnersGrupos($tableMin);
+                  
+                  $winners = $this->get('serializer')->serialize($winners, 'json', [
+                    'circular_reference_handler' => function ($object) {
+                      return $object->getId();
+                    },
+                    'ignored_attributes' => ['usuario', 'competencia', '__initializer__', '__cloner__', '__isInitialized__']
                   ]);
-                  // pasamos los reultados a un array para poder trabajarlos
-                  $resultados = json_decode($resultados, true);
 
-                  $servPosition = new TablePositionService();
-                  $pointsBySport = $this->getPointsBySport($competition);
-                  $tableGroup = $servPosition->getTablePosition($resultados, $pointsBySport);
-                  array_push($tablesAllGroup, $tableGroup);
+                  $respJson = $winners;
+                  $existWinners = true;
                 }
-                // hacemos una tabla general a partir de todas las tablas
-                $tableGral = $this->getTableComplete($tablesAllGroup);
-                var_dump($tableGral);
+                else{
+                  $respJson->msg = "Debe seleccionar la fase siguiente";
+                }
               }
-              else{
-                $respJson->msg = "Deben resolverse los encuentros de cada grupo";
-                $statusCode = Response::HTTP_OK;
-              }
-              
+            }
+            else{
+              $respJson->msg = "Deben resolverse todos los encuentros de la fase";
             }
             $statusCode = Response::HTTP_OK;
           }
@@ -691,7 +703,7 @@ class CompetenciaController extends AbstractFOSRestController
     /* Determina los ganadores de los encuentros recibidos
     ** Pre: los encuentros cuentan con resultados sin empates
     */
-    private function getWinners($encuentrosFase){
+    private function getWinnersEliminatorias($encuentrosFase){
       $winners = array();
       for ($i=0; $i < count($encuentrosFase); $i++) {
         $rdoC1 = $encuentrosFase[$i]->getRdoComp1();
@@ -708,10 +720,17 @@ class CompetenciaController extends AbstractFOSRestController
       return $winners;
     }
 
-    // Controla que se hayan disputado todo los encuentros de cada grupo de la competencia
-    private function phaseGroupsCompleted($competition){
-      // TODO: hacer el control
-      return true;
+    // Recupera los competidores de la tabla de posiciones recibida
+    private function getWinnersGrupos($tablePositions){
+      $winners = array();
+      $repository = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+      for ($i=0; $i < count($tablePositions); $i++) {
+        // buscamos el competidor
+        $competidor = $repository->find($tablePositions[$i]['id']);
+        array_push($winners, $competidor);
+      }
+
+      return $winners;
     }
 
     // Obtiene una tabla de posiciones gral del conjunto de tablas de los n grupos de una competencia
