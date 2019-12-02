@@ -496,7 +496,6 @@ class EncuentroController extends AbstractFOSRestController
   // persistimos los encuentros de la competencia
   private function saveEncuentrosCompetition($encuentros, $competencia, $jornada, $grupo, $fecha_jornada){
     $repository = $this->getDoctrine()->getRepository(Encuentro::class);
-    // $repositoryUser = $this->getDoctrine()->getRepository(Usuario::class);
     $repositoryUserComp = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
 
     $em = $this->getDoctrine()->getManager();
@@ -505,8 +504,6 @@ class EncuentroController extends AbstractFOSRestController
       $nameComp1 = $encuentros[$i][0];
       $nameComp2 = $encuentros[$i][1];
       // vamos a recuperar los competidores del encuentro
-      // $competitor1 = $repositoryUser->findOneBy(['nombreUsuario' => $nameComp1]);
-      // $competitor2 = $repositoryUser->findOneBy(['nombreUsuario' => $nameComp2]);
       $competitor1 = $repositoryUserComp->findOneBy(['alias' => $nameComp1]);
       $competitor2 = $repositoryUserComp->findOneBy(['alias' => $nameComp2]);
       // recuperamos la jornada que corresponde
@@ -544,6 +541,7 @@ class EncuentroController extends AbstractFOSRestController
       $jornadaEncuentro->setCompetencia($competencia);
       $jornadaEncuentro->setNumero($jornada);
       $jornadaEncuentro->setFecha($fecha_date);
+      $jornadaEncuentro->setFase($competencia->getFase());
 
       $this->forward('App\Controller\JornadaController::save', [
         'newJornada'  => $jornadaEncuentro

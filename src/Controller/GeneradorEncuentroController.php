@@ -314,6 +314,8 @@ class GeneradorEncuentroController extends AbstractFOSRestController
                         // var_dump($competition);
                         $matchesCompetition = $generatorMatches->createMatches($nombre_participantes, $codigo_tipo, null);
                     }
+
+                    //var_dump($matchesCompetition);
     
                     // vamos a persistir los datos de los encuentros generados
                     $this->forward('App\Controller\EncuentroController::saveFixture', [
