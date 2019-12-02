@@ -686,7 +686,7 @@ class EncuentroController extends AbstractFOSRestController
   private function createResult($competidor){
     $resultado = new Resultado();
     $resultado->setCompetidor($competidor);
-    $resultado->setJugados(1);
+    $resultado->setJugados(0);
     $resultado->setGanados(0);
     $resultado->setEmpatados(0);
     $resultado->setPerdidos(0);

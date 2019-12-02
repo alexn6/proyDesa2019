@@ -376,6 +376,7 @@ class CompetenciaController extends AbstractFOSRestController
               // ############################# ELIMINATORIAS DOBLES #####################################
               if($typeOrganization == Constant::COD_TIPO_ELIMINATORIAS_DOUBLE){
               // (en el caso de ser doble eliminatoria ver como determinar el ganador)
+                
               }
               // ############################# FASE DE GRUPOS #####################################
               if($typeOrganization == Constant::COD_TIPO_FASE_GRUPOS){
