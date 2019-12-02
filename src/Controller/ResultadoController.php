@@ -122,9 +122,6 @@ class ResultadoController extends AbstractFOSRestController
     // buscamos los puntos por resultado del encuentro segun el deporte
     private function getPointsBySport($competencia){
         $ptsByResults = array();
-        // ## probamos
-        // $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
-        // $competencia = $repositoryComp->find($idCompetencia);
         $repositoryDep = $this->getDoctrine()->getRepository(Deporte::class);
         $pts = $repositoryDep->findPointByResultSport($competencia->getCategoria()->getDeporte()->getId());
 

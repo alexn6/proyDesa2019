@@ -17,8 +17,11 @@ use App\Entity\UsuarioCompetencia;
 use App\Entity\Rol;
 use App\Entity\Jornada;
 use App\Entity\Encuentro;
+use App\Entity\Resultado;
+use App\Entity\Deporte;
 
 use App\Utils\Constant;
+use App\Utils\TablePositionService;
 
 /**
  * Competencia controller
@@ -378,9 +381,39 @@ class CompetenciaController extends AbstractFOSRestController
               // (en el caso de ser doble eliminatoria ver como determinar el ganador)
             }
             if($typeOrganization == Constant::COD_TIPO_FASE_GRUPOS){
+              $tableGral = null;
+              // TODO: controlar q se hayan completado las fases de todos los grupos, con resultado
+              if($this->phaseGroupsCompleted($competition)){
+                // recuperamos la tabla de cada grupo
+                $tablesAllGroup = array();
+                $repository = $this->getDoctrine()->getRepository(Resultado::class);
+                for ($i=0; $i < $competition->getCantGrupos() ; $i++) {
+                  $resultados = $repository->findResultCompetitorsGroup($competition->getId(), $i+1);
+                  // pasamos los resultado a un array para poder trabajarlo
+                  $resultados = $this->get('serializer')->serialize($resultados, 'json', [
+                      'circular_reference_handler' => function ($object) {
+                          return $object->getId();
+                      },
+                      'ignored_attributes' => ['competencia', 'competidor']
+                  ]);
+                  // pasamos los reultados a un array para poder trabajarlos
+                  $resultados = json_decode($resultados, true);
+
+                  $servPosition = new TablePositionService();
+                  $pointsBySport = $this->getPointsBySport($competition);
+                  $tableGroup = $servPosition->getTablePosition($resultados, $pointsBySport);
+                  array_push($tablesAllGroup, $tableGroup);
+                }
+                // hacemos una tabla general a partir de todas las tablas
+                $tableGral = $this->getTableComplete($tablesAllGroup);
+                var_dump($tableGral);
+              }
+              else{
+                $respJson->msg = "Deben resolverse los encuentros de cada grupo";
+                $statusCode = Response::HTTP_OK;
+              }
               
             }
-
             $statusCode = Response::HTTP_OK;
           }
       }
@@ -674,5 +707,58 @@ class CompetenciaController extends AbstractFOSRestController
 
       return $winners;
     }
+
+    // Controla que se hayan disputado todo los encuentros de cada grupo de la competencia
+    private function phaseGroupsCompleted($competition){
+      // TODO: hacer el control
+      return true;
+    }
+
+    // Obtiene una tabla de posiciones gral del conjunto de tablas de los n grupos de una competencia
+    // Ordenada por puntos y por posicion en el grupos
+    private function getTableComplete($tablesAllGroup){
+      $tableGral = array();
+      $cantTables = count($tablesAllGroup);
+      $cantCompetitorsByTable = count($tablesAllGroup[0]);
+      // vamos sacando los mejores de cada tabla
+      for ($j=0; $j < $cantCompetitorsByTable; $j++) {
+        $posicionesNAllTables = array();
+        // recuperamos los n primeros de cada tabla
+        for ($i=0; $i < $cantTables; $i++) {
+          array_push($posicionesNAllTables, $tablesAllGroup[$i][$j]);
+        }
+        // ordenamos los resultados por puntos
+        usort($posicionesNAllTables, function($a, $b) {
+              return strnatcmp($a['Pts'], $b['Pts']);
+          }
+        );
+        // agregamos las posiciones ordenadas a la tabla gral
+        $tableGral = array_merge($tableGral, $posicionesNAllTables);
+      }
+
+      return  array_reverse($tableGral);
+    }
+
+    // buscamos los puntos por resultado del encuentro segun el deporte
+    private function getPointsBySport($competencia){
+      $ptsByResults = array();
+      $repositoryDep = $this->getDoctrine()->getRepository(Deporte::class);
+      $pts = $repositoryDep->findPointByResultSport($competencia->getCategoria()->getDeporte()->getId());
+
+      $pts = $this->get('serializer')->serialize($pts, 'json', [
+          'circular_reference_handler' => function ($object) {
+              return $object->getId();
+          },
+          'ignored_attributes' => ['competencia']
+      ]);
+
+      // pasamos los reultados a un array para poder trabajarlos
+      $pts = json_decode($pts, true);
+      $ptsByResults["ganado"] = $pts[0]['ppg'];
+      $ptsByResults["empatado"] = $pts[0]['ppe'];
+      $ptsByResults["perdido"] = $pts[0]['ppp'];
+      
+      return $ptsByResults;
+  }
  
 }

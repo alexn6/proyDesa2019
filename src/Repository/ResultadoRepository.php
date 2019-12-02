@@ -59,7 +59,7 @@ class ResultadoRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            '   SELECT uc.alias, r.jugados PJ, r.ganados PG, r.empatados PE, r.perdidos PP
+            '   SELECT uc.id, uc.alias, r.jugados PJ, r.ganados PG, r.empatados PE, r.perdidos PP
                 FROM App\Entity\UsuarioCompetencia uc
                 INNER JOIN App\Entity\Resultado r
                 WITH uc.id = r.competidor
@@ -103,7 +103,7 @@ class ResultadoRepository extends ServiceEntityRepository
         $array_idCompetitors = implode(", ", $array_idCompetitors);
         $stringIdCompetitors = "(".$array_idCompetitors.")";
 
-        $stringQuery =' SELECT DISTINCT uc.alias, r.jugados PJ, r.ganados PG, r.empatados PE, r.perdidos PP, e.grupo
+        $stringQuery =' SELECT DISTINCT uc.id, uc.alias, r.jugados PJ, r.ganados PG, r.empatados PE, r.perdidos PP, e.grupo
                              FROM App\Entity\UsuarioCompetencia uc
                              INNER JOIN App\Entity\Encuentro e
                              WITH e.competencia = uc.competencia
