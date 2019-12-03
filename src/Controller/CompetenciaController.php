@@ -135,11 +135,6 @@ class CompetenciaController extends AbstractFOSRestController
           $competenciaCreate->setCategoria($categoria);
           $competenciaCreate->setOrganizacion($tipoorg);
 
-          // vemos si recibimos una cant de grupos 
-          // $cant_grupos = $dataCompetitionRequest->cant_grupos;
-          // if(!empty($cant_grupos)){
-          //   $competenciaCreate->setCantGrupos($cant_grupos);
-          // }
           $hayGrupos = property_exists((object) $dataCompetitionRequest,'cant_grupos');
           if($hayGrupos){
             $cant_grupos = $dataCompetitionRequest->cant_grupos;
@@ -196,6 +191,78 @@ class CompetenciaController extends AbstractFOSRestController
 
       return $response;
   }
+
+  /**
+     * Crea una nueva fase de la competencia
+     * @Rest\Post("/competition/new-fase"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function createNewPhase(Request $request)
+    {
+      $respJson = (object) null;
+      $statusCode;
+      // vemos si existe un body
+      if(!empty($request->getContent())){
+        // recuperamos los datos del body y pasamos a un array
+        $dataRequest = json_decode($request->getContent());
+        //var_dump($dataRequest);
+        // vemos si los datos son correctos
+        if(!$this->correctData($dataRequest)){
+          $respJson->success = false;
+          $statusCode = Response::HTTP_BAD_REQUEST;
+          $respJson->messaging = "Peticion mal formada. Faltan parametros o cuentan con nombres erroneos.";
+        }
+        else{
+          $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
+          $repository_user=$this->getDoctrine()->getRepository(Usuario::class);
+  
+          // recuperamos los datos recibidos
+          $idCompetencia = $dataRequest->idCompetencia;
+          $fase = $dataRequest->fase;
+          $encuentros = $dataRequest->encuentros;
+          
+          // seteamos la fase de la competencia
+          $competencia = $repositoryComp->find($idCompetencia);
+          $competencia->setFaseActual($fase);
+          //var_dump($competencia->getFaseActual());
+          $em = $this->getDoctrine()->getManager();
+          $em->persist($competencia);
+          $em->flush();
+          // pasamos los encuentros[id,id] a encuentros[alias,alias]
+          $encuentros = $this->getAliasConfrontations($encuentros);
+
+          // vamos a persistir los datos de los encuentros generados
+          $this->forward('App\Controller\EncuentroController::saveFixture', [
+              'matches'  => $encuentros,
+              'competencia' => $competencia,
+              'tipoorg' => $competencia->getOrganizacion()->getCodigo()
+          ]);
+      
+          // $competitions = $this->get('serializer')->serialize($competitions, 'json', [
+          //   'circular_reference_handler' => function ($object) {
+          //     return $object->getId();
+          //   },
+          //   'ignored_attributes' => ['usuarioscompetencias', '__initializer__', '__cloner__', '__isInitialized__']
+          // ]);
+          $respJson->success = true;
+          $statusCode = Response::HTTP_OK;
+        }
+      }
+      else{
+        $respJson->success = false;
+        $statusCode = Response::HTTP_BAD_REQUEST;
+        $respJson->messaging = "Se requiere un body.";
+      }
+  
+      $respJson = json_encode($respJson);
+  
+      $response = new Response($respJson);
+      $response->setStatusCode(Response::HTTP_OK);
+      $response->headers->set('Content-Type', 'application/json');
+  
+      return $response;
+    }
 
     /**
      * 
@@ -884,5 +951,44 @@ class CompetenciaController extends AbstractFOSRestController
 
     return $phaseAvailable;
   }
+
+  // pasamos los encuentros[id,id] a encuentros[alias,alias]
+  private function getAliasConfrontations($encuentros){
+    $repositoryUserComp = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+    $encuentrosAlias = array();
+    $encuentrosTotal = array();
+    //var_dump($encuentros);
+    for ($i=0; $i < count($encuentros); $i++) {
+      $idComp1 = $encuentros[$i][0];
+      $idComp2 = $encuentros[$i][1];
+      // vamos a recuperar los competidores del encuentro
+      $competitor1 = $repositoryUserComp->find($idComp1);
+      $competitor2 = $repositoryUserComp->find($idComp2);
+
+      $encuentro = [$competitor1->getAlias(), $competitor2->getAlias()];
+
+      array_push($encuentrosAlias, $encuentro);
+    }
+    $encuentrosTotal[$i+1] = $encuentrosAlias;
+
+    return $encuentrosTotal;
+  }
+
+  // controlamos que los datos recibidos esten completos
+  private function correctData($dataRequest){
+    if(!property_exists((object) $dataRequest,'idCompetencia')){
+      //var_dump("falta idComp");
+        return false;
+    }
+    if(!property_exists((object) $dataRequest,'fase')){
+      //var_dump("falta fase");
+        return false;
+    }
+    if(!property_exists((object) $dataRequest,'encuentros')){
+      //var_dump("encuentros");
+        return false;
+    }
+    return true;
+}
  
 }

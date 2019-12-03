@@ -426,6 +426,7 @@ class EncuentroController extends AbstractFOSRestController
   // ########### deberia llamarse a la hora de generar encuentros ############
 
   public function saveFixture($matches, $competencia, $tipoorg){
+    // var_dump($tipoorg);
       // analizamos si la competencia es con grupos o no
     if(($tipoorg == Constant::COD_TIPO_ELIMINATORIAS) || ($tipoorg == Constant::COD_TIPO_ELIMINATORIAS_DOUBLE)){
       $this->saveEliminatorias($matches, $competencia);
@@ -445,6 +446,7 @@ class EncuentroController extends AbstractFOSRestController
 
   // gurda en la DB los encuentros generados en una eliminatorio(single y double)
   private function saveEliminatorias($fixtureEncuentros, $competencia){
+    //var_dump(count($fixtureEncuentros));
     $frec_jornada = 6;
     //$frec_jornada = $competencia->getFrecuencia();
     // recuperamos el id y la fase de a competencia
@@ -453,6 +455,9 @@ class EncuentroController extends AbstractFOSRestController
       // le vamos agregando la frecuencia de juego de la competencia a la fecha de inicio
       $dias_frec = $frec_jornada*($i-1);
       $fecha_jornada = date('Y-m-d', strtotime($competencia->getFechaIni()->format('Y-m-d'). ' + '.$dias_frec.' days'));
+      //var_dump($fixtureEncuentros[$i]);
+      // ######### CORREGIR #########
+      var_dump($fixtureEncuentros[0]);
       $this->saveEncuentrosCompetition($fixtureEncuentros[$i], $competencia, $jornada, null, $fecha_jornada);
     }
   }
@@ -497,12 +502,15 @@ class EncuentroController extends AbstractFOSRestController
   private function saveEncuentrosCompetition($encuentros, $competencia, $jornada, $grupo, $fecha_jornada){
     $repository = $this->getDoctrine()->getRepository(Encuentro::class);
     $repositoryUserComp = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
-
     $em = $this->getDoctrine()->getManager();
+    var_dump(count($encuentros));
+    var_dump($competencia->getId());
     // recorremos todos los encuentros
     for ($i=0; $i < count($encuentros); $i++) {
       $nameComp1 = $encuentros[$i][0];
       $nameComp2 = $encuentros[$i][1];
+      var_dump($nameComp1);
+      var_dump($nameComp2);
       // vamos a recuperar los competidores del encuentro
       $competitor1 = $repositoryUserComp->findOneBy(['alias' => $nameComp1]);
       $competitor2 = $repositoryUserComp->findOneBy(['alias' => $nameComp2]);
@@ -523,7 +531,6 @@ class EncuentroController extends AbstractFOSRestController
     }
 
     $em->flush();
-    
   }
   
   // recupera la jornada de un encuentro segun el nro de jornada
