@@ -231,6 +231,7 @@ class CompetenciaController extends AbstractFOSRestController
           $em->flush();
           // pasamos los encuentros[id,id] a encuentros[alias,alias]
           $encuentros = $this->getAliasConfrontations($encuentros);
+          // ghf
 
           // vamos a persistir los datos de los encuentros generados
           $this->forward('App\Controller\EncuentroController::saveFixture', [
@@ -748,13 +749,6 @@ class CompetenciaController extends AbstractFOSRestController
  
       if(!empty($idCompetencia)){
         $n_competitors = $repository->countCompetidoresByCompetencia($idCompetencia);
-        //var_dump($n_competitors[0]['1']);
-        //$respJson->msg = $n_competitors;
-        // $competitions = $this->get('serializer')->serialize($competitions, 'json', [
-        //   'circular_reference_handler' => function ($object) {
-        //     return $object->getId();
-        //   }
-        // ]);
         $phasesAvailable = $this->getPhases($n_competitors[0]['1']);
         
         $respJson->phase = $phasesAvailable;
@@ -965,11 +959,16 @@ class CompetenciaController extends AbstractFOSRestController
       $competitor1 = $repositoryUserComp->find($idComp1);
       $competitor2 = $repositoryUserComp->find($idComp2);
 
-      $encuentro = [$competitor1->getAlias(), $competitor2->getAlias()];
+      $encuentro = array();
+      array_push($encuentro, $competitor1->getAlias());
+      array_push($encuentro, $competitor2->getAlias());
+      // $encuentro = [$competitor1->getAlias(), $competitor2->getAlias()];
 
       array_push($encuentrosAlias, $encuentro);
     }
-    $encuentrosTotal[$i+1] = $encuentrosAlias;
+    array_push($encuentrosTotal, $encuentrosAlias);
+    array_push($encuentrosTotal, $encuentrosAlias);
+    // a$encuentrosTotal[$i+1] = $encuentrosAlias;
 
     return $encuentrosTotal;
   }
