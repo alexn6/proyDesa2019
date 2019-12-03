@@ -229,23 +229,26 @@ class CompetenciaController extends AbstractFOSRestController
           $em = $this->getDoctrine()->getManager();
           $em->persist($competencia);
           $em->flush();
+          // buscamos el tipo de organizacion
+          $tipoorg = $competencia->getOrganizacion()->getCodigo();
           // pasamos los encuentros[id,id] a encuentros[alias,alias]
-          $encuentros = $this->getAliasConfrontations($encuentros);
-          // ghf
+          if($tipoorg === Constant::COD_TIPO_ELIMINATORIAS_DOUBLE){
+            $encuentros = $this->getAliasConfrontationsDouble($encuentros);
+          }
+          else{
+            $encuentros = $this->getAliasConfrontations($encuentros);
+          }
+          if($tipoorg === Constant::COD_TIPO_FASE_GRUPOS){
+            $tipoorg = Constant::COD_TIPO_ELIMINATORIAS;
+          }
 
           // vamos a persistir los datos de los encuentros generados
           $this->forward('App\Controller\EncuentroController::saveFixture', [
               'matches'  => $encuentros,
               'competencia' => $competencia,
-              'tipoorg' => $competencia->getOrganizacion()->getCodigo()
+              'tipoorg' => $tipoorg
           ]);
       
-          // $competitions = $this->get('serializer')->serialize($competitions, 'json', [
-          //   'circular_reference_handler' => function ($object) {
-          //     return $object->getId();
-          //   },
-          //   'ignored_attributes' => ['usuarioscompetencias', '__initializer__', '__cloner__', '__isInitialized__']
-          // ]);
           $respJson->success = true;
           $statusCode = Response::HTTP_OK;
         }
@@ -969,6 +972,42 @@ class CompetenciaController extends AbstractFOSRestController
     array_push($encuentrosTotal, $encuentrosAlias);
     array_push($encuentrosTotal, $encuentrosAlias);
     // a$encuentrosTotal[$i+1] = $encuentrosAlias;
+
+    return $encuentrosTotal;
+  }
+
+  // pasamos los encuentros[id,id] a encuentros[alias,alias] con ida y vuelta
+  private function getAliasConfrontationsDouble($encuentros){
+    $repositoryUserComp = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+    $encuentrosAlias = array();
+    $encuentrosTotal = array();
+    //var_dump($encuentros);
+    for ($i=0; $i < count($encuentros); $i++) {
+      $idComp1 = $encuentros[$i][0];
+      $idComp2 = $encuentros[$i][1];
+      // vamos a recuperar los competidores del encuentro
+      $competitor1 = $repositoryUserComp->find($idComp1);
+      $competitor2 = $repositoryUserComp->find($idComp2);
+
+      $encuentro = array();
+      array_push($encuentro, $competitor1->getAlias());
+      array_push($encuentro, $competitor2->getAlias());
+      // $encuentro = [$competitor1->getAlias(), $competitor2->getAlias()];
+
+      array_push($encuentrosAlias, $encuentro);
+    }
+    array_push($encuentrosTotal, $encuentrosAlias);
+    array_push($encuentrosTotal, $encuentrosAlias);
+    
+    $encuentros_ida = $encuentrosTotal[1];
+    $encuentros_vuelta = array();
+
+    for ($i=0; $i < count($encuentros_ida); $i++) { 
+        $encuentro = $encuentros_ida[$i];
+        array_push($encuentros_vuelta, [$encuentro[1], $encuentro[0]]);
+    }
+
+    array_push($encuentrosTotal, $encuentros_vuelta);
 
     return $encuentrosTotal;
   }
