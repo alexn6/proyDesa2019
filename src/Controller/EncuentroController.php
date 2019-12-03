@@ -449,7 +449,7 @@ class EncuentroController extends AbstractFOSRestController
     //$frec_jornada = $competencia->getFrecuencia();
     // recuperamos el id y la fase de a competencia
     for ($i=1; $i <= count($fixtureEncuentros); $i++) {
-      $jornada = $competencia->getFase();
+      $jornada = $i;
       // le vamos agregando la frecuencia de juego de la competencia a la fecha de inicio
       $dias_frec = $frec_jornada*($i-1);
       $fecha_jornada = date('Y-m-d', strtotime($competencia->getFechaIni()->format('Y-m-d'). ' + '.$dias_frec.' days'));

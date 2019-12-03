@@ -28,6 +28,9 @@ class Constant{
     const FASE_16AVOS = 5;
     const FASE_32AVOS = 6;
 
+    const ELIM_IDA = 1;
+    const ELIM_VUELTA = 2;
+
     // servicios propios
     const SERVICES_REST_CAMPO = 'http://132.255.7.152:20203/api/campus';
 }

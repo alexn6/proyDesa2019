@@ -360,8 +360,13 @@ class CompetenciaController extends AbstractFOSRestController
             if($this->faseCompleted($encuentrosFase)){
               // controlamos el tipo de organizacion
               $typeOrganization = $competition->getOrganizacion()->getCodigo();
+
               // ################################## ELIMINATORIAS ########################################
-              if($typeOrganization == Constant::COD_TIPO_ELIMINATORIAS){
+              if(($typeOrganization == Constant::COD_TIPO_ELIMINATORIAS) || ($typeOrganization == Constant::COD_TIPO_ELIMINATORIAS_DOUBLE)){
+                // ***************** ELIMINATORIAS DOBLES *****************
+                if($typeOrganization == Constant::COD_TIPO_ELIMINATORIAS_DOUBLE){
+                  $encuentrosFase = $this->getConfrontationsGlobal($encuentrosFase);
+                }
                 $winners = $this->getWinnersEliminatorias($encuentrosFase);
                 // serializamos y decodificamos los resultados
                 $winners = $this->get('serializer')->serialize($winners, 'json', [
@@ -372,11 +377,6 @@ class CompetenciaController extends AbstractFOSRestController
                   ]);
                 $respJson = $winners;
                 $existWinners = true;
-              }
-              // ############################# ELIMINATORIAS DOBLES #####################################
-              if($typeOrganization == Constant::COD_TIPO_ELIMINATORIAS_DOUBLE){
-              // (en el caso de ser doble eliminatoria ver como determinar el ganador)
-                
               }
               // ############################# FASE DE GRUPOS #####################################
               if($typeOrganization == Constant::COD_TIPO_FASE_GRUPOS){
@@ -719,6 +719,49 @@ class CompetenciaController extends AbstractFOSRestController
       }
 
       return $winners;
+    }
+
+    /* Devuelve encuentros con resultados globales a partir de encuentros de ida y vuelta
+    */
+    private function getConfrontationsGlobal($encuentrosFase){
+      $encuentrosIda = array();
+      $encuentrosVueltaAux = array();
+      $encuentrosVuelta = array();
+      $encuentrosGlobal = array();
+      // separamos los encuentros por jornada (ida y vuelta)
+      for ($i=0; $i < count($encuentrosFase); $i++) {
+        if($encuentrosFase[$i]->getJornada()->getNumero() === Constant::ELIM_IDA){
+          array_push($encuentrosIda, $encuentrosFase[$i]);
+        }
+        else{
+          // es la VUELTA
+          array_push($encuentrosVueltaAux, $encuentrosFase[$i]);
+        }
+      }
+      // mantenemos con el mismo indice los encuentros de ida y vuelta
+      for ($i=0; $i < count($encuentrosIda); $i++) {
+        $idCompetidorEncuentroIda = $encuentrosIda[$i]->getCompetidor1()->getId();
+        // buscamos el encuentro de vuelta
+        for ($j=0; $j < count($encuentrosVueltaAux); $j++) {
+          $idCompetidor1EncVuelta = $encuentrosVueltaAux[$j]->getCompetidor1()->getId();
+          $idCompetidor2EncVuelta = $encuentrosVueltaAux[$j]->getCompetidor2()->getId();
+          if(($idCompetidorEncuentroIda === $idCompetidor1EncVuelta)||($idCompetidorEncuentroIda === $idCompetidor2EncVuelta)){
+            array_push($encuentrosVuelta, $encuentrosVueltaAux[$j]);
+          }
+        }
+      }
+      
+      // establecemos resultados globales de los encuentros
+      $cantEncuentros = count($encuentrosIda);
+      for ($i=0; $i < $cantEncuentros; $i++) { 
+        $encuentroGlobal = $encuentrosIda[$i];
+        // seteamos los resultados
+        $encuentroGlobal->setRdoComp1($encuentrosIda[$i]->getRdoComp1() + $encuentrosVuelta[$i]->getRdoComp2());
+        $encuentroGlobal->setRdoComp2($encuentrosIda[$i]->getRdoComp2() + $encuentrosVuelta[$i]->getRdoComp1());
+        array_push($encuentrosGlobal, $encuentroGlobal);
+      }
+
+      return $encuentrosGlobal;
     }
 
     // Recupera los competidores de la tabla de posiciones recibida
