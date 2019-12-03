@@ -125,6 +125,25 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
       return $query->execute();
   }
 
+  // recuperamos los usuarios competidortes de una competencia
+  public function countCompetidoresByCompetencia($idCompetencia)
+  {
+      $entityManager = $this->getEntityManager();
+      $query = $entityManager->createQuery(
+          '   SELECT COUNT(u.id)
+              FROM App\Entity\UsuarioCompetencia uc
+              INNER JOIN App\Entity\Usuario u
+              WITH uc.usuario = u.id
+              INNER JOIN App\Entity\Rol r
+              WITH uc.rol = r.id
+              AND r.nombre = :rol
+              AND uc.competencia = :idCompetencia
+          ')->setParameter('rol', Constant::ROL_COMPETIDOR)
+          ->setParameter('idCompetencia', $idCompetencia);    
+
+      return $query->execute();
+  }
+
   // recuperamos el nombreusaurio de los competidortes de una competencia
   public function findNameCompetidoresByCompetencia($idCompetencia)
   {

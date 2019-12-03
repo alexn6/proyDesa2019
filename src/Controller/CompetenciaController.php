@@ -663,6 +663,50 @@ class CompetenciaController extends AbstractFOSRestController
       return $response;
     }
 
+     /**
+     * Lista de todos las competencias.
+     * @Rest\Get("/competition/phases"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function getPhasesAvailable(Request $request)
+    {
+      $respJson = (object) null;
+
+      // recuperamos el id de la competencia
+      $idCompetencia = $request->get('idCompetencia');
+
+      // recuperamos la cantidad de competidores de la competencia
+      $repository = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+ 
+      if(!empty($idCompetencia)){
+        $n_competitors = $repository->countCompetidoresByCompetencia($idCompetencia);
+        //var_dump($n_competitors[0]['1']);
+        //$respJson->msg = $n_competitors;
+        // $competitions = $this->get('serializer')->serialize($competitions, 'json', [
+        //   'circular_reference_handler' => function ($object) {
+        //     return $object->getId();
+        //   }
+        // ]);
+        $phasesAvailable = $this->getPhases($n_competitors[0]['1']);
+        
+        $respJson->phase = $phasesAvailable;
+        $statusCode = Response::HTTP_OK;
+      }
+      else{
+         $respJson->msg = "Faltan parametros.";
+         $statusCode = Response::HTTP_BAD_REQUEST;
+      }
+
+      $respJson = json_encode($respJson);
+ 
+      $response = new Response($respJson);
+      $response->setStatusCode($statusCode);
+      $response->headers->set('Content-Type', 'application/json');
+
+      return $response;
+    }
+
     // #####################################################################################
     // ################################ funciones privadas ################################
 
@@ -822,6 +866,23 @@ class CompetenciaController extends AbstractFOSRestController
       $ptsByResults["perdido"] = $pts[0]['ppp'];
       
       return $ptsByResults;
+  }
+
+  // determina a partir de la cant de competidores las fases disponibles para la 2da ronda(ELIMINATORIAS)
+  private function getPhases($n_competidores){
+    $found = false;
+    $phaseAvailable = null;
+    // vemos hasta q fase se puede crear
+    for ($i=1; ($i<= 6)&&(!$found) ; $i++) { 
+      if(pow(2, $i) <= $n_competidores){
+        $phaseAvailable = $i;
+      }
+      else{
+        $found = true;
+      }
+    }
+
+    return $phaseAvailable;
   }
  
 }
