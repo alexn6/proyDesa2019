@@ -336,6 +336,7 @@ class EncuentroController extends AbstractFOSRestController
                   // buscamos el id correspondiente a la fase
                   $repositoryJornada = $this->getDoctrine()->getRepository(Jornada::class);
                   $idJornada = $repositoryJornada->findOneBy(['competencia'=> $competition, 'numero'=> $fase])->getId();
+                  //$idJornada = $repositoryJornada->findOneBy(['competencia'=> $competition, 'numero'=> $fase, 'fase'=> $competition->getFaseActual()])->getId();
                   //  
                 }
                 $hayGrupo = property_exists((object) $dataConfrontationRequest,'grupo');
