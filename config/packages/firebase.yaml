@@ -1,0 +1,6 @@
+# kreait_firebase:
+#     projects:
+#         my_project:
+#             credentials: '%kernel.project_dir%/config/proyectotorneosfcm-firebase-adminsdk-account.json'
+#         other_project: # optional
+#             credentials: '%kernel.project_dir%/config/other_project_credentials.json'

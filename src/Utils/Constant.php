@@ -4,12 +4,18 @@ namespace App\Utils;
 
 class Constant{
 
+    // #############################################################################
+    // ################################# ROLES #####################################
+
     const ROL_ESPECTADOR = 'ESPECTADOR';
     const ROL_SEGUIDOR = 'SEGUIDOR';
     const ROL_SOLICITANTE = 'SOLICITANTE';
     const ROL_COMPETIDOR = 'COMPETIDOR';
     const ROL_ORGANIZADOR = 'ORGANIZADOR';
     const ROL_COORGANIZADOR = 'CO-ORGANIZADOR';
+
+    // #############################################################################
+    // ################################# TIPO TORNEO ###############################
 
     const COD_TIPO_ELIMINATORIAS = 'ELIM';
     const COD_TIPO_LIGA_SINGLE = 'LIGSING';
@@ -18,6 +24,9 @@ class Constant{
     const COD_TIPO_FASE_GRUPOS = 'FASEGRUP';
 
     const MIN_COMPETIDORES_LIGA = 3;
+
+    // #############################################################################
+    // ############################### FASES TORNEO #################################
 
     const FASE_IDA = -1;
     const FASE_VUELTA = -2;
@@ -30,6 +39,9 @@ class Constant{
 
     const ELIM_IDA = 1;
     const ELIM_VUELTA = 2;
+
+    // #############################################################################
+    // ################################# SERVICIOS #################################
 
     // servicios propios
     const SERVICES_REST_CAMPO = 'http://132.255.7.152:20203/api/campus';
