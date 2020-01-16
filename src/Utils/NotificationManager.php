@@ -41,23 +41,17 @@ class NotificationManager
     }
 
     // Envia un mensaje al token recibido
-    public function notificationSpecificDevices($tokenDevice){
-        //$myAdminsdkFirebase = self::$instance;
-
+    public function notificationSpecificDevices($tokenDevice, $notification){
         if(self::$manager === null){
             echo 'No se cuenta con un NotificationManager';
             return;
         }
         
+        // $message = CloudMessage::withTarget('token', $tokenDevice)
+        //     ->withNotification(Notification::create('Title', 'Body'))
+        //     ->withData(['key' => 'Algun dato']);
         $message = CloudMessage::withTarget('token', $tokenDevice)
-            ->withNotification(Notification::create('Title', 'Body'))
-            ->withData(['key' => 'Algun dato']);
-    
-        // $message = CloudMessage::fromArray([
-        //     'token'=> 'dx3sViEPObw:APA91bHxTYWG4RSpu3Tza86_nVp2vXEnKPhZXzct-70-GoO1VdgT2Jbl2slpnC2NLLytEo7qmcuaH_jrPE6z7Xr5u4kCpoRJ0muKzu_HVThj_tzsTha-l2WmBNBXQ8vnglbmCIbwHhAy',
-        //     'notification' => [/* Notification data as array */], // optional
-        //     'data' => ['key' => 'Nuevo dato'], // optional
-        // ]);
+            ->withNotification($notification);
     
         try {
             // $myAdminsdkFirebase->validate($message);
@@ -70,19 +64,82 @@ class NotificationManager
         self::$manager->send($message);
     }
 
-    // Envia una notificacion al topico especificado
-    function notificationToTopic($topic, $msg){
-        $message = CloudMessage::withTarget('topic', $topic)
-            ->withNotification(Notification::create('TitleTopic', 'BodyTopic')) // optional
-            ->withData(['key' => 'Algun dato']) // optional
-        ;
+    // Envia una notificacion con datos al token recibido
+    public function notificationSpecificDevicesWithData($tokenDevice, $notification, $data){
+        if(self::$manager === null){
+            echo 'No se cuenta con un NotificationManager';
+            return;
+        }
+        
+        // $message = CloudMessage::withTarget('token', $tokenDevice)
+        //     ->withNotification(Notification::create('Title', 'Body'))
+        //     ->withData(['key' => 'Algun dato']);
+        $message = CloudMessage::withTarget('token', $tokenDevice)
+            ->withNotification($notification)
+            ->withData($data);
+    
+        try {
+            // $myAdminsdkFirebase->validate($message);
+            self::$manager->validate($message);
+        } catch (InvalidMessage $e) {
+            print_r($e->errors());
+        }
+    
+        self::$manager->send($message);
+    }
 
-        // $message = CloudMessage::fromArray([
-        //     'topic' => $topic,
-        //     'notification' => ['TitleTopic', 'BodyTopic'], // optional
-        //     'data' => [/* data array */], // optional
-        // ]);
+    // Envia una notificacion a un cjto de dispositivos (max = 500)
+    public function notificationMultipleDevices($deviceTokens, $notification){
+        $message = CloudMessage::new()
+            ->withNotification($notification);
+        
+        $sendReport = self::$manager->sendMulticast($message, $deviceTokens);
+
+        echo 'Successful sends: '.$sendReport->successes()->count().PHP_EOL;
+        echo 'Failed sends: '.$sendReport->failures()->count().PHP_EOL;
+
+        if ($sendReport->hasFailures()) {
+            foreach ($sendReport->failures()->getItems() as $failure) {
+                echo $sendReport->error()->getMessage().PHP_EOL;
+            }
+        }
+    }
+
+    // Envia una notificacion con datos a un cjto de dispositivos (max = 500)
+    public function notificationMultipleDevicesWithData($deviceTokens, $notification, $data){
+        $message = CloudMessage::new()
+            ->withNotification($notification)
+            ->withData($data);;
+        
+        $sendReport = self::$manager->sendMulticast($message, $deviceTokens);
+
+        echo 'Successful sends: '.$sendReport->successes()->count().PHP_EOL;
+        echo 'Failed sends: '.$sendReport->failures()->count().PHP_EOL;
+
+        if ($sendReport->hasFailures()) {
+            foreach ($sendReport->failures()->getItems() as $failure) {
+                echo $sendReport->error()->getMessage().PHP_EOL;
+            }
+        }
+    }
+
+    // Envia una notificacion al topico especificado
+    public function notificationToTopic($topic, $notification){
+        $message = CloudMessage::withTarget('topic', $topic)
+            ->withNotification($notification)
+        ;
 
         self::$manager->send($message);
     }
+
+    // Envia una notificacion con datos al topico especificado
+    public function notificationToTopicWithData($topic, $notification, $data){
+        $message = CloudMessage::withTarget('topic', $topic)
+            ->withNotification($notification)
+            ->withData($data);
+        ;
+
+        self::$manager->send($message);
+    }
+
 }
