@@ -94,11 +94,12 @@ class UsuarioController extends AbstractFOSRestController
         if((!$usuario)&&(!$usuario_correo)){
           // creamos el usuario
           $usuarioCreate = new Usuario();
-          $usuarioCreate->setNombre($dataUserRequest->usuario);
+          $usuarioCreate->setNombre($dataUserRequest->nombre);
           $usuarioCreate->setApellido($dataUserRequest->apellido);
           $usuarioCreate->setNombreUsuario($nombreUsuario);
           $usuarioCreate->setCorreo($correo);
           $usuarioCreate->setPass($dataUserRequest->pass);
+          $usuarioCreate->setToken($dataUserRequest->token);
   
           // encriptamos la contraseña
           $passHash = $this->passwordEncoder->encodePassword($usuarioCreate, $usuarioCreate->getNombre());
@@ -120,6 +121,78 @@ class UsuarioController extends AbstractFOSRestController
         $respJson->messaging = "Peticion mal formada";
       }
 
+      
+      $respJson = json_encode($respJson);
+
+      $response = new Response($respJson);
+      $response->headers->set('Content-Type', 'application/json');
+      $response->setStatusCode($statusCode);
+
+      return $response;
+  }
+
+  /**
+     * Controla el iniicio de sesion de un usuario
+     * @Rest\Post("/user/singin"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function singin(Request $request){
+
+      $respJson = (object) null;
+      $statusCode;
+
+      // vemos si existe un body
+      if(!empty($request->getContent())){
+
+        $repository=$this->getDoctrine()->getRepository(Usuario::class);
+  
+        // recuperamos los datos del body y pasamos a un array
+        $dataUserRequest = json_decode($request->getContent());
+        
+          // recuperamos los datos del body
+          $usuario = $dataUserRequest->usuario;
+          $pass = $dataUserRequest->pass;
+            
+          // controlamos que el usuario exista
+          $repositoryComp = $this->getDoctrine()->getRepository(Usuario::class);
+
+          // buscamos el usuario por los 2 campos
+          $nombreUsuarioDB = $repository->findOneBy(['nombreUsuario' => $usuario]);
+          $correoDB = $repository->findOneBy(['correo' => $usuario]);
+
+          // si no encontramos un usuario con el nombre de usuario pasamos a probar con el correo
+          if(($nombreUsuarioDB == NULL) && ($correoDB == NULL)){
+            // $respJson->success = false;
+            $statusCode = Response::HTTP_BAD_REQUEST;
+            $respJson->messaging = "Usuario inexistente";
+          }
+          else{
+            // recuperamos el usuario
+            if($nombreUsuarioDB != NULL){
+              $usuarioDB = $nombreUsuarioDB;
+            }
+            else{
+              $usuarioDB = $correoDB;
+            }
+            // TODO: controlamos si la contraseña es correcta
+            if($this->passwordEncoder->isPasswordValid($usuarioDB, $pass)){
+              $statusCode = Response::HTTP_OK;
+              // $respJson->success = true;
+              $respJson->messaging = "Inicio de sesion exitoso";
+            }
+            else{
+              $statusCode = Response::HTTP_BAD_REQUEST;
+              // $respJson->success = false;
+              $respJson->messaging = "La contraseña no es correcta";
+            }
+          }
+      }
+      else{
+        // $respJson->success = false;
+        $statusCode = Response::HTTP_BAD_REQUEST;
+        $respJson->messaging = "Peticion mal formada";
+      }
       
       $respJson = json_encode($respJson);
 
