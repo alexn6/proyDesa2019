@@ -54,7 +54,7 @@ class UsuarioController extends AbstractFOSRestController
   }
 
   /**
-     * Crea un usuario.
+     * Registra un nuevo usuario.
      * @Rest\Post("/user"), defaults={"_format"="json"})
      * 
      * @return Response
@@ -78,7 +78,6 @@ class UsuarioController extends AbstractFOSRestController
         // controlamos que el nombre de usuario este disponible
         $usuario = $repository->findOneBy(['nombreUsuario' => $nombreUsuario]);
         if($usuario){
-          $respJson->success = false;
           $statusCode = Response::HTTP_BAD_REQUEST;
           $respJson->messaging = "El nombre de usuario esta en uso";
         }
@@ -86,7 +85,6 @@ class UsuarioController extends AbstractFOSRestController
         // controlamos que el correo no este en uso
         $usuario_correo = $repository->findOneBy(['correo' => $correo]);
         if($usuario_correo){
-          $respJson->success = false;
           $statusCode = Response::HTTP_BAD_REQUEST;
           $respJson->messaging = "El correo esta en uso por una cuenta existente";
         }
@@ -110,13 +108,10 @@ class UsuarioController extends AbstractFOSRestController
           $em->flush();
   
           $statusCode = Response::HTTP_CREATED;
-  
-          $respJson->success = true;
           $respJson->messaging = "Creacion exitosa";
         }
       }
       else{
-        $respJson->success = false;
         $statusCode = Response::HTTP_BAD_REQUEST;
         $respJson->messaging = "Peticion mal formada";
       }
@@ -175,7 +170,7 @@ class UsuarioController extends AbstractFOSRestController
             else{
               $usuarioDB = $correoDB;
             }
-            // TODO: controlamos si la contraseña es correcta
+            // controlamos si la contraseña es correcta
             if($this->passwordEncoder->isPasswordValid($usuarioDB, $pass)){
               $statusCode = Response::HTTP_OK;
               // $respJson->success = true;
@@ -190,6 +185,65 @@ class UsuarioController extends AbstractFOSRestController
       }
       else{
         // $respJson->success = false;
+        $statusCode = Response::HTTP_BAD_REQUEST;
+        $respJson->messaging = "Peticion mal formada";
+      }
+      
+      $respJson = json_encode($respJson);
+
+      $response = new Response($respJson);
+      $response->headers->set('Content-Type', 'application/json');
+      $response->setStatusCode($statusCode);
+
+      return $response;
+  }
+
+  /**
+     * Resetea la contraseña del usuario
+     * @Rest\Post("/user/recovery"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function recoveryPass(Request $request){
+
+      $respJson = (object) null;
+      $statusCode;
+
+      // vemos si existe un body
+      if(!empty($request->getContent())){
+
+        $repository=$this->getDoctrine()->getRepository(Usuario::class);
+  
+        // recuperamos los datos del body y pasamos a un array
+        $dataUserRequest = json_decode($request->getContent());
+        
+          // recuperamos los datos del body
+          $usuario = $dataUserRequest->usuario;
+            
+          // controlamos que el usuario exista
+          $repositoryComp = $this->getDoctrine()->getRepository(Usuario::class);
+          $usuarioRegistrado = $repository->findOneBy(['nombreUsuario' => $usuario]);
+
+          // si no encontramos un usuario con el nombre de usuario pasamos a probar con el correo
+          if($usuarioRegistrado == NULL){
+            $statusCode = Response::HTTP_BAD_REQUEST;
+            $respJson->messaging = "Usuario inexistente";
+          }
+          else{
+            // TODO: reset pass user (colocamos el nombre de usuario como contraseña)
+            // encriptamos la contraseña
+            $passHash = $this->passwordEncoder->encodePassword($usuarioRegistrado, $usuarioRegistrado->getNombreUsuario());
+            $usuarioRegistrado->setPass($passHash);
+    
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($usuarioRegistrado);
+            $em->flush();
+
+            $statusCode = Response::HTTP_OK;
+            $respJson->messaging = "La contraseña fue reestablecida. Vuelva a iniciar sesion.";
+          }
+      }
+      else{
         $statusCode = Response::HTTP_BAD_REQUEST;
         $respJson->messaging = "Peticion mal formada";
       }
