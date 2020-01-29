@@ -29,7 +29,7 @@ class UsuarioController extends AbstractFOSRestController
     }
 
   /**
-     * Lista de todos los deportes.
+     * Lista de todos los usuarios.
      * @Rest\Get("/users"), defaults={"_format"="json"})
      * 
      * @return Response
@@ -52,6 +52,80 @@ class UsuarioController extends AbstractFOSRestController
 
     return $response;
   }
+
+
+  /**
+     * Actualiza los datos de un usuario
+     * @Rest\Put("/user"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function updateUser(Request $request){
+      $respJson = (object) null;
+
+      // vemos si existe un body
+      if(!empty($request->getContent())){
+        // recuperamos los datos del body y pasamos a un array
+        $dataUserRequest = json_decode($request->getContent());      
+        // buscamos el usuario
+        $idUser = $dataUserRequest->id;
+        $repository = $this->getDoctrine()->getRepository(Usuario::class);
+        $user = $repository->find($idUser);
+
+        // vemos si existe el usuario para actualizar sus datos
+        if($user == NULL){
+          $statusCode = Response::HTTP_BAD_REQUEST;
+          $respJson->messaging = "Usuario inexistente";
+        }
+        else{
+          // controlamos que el nombre de usuario y el correo este disponible
+          $userNombreUsuario = $repository->findOneBy(['nombreUsuario' => $dataUserRequest->usuario]);
+          $userCorreo = $repository->findOneBy(['correo' => $dataUserRequest->correo]);
+
+          if(($userNombreUsuario == NULL)&&($userCorreo == NULL)){
+            //actualizamos los datos del usuario
+            $user->setNombre($dataUserRequest->nombre);
+            $user->setApellido($dataUserRequest->apellido);
+            $user->setCorreo($dataUserRequest->correo);
+            $user->setNombreUsuario($dataUserRequest->usuario);
+    
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($user);
+            $em->flush();
+    
+            $statusCode = Response::HTTP_OK;
+            // TODO: devolver el usuario para la app android
+            // $respJson->messaging = "Actualizacion exitosa";
+            $respJson->id = $user->getId();
+            $respJson->nombre = $user->getNombre();
+            $respJson->apellido = $user->getApellido();
+            $respJson->correo = $user->getCorreo();
+            $respJson->usuario = $user->getNombreUsuario();
+          }
+          else{
+            $statusCode = Response::HTTP_BAD_REQUEST;
+            if($userNombreUsuario != NULL){
+              $respJson->messaging = "El nombre de usuario no esta disponible. Intente con otro.";
+            }
+            else{
+              $respJson->messaging = "El correo no esta disponible. Intente con otro.";
+            }
+          }
+
+        }
+      }
+      else{
+        $statusCode = Response::HTTP_BAD_REQUEST;
+        $respJson->messaging = "Peticion mal formada. Faltan parametros.";
+      }
+  
+      $respJson = json_encode($respJson);
+      $response = new Response($respJson);
+      $response->headers->set('Content-Type', 'application/json');
+      $response->setStatusCode($statusCode);
+  
+      return $response;
+    }
 
   /**
      * Registra un nuevo usuario.
@@ -158,7 +232,6 @@ class UsuarioController extends AbstractFOSRestController
 
           // si no encontramos un usuario con el nombre de usuario pasamos a probar con el correo
           if(($nombreUsuarioDB == NULL) && ($correoDB == NULL)){
-            // $respJson->success = false;
             $statusCode = Response::HTTP_BAD_REQUEST;
             $respJson->messaging = "Usuario inexistente";
           }
@@ -173,18 +246,20 @@ class UsuarioController extends AbstractFOSRestController
             // controlamos si la contraseña es correcta
             if($this->passwordEncoder->isPasswordValid($usuarioDB, $pass)){
               $statusCode = Response::HTTP_OK;
-              // $respJson->success = true;
-              $respJson->messaging = "Inicio de sesion exitoso";
+              $respJson = (object) null;
+              $respJson->id = $usuarioDB->getId();
+              $respJson->nombre = $usuarioDB->getNombre();
+              $respJson->apellido = $usuarioDB->getApellido();
+              $respJson->correo = $usuarioDB->getCorreo();
+              $respJson->usuario = $usuarioDB->getNombreUsuario();
             }
             else{
               $statusCode = Response::HTTP_BAD_REQUEST;
-              // $respJson->success = false;
               $respJson->messaging = "La contraseña no es correcta";
             }
           }
       }
       else{
-        // $respJson->success = false;
         $statusCode = Response::HTTP_BAD_REQUEST;
         $respJson->messaging = "Peticion mal formada";
       }
