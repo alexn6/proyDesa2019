@@ -78,10 +78,22 @@ class UsuarioController extends AbstractFOSRestController
           $respJson->messaging = "Usuario inexistente";
         }
         else{
-          // controlamos que el nombre de usuario y el correo este disponible
-          $userNombreUsuario = $repository->findOneBy(['nombreUsuario' => $dataUserRequest->usuario]);
-          $userCorreo = $repository->findOneBy(['correo' => $dataUserRequest->correo]);
+          $usuarioPropio = $user->getNombreUsuario();
+          $correoPropio = $user->getCorreo();
 
+          // los declaramos aca para usarlos tmb fuera de los if
+          $userNombreUsuario = NULL;
+          $userCorreo = NULL;
+          
+          // controlamos que el nombre de usuario y el correo este disponible
+          if($dataUserRequest->usuario != $usuarioPropio){
+            $userNombreUsuario = $repository->findOneBy(['nombreUsuario' => $dataUserRequest->usuario]);
+          }
+          if($dataUserRequest->correo != $correoPropio){
+            $userCorreo = $repository->findOneBy(['correo' => $dataUserRequest->correo]);
+          }
+
+          // TODO: controlar que no sea su propio correo o usuario
           if(($userNombreUsuario == NULL)&&($userCorreo == NULL)){
             //actualizamos los datos del usuario
             $user->setNombre($dataUserRequest->nombre);
