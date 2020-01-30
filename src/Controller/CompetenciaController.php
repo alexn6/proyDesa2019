@@ -132,8 +132,10 @@ class CompetenciaController extends AbstractFOSRestController
           $competenciaCreate->setFechaFin($fecha_fin);
           $competenciaCreate->setCiudad($dataCompetitionRequest->ciudad);
           $competenciaCreate->setMaxCompetidores($dataCompetitionRequest->max_comp);
+          $competenciaCreate->setFrecDias($dataCompetitionRequest->frecuencia);
           $competenciaCreate->setCategoria($categoria);
           $competenciaCreate->setOrganizacion($tipoorg);
+          $competenciaCreate->setEstado(Constant::ESTADO_SIN_INSCRIPCION);
 
           $hayGrupos = property_exists((object) $dataCompetitionRequest,'cant_grupos');
           if($hayGrupos){
@@ -146,6 +148,10 @@ class CompetenciaController extends AbstractFOSRestController
           $existeFase = property_exists((object) $dataCompetitionRequest,'fase');
           if($existeFase){
             $fase = $dataCompetitionRequest->fase;
+          }
+          // TODO: aca se deberia colocar la fase correspondiente al tipo de organizacion
+          else{
+            $fase = 1;
           }
 
           // seteamos la fase de la competencia

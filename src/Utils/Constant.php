@@ -26,7 +26,7 @@ class Constant{
     const MIN_COMPETIDORES_LIGA = 3;
 
     // #############################################################################
-    // ############################### FASES TORNEO #################################
+    // ############################### FASES TORNEO ################################
 
     const FASE_IDA = -1;
     const FASE_VUELTA = -2;
@@ -39,6 +39,21 @@ class Constant{
 
     const ELIM_IDA = 1;
     const ELIM_VUELTA = 2;
+
+    // #############################################################################
+    // ############################# ESTADO_COMPETENCIA ############################
+
+    const GENERO_MASCULINO = 'MASCULINO';
+    const GENERO_FEMENINO = 'FEMENINO';
+    const GENERO_MIXTO = 'MIXTO';
+
+    // #############################################################################
+    // ############################# ESTADO_COMPETENCIA ############################
+
+    const ESTADO_SIN_INSCRIPCION = 'COMPETENCIA_SIN_INSCRIPCION';
+    const ESTADO_INSCRIPCION_ABIERTA = 'COMPETENCIA_INSCRIPCION_ABIERTA';
+    const ESTADO_INICIADA = 'COMPETENCIA_INICIADA';
+    const ESTADO_FINALIZADA = 'COMPETENCIA_FINALIZADA';
 
     // #############################################################################
     // ################################# SERVICIOS #################################

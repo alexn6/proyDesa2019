@@ -8,37 +8,35 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-use App\Entity\Competencia;
-
 /**
  * Genero controller
  * @Route("/api",name="api_")
  */
-class GeneroController extends AbstractFOSRestController
+class EstadoController extends AbstractFOSRestController
 {
-    static private $enumGeneros = null;
+    static private $enumEstados = null;
 
     /**
-     * Lista de todos las competencias.
-     * @Rest\Get("/genders"), defaults={"_format"="json"})
+     * Lista de todos los estados de una competencia.
+     * @Rest\Get("/competition/status"), defaults={"_format"="json"})
      * 
      * @return Response
      */
-    public function allGenders()
+    public function allStatusCompetitions()
     {
 
-        $generosEnum = $this->getGenerosEnum();
-        $generos = array();
+        $estadosEnum = $this->getEstadoEnum();
+        $estados = array();
 
-        foreach ($generosEnum as $val)
+        foreach ($estadosEnum as $val)
         {
-            $genero = (object) null;
-            $genero->nombre = $val;
-            array_push($generos, $genero);
+            $estado = (object) null;
+            $estado->nombre = $val;
+            array_push($estados, $estado);
         }
 
         // convertimos el objeto en un json
-        $respJson = json_encode($generos);
+        $respJson = json_encode($estados);
 
         // siempre da ok la peticion
         $response = new Response($respJson);
@@ -47,24 +45,25 @@ class GeneroController extends AbstractFOSRestController
 
         return $response;
     }
-    
 
-    private function getGenerosEnum()
+
+
+    private function getEstadoEnum()
     {
-        if (self::$enumGeneros == null)
+        if (self::$enumEstados == null)
         {
-            self::$enumGeneros = array ();
+            self::$enumEstados = array ();
             $oClass = new \ReflectionClass('App\Utils\Constant');
             $classConstants = $oClass->getConstants();
-            $constantPrefix = "GENERO";
+            $constantPrefix = "ESTADO";
             foreach ($classConstants as $key => $val)
             {
                 if (substr($key, 0, strlen($constantPrefix)) === $constantPrefix)
                 {
-                array_push(self::$enumGeneros, $val);
+                array_push(self::$enumEstados, $val);
                 }
             }
         }
-        return self::$enumGeneros;
+        return self::$enumEstados;
     }
 }
