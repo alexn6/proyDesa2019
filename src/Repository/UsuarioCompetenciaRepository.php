@@ -278,7 +278,7 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
   {
       $entityManager = $this->getEntityManager();
       $query = $entityManager->createQuery(
-        '   SELECT c.id,c.nombre, cat.nombre categoria, d.nombre deporte, org.nombre tipo_organizacion, c.ciudad, c.genero, r.nombre rol
+        '   SELECT c.id,c.nombre, cat.nombre categoria, d.nombre deporte, org.nombre tipo_organizacion, c.ciudad, c.genero, c.estado, r.nombre rol
             FROM App\Entity\Competencia c
             INNER JOIN App\Entity\UsuarioCompetencia uc
             WITH uc.competencia = c.id
@@ -304,7 +304,7 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
   {
       $entityManager = $this->getEntityManager();
       $query = $entityManager->createQuery(
-       '   SELECT c.id,c.nombre, cat.nombre categoria, d.nombre deporte, org.nombre tipo_organizacion, c.ciudad, c.genero, r.nombre rol
+       '   SELECT c.id,c.nombre, cat.nombre categoria, d.nombre deporte, org.nombre tipo_organizacion, c.ciudad, c.genero, c.estado, r.nombre rol
            FROM App\Entity\Competencia c
            INNER JOIN App\Entity\UsuarioCompetencia uc
            WITH uc.competencia = c.id

@@ -39,11 +39,11 @@ class CompetenciaRepository extends ServiceEntityRepository
     }
 
     // filtro de competencias
-    public function filterCompetitions($nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad){
+    public function filterCompetitions($nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad, $estado){
         $entityManager = $this->getEntityManager();
         $qb = $this->getEntityManager()->createQueryBuilder();
         // partimos de una consulta base para 
-        $stringQueryBase = 'SELECT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.ciudad, c.genero
+        $stringQueryBase = 'SELECT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.ciudad, c.genero, c.estado
                             FROM App\Entity\Competencia c
                             INNER JOIN App\Entity\Categoria categ
                             WITH c.categoria = categ.id
@@ -79,6 +79,12 @@ class CompetenciaRepository extends ServiceEntityRepository
             $stringQueryGenero = ' AND c.genero = '.$genero;
             // juntamos la consulta en una sola
             $stringQueryBase = $stringQueryBase.$stringQueryGenero;
+        }
+        if($estado != NULL){
+            // creamos la parte de la consulta con el parametro recibido
+            $stringQueryEstado = ' AND c.estado = '.$estado;
+            // juntamos la consulta en una sola
+            $stringQueryBase = $stringQueryBase.$stringQueryEstado;
         }
 
         // vemos si recibimos un nombre de competencia como parametro
@@ -203,7 +209,7 @@ class CompetenciaRepository extends ServiceEntityRepository
     public function filterCompetitionsRol($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad){
         $entityManager = $this->getEntityManager();
 
-        $queryBase = ' SELECT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.genero, c.ciudad, r.nombre as rol
+        $queryBase = ' SELECT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.genero, c.estado, c.ciudad, r.nombre as rol
                         FROM App\Entity\Competencia c
                         INNER JOIN App\Entity\Categoria categ
                         WITH c.categoria = categ.id
@@ -251,7 +257,7 @@ class CompetenciaRepository extends ServiceEntityRepository
         }
 
         // base de la query
-        $queryBase = ' SELECT DISTINCT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.genero, c.ciudad, \'ESPECTADOR\' as rol
+        $queryBase = ' SELECT DISTINCT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.genero, c.estado, c.ciudad, \'ESPECTADOR\' as rol
                         FROM App\Entity\Competencia c
                         INNER JOIN App\Entity\Categoria categ
                         WITH c.categoria = categ.id
