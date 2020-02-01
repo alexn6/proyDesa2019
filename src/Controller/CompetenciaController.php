@@ -662,6 +662,7 @@ class CompetenciaController extends AbstractFOSRestController
       $idDeporte = $request->get('deporte');
       $nombreCompetencia = $request->get('competencia');
       $ciudad = $request->get('ciudad');
+      $estado = $request->get('estado');
       
       // en el caso de no recibir datos le asginamos un null para mantener
       // la cantidad de parametros de la consulta
@@ -683,6 +684,9 @@ class CompetenciaController extends AbstractFOSRestController
       if(empty($ciudad)){
         $ciudad = null;
       }
+      if(empty($estado)){
+        $estado = null;
+      }
 
       // var_dump($request);
       $repository = $this->getDoctrine()->getRepository(Competencia::class);
@@ -690,7 +694,7 @@ class CompetenciaController extends AbstractFOSRestController
       // $name = $nameCompetiton;
  
       if(!empty($idUsuario)){
-        $competitions = $repository->filterCompetitionsByUserFull($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoOrg, $genero, $ciudad);
+        $competitions = $repository->filterCompetitionsByUserFull($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoOrg, $genero, $ciudad, $estado);
 
         $competitions = $this->get('serializer')->serialize($competitions, 'json', [
           'circular_reference_handler' => function ($object) {
