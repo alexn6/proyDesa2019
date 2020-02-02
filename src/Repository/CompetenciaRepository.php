@@ -39,11 +39,11 @@ class CompetenciaRepository extends ServiceEntityRepository
     }
 
     // filtro de competencias
-    public function filterCompetitions($nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad){
+    public function filterCompetitions($nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad, $estado){
         $entityManager = $this->getEntityManager();
         $qb = $this->getEntityManager()->createQueryBuilder();
         // partimos de una consulta base para 
-        $stringQueryBase = 'SELECT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.ciudad, c.genero
+        $stringQueryBase = 'SELECT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.ciudad, c.genero, c.estado
                             FROM App\Entity\Competencia c
                             INNER JOIN App\Entity\Categoria categ
                             WITH c.categoria = categ.id
@@ -79,6 +79,12 @@ class CompetenciaRepository extends ServiceEntityRepository
             $stringQueryGenero = ' AND c.genero = '.$genero;
             // juntamos la consulta en una sola
             $stringQueryBase = $stringQueryBase.$stringQueryGenero;
+        }
+        if($estado != NULL){
+            // creamos la parte de la consulta con el parametro recibido
+            $stringQueryEstado = ' AND c.estado = '.$estado;
+            // juntamos la consulta en una sola
+            $stringQueryBase = $stringQueryBase.$stringQueryEstado;
         }
 
         // vemos si recibimos un nombre de competencia como parametro
@@ -172,12 +178,12 @@ class CompetenciaRepository extends ServiceEntityRepository
 
     // Precondicion: idUsuario obligatorio
     // Filtro de competencias x usuario con rol
-    public function filterCompetitionsByUserFull($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad){
+    public function filterCompetitionsByUserFull($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad, $estado){
         
         // vamos en busca de las competencias con rol
-        $competitionsRol = $this->filterCompetitionsRol($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad);
+        $competitionsRol = $this->filterCompetitionsRol($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad, $estado);
         // ahora vamos a buscar las competencias en las que no tiene un rol asignado
-        $competitionsUnrol = $this->filterCompetitionsUnrol($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad);
+        $competitionsUnrol = $this->filterCompetitionsUnrol($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad, $estado);
         // juntamos los array obtenidos
         $competitions = array_merge($competitionsRol, $competitionsUnrol);
 
@@ -200,10 +206,10 @@ class CompetenciaRepository extends ServiceEntityRepository
 
     // filtro de competencias con roles de un usuario
     // 1ra parte: las competencias en las que si tengo un rol
-    public function filterCompetitionsRol($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad){
+    public function filterCompetitionsRol($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad, $estado){
         $entityManager = $this->getEntityManager();
 
-        $queryBase = ' SELECT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.genero, c.ciudad, r.nombre as rol
+        $queryBase = ' SELECT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.genero, c.estado, c.ciudad, r.nombre as rol
                         FROM App\Entity\Competencia c
                         INNER JOIN App\Entity\Categoria categ
                         WITH c.categoria = categ.id
@@ -216,7 +222,7 @@ class CompetenciaRepository extends ServiceEntityRepository
                         WHERE uc.usuario = :idUsuario';
 
         // le agregamos los filtros a la query
-        $queryBase = $this->addFilters($queryBase, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad);
+        $queryBase = $this->addFilters($queryBase, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad, $estado);
 
         // agregamos el order by
         $queryBase = $queryBase.' ORDER BY c.id ASC';
@@ -230,7 +236,7 @@ class CompetenciaRepository extends ServiceEntityRepository
             
     // filtro de competencias con roles de un usuario, NULL si no las hay
     // 2da parte: las competencias en las que no tengo un rol
-    public function filterCompetitionsUnrol($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad){
+    public function filterCompetitionsUnrol($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad, $estado){
 
         $entityManager = $this->getEntityManager();
 
@@ -251,7 +257,7 @@ class CompetenciaRepository extends ServiceEntityRepository
         }
 
         // base de la query
-        $queryBase = ' SELECT DISTINCT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.genero, c.ciudad, \'ESPECTADOR\' as rol
+        $queryBase = ' SELECT DISTINCT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.genero, c.estado, c.ciudad, \'ESPECTADOR\' as rol
                         FROM App\Entity\Competencia c
                         INNER JOIN App\Entity\Categoria categ
                         WITH c.categoria = categ.id
@@ -279,7 +285,7 @@ class CompetenciaRepository extends ServiceEntityRepository
         }
 
         // le incorporamos los filtros a la query
-        $queryBase = $this->addFilters($queryBase, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad);
+        $queryBase = $this->addFilters($queryBase, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad, $estado);
         
         // agregamos el order by
         $queryBase = $queryBase.' ORDER BY c.id ASC';
@@ -292,7 +298,7 @@ class CompetenciaRepository extends ServiceEntityRepository
     // #####################################################################################
     // ########################## funciones privadas #######################################
     // incorporamos los filtros a las queries
-    private function addFilters($stringQueryBase, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad){
+    private function addFilters($stringQueryBase, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad, $estado){
         if($idCategoria != NULL){
             // creamos la parte de la consulta con el parametro recibido y la juntamos
             $stringQueryCategoria = ' AND c.categoria = '.$idCategoria;
@@ -316,6 +322,11 @@ class CompetenciaRepository extends ServiceEntityRepository
             // creamos la parte de la consulta con el parametro recibido y la juntamos
             $stringQueryGenero = ' AND c.genero = '.$genero;
             $stringQueryBase = $stringQueryBase.$stringQueryGenero;
+        }
+        if($estado != NULL){
+            // creamos la parte de la consulta con el parametro recibido y la juntamos
+            $stringQueryEstado = ' AND c.estado = '.$estado;
+            $stringQueryBase = $stringQueryBase.$stringQueryEstado;
         }
 
         // vemos si recibimos un nombre de competencia como parametro

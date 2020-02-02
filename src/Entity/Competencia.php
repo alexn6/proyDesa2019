@@ -6,37 +6,13 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
+use App\Utils\Constant;
+
 /**
  * @ORM\Entity(repositoryClass="App\Repository\CompetenciaRepository")
  */
 class Competencia
 {
-    const GENERO_MASCULINO = 'MASCULINO';
-    const GENERO_FEMENINO = 'FEMENINO';
-    const GENERO_MIXTO = 'MIXTO';
-
-    static private $enumGeneros = null;
-
-    static public function getGenerosEnum()
-    {
-        if (self::$enumGeneros == null)
-        {
-            self::$enumGeneros = array ();
-            $oClass = new \ReflectionClass('App\Entity\Competencia');
-            $classConstants = $oClass->getConstants();
-            $constantPrefix = "GENERO";
-            foreach ($classConstants as $key => $val)
-            {
-                if (substr($key, 0, strlen($constantPrefix)) === $constantPrefix)
-                {
-                // self::$enumGeneros[$val] = $val;
-                array_push(self::$enumGeneros, $val);
-                }
-            }
-        }
-        return self::$enumGeneros;
-    }
-
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -110,6 +86,16 @@ class Competencia
      * @ORM\Column(type="integer")
      */
     private $fase_actual;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $frec_dias;
+
+    /**
+     * @ORM\Column(type="string", columnDefinition="ENUM('COMPETENCIA_SIN_INSCRIPCION', 'COMPETENCIA_INSCRIPCION_ABIERTA', 'COMPETENCIA_INICIADA', 'COMPETENCIA_FINALIZADA')")
+     */
+    private $estado;
 
     public function __construct()
     {
@@ -220,7 +206,7 @@ class Competencia
 
     public function setGenero(string $genero): self
     {
-        if (!in_array($genero, array(self::GENERO_MASCULINO, self::GENERO_FEMENINO, self::GENERO_MIXTO))) {
+        if (!in_array($genero, array(Constant::GENERO_MASCULINO, Constant::GENERO_FEMENINO, Constant::GENERO_MIXTO))) {
             throw new \InvalidArgumentException("Genero invalido");
         }
         $this->genero = $genero;
@@ -298,6 +284,33 @@ class Competencia
         $this->fase_actual = $fase_actual;
 
         return $this;
+    }
+
+    public function getFrecDias(): ?int
+    {
+        return $this->frec_dias;
+    }
+
+    public function setFrecDias(int $frec_dias): self
+    {
+        $this->frec_dias = $frec_dias;
+
+        return $this;
+    }
+
+    public function getEstado(): ?string
+    {
+        return $this->estado;
+    }
+
+    public function setEstado(string $estado): self
+    {
+        if (!in_array($estado, array(Constant::ESTADO_SIN_INSCRIPCION, Constant::ESTADO_INSCRIPCION_ABIERTA, Constant::ESTADO_INICIADA, Constant::ESTADO_FINALIZADA))) {
+            throw new \InvalidArgumentException("Estado invalido");
+        }
+        $this->estado = $estado;
+
+        return $this;        
     }
 
 }

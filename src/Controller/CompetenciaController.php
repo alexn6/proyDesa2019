@@ -78,10 +78,10 @@ class CompetenciaController extends AbstractFOSRestController
       // vemos si existe un body
       if(!empty($request->getContent())){
 
-        $repository=$this->getDoctrine()->getRepository(Competencia::class);
-        $repository_cat=$this->getDoctrine()->getRepository(Categoria::class);
-        $repository_tipoorg=$this->getDoctrine()->getRepository(TipoOrganizacion::class);
-        $repository_user=$this->getDoctrine()->getRepository(Usuario::class);
+        $repository = $this->getDoctrine()->getRepository(Competencia::class);
+        $repository_cat = $this->getDoctrine()->getRepository(Categoria::class);
+        $repository_tipoorg = $this->getDoctrine()->getRepository(TipoOrganizacion::class);
+        $repository_user = $this->getDoctrine()->getRepository(Usuario::class);
 
         // recuperamos los datos del body y pasamos a un array
         $dataCompetitionRequest = json_decode($request->getContent());      
@@ -132,8 +132,10 @@ class CompetenciaController extends AbstractFOSRestController
           $competenciaCreate->setFechaFin($fecha_fin);
           $competenciaCreate->setCiudad($dataCompetitionRequest->ciudad);
           $competenciaCreate->setMaxCompetidores($dataCompetitionRequest->max_comp);
+          $competenciaCreate->setFrecDias($dataCompetitionRequest->frecuencia);
           $competenciaCreate->setCategoria($categoria);
           $competenciaCreate->setOrganizacion($tipoorg);
+          $competenciaCreate->setEstado(Constant::ESTADO_SIN_INSCRIPCION);
 
           $hayGrupos = property_exists((object) $dataCompetitionRequest,'cant_grupos');
           if($hayGrupos){
@@ -146,6 +148,10 @@ class CompetenciaController extends AbstractFOSRestController
           $existeFase = property_exists((object) $dataCompetitionRequest,'fase');
           if($existeFase){
             $fase = $dataCompetitionRequest->fase;
+          }
+          // TODO: aca se deberia colocar la fase correspondiente al tipo de organizacion
+          else{
+            $fase = 1;
           }
 
           // seteamos la fase de la competencia
@@ -182,6 +188,69 @@ class CompetenciaController extends AbstractFOSRestController
         $respJson->messaging = "Peticion mal formada";
       }
 
+      
+      $respJson = json_encode($respJson);
+
+      $response = new Response($respJson);
+      $response->headers->set('Content-Type', 'application/json');
+      $response->setStatusCode($statusCode);
+
+      return $response;
+  }
+
+  /**
+     * Actualiza los datos de una competencia.
+     * @Rest\Put("/competition"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function update(Request $request){
+
+      $respJson = (object) null;
+      $statusCode;
+      // vemos si existe un body
+      if(!empty($request->getContent())){
+        // recuperamos los datos del body y pasamos a un array
+        $dataCompetitionRequest = json_decode($request->getContent());
+          
+        // estamos editando una competencia es xq la competencia existe
+        $repository = $this->getDoctrine()->getRepository(Competencia::class);
+        $competencia = $repository->find($dataCompetitionRequest->id);
+      
+        // TODO: controlar q no sea el estado "inscripcion_abierta"
+        $competencia->setCiudad($dataCompetitionRequest->ciudad);
+
+        try
+        {
+          $competencia->setGenero($dataCompetitionRequest->genero);
+          $competencia->setEstado($dataCompetitionRequest->estado);
+        }
+        catch (\Exception $e)
+        {
+          $statusCode = Response::HTTP_INSUFFICIENT_STORAGE;
+          $respJson->messaging = "ERROR-> " . $e->getMessage();
+
+          $respJson = json_encode($respJson);
+
+          $response = new Response($respJson);
+          $response->headers->set('Content-Type', 'application/json');
+          $response->setStatusCode($statusCode);
+
+          return $response;
+      }
+  
+        // persistimos la nueva competencia
+        $em = $this->getDoctrine()->getManager();
+        $em->persist($competencia);
+        $em->flush();
+ 
+        $statusCode = Response::HTTP_OK;
+        $respJson->messaging = "Datos actualizados correctamente.";
+      }
+      else{
+        $statusCode = Response::HTTP_BAD_REQUEST;
+        $respJson->messaging = "Peticion mal formada: Faltan datos.";
+      }
       
       $respJson = json_encode($respJson);
 
@@ -363,6 +432,7 @@ class CompetenciaController extends AbstractFOSRestController
       $idDeporte = $request->get('deporte');
       $nombreCompetencia = $request->get('competencia');
       $ciudad = $request->get('ciudad');
+      $estado = $request->get('estado');
       
       // en el caso de no recibir datos le asginamos un null para mantener
       // la cantidad de parametros de la consulta
@@ -384,8 +454,11 @@ class CompetenciaController extends AbstractFOSRestController
       if(empty($ciudad)){
         $ciudad = null;
       }
+      if(empty($estado)){
+        $estado = null;
+      }
       
-      $respJson = $repository->filterCompetitions($nombreCompetencia, $idCategoria, $idDeporte, $idTipoOrg, $genero, $ciudad);
+      $respJson = $repository->filterCompetitions($nombreCompetencia, $idCategoria, $idDeporte, $idTipoOrg, $genero, $ciudad, $estado);
       // pasamos a json el resultado
       $respJson = json_encode($respJson);
 
@@ -589,6 +662,7 @@ class CompetenciaController extends AbstractFOSRestController
       $idDeporte = $request->get('deporte');
       $nombreCompetencia = $request->get('competencia');
       $ciudad = $request->get('ciudad');
+      $estado = $request->get('estado');
       
       // en el caso de no recibir datos le asginamos un null para mantener
       // la cantidad de parametros de la consulta
@@ -610,6 +684,9 @@ class CompetenciaController extends AbstractFOSRestController
       if(empty($ciudad)){
         $ciudad = null;
       }
+      if(empty($estado)){
+        $estado = null;
+      }
 
       // var_dump($request);
       $repository = $this->getDoctrine()->getRepository(Competencia::class);
@@ -617,7 +694,7 @@ class CompetenciaController extends AbstractFOSRestController
       // $name = $nameCompetiton;
  
       if(!empty($idUsuario)){
-        $competitions = $repository->filterCompetitionsByUserFull($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoOrg, $genero, $ciudad);
+        $competitions = $repository->filterCompetitionsByUserFull($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoOrg, $genero, $ciudad, $estado);
 
         $competitions = $this->get('serializer')->serialize($competitions, 'json', [
           'circular_reference_handler' => function ($object) {
