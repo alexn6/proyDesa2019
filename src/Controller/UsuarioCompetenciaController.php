@@ -626,6 +626,61 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
 
         return $response;
     }
+ 
+    /**
+     * Devuelve todas las solicitudes para coorganizar de un usuario
+     * @Rest\Get("/competition-request"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function findCompetitionsRequestCoOrganizateByUser(Request $request){
+        $respJson = (object) null;
+        $statusCode;
+        $idUser = null;
+
+        $repository = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+        $repositoryUser=$this->getDoctrine()->getRepository(Usuario::class);
+        $repositoryRol=$this->getDoctrine()->getRepository(Rol::class);
+
+        $idUser = $request->get('idUsuario');
+        $user = $repositoryUser->find($idUser);
+
+        // vemos si recibimos algun parametro
+        if(!empty($idUser)){
+            // $respJson = $repository->findCompetitionsRequestCoOrganizateByUser($idUser,$idCompetencia);
+            // $statusCode = Response::HTTP_OK;
+            $rolCoorg = $repositoryRol->findOneBy(['nombre' => Constant::ROL_SOLCOORG]);
+            $respJson = $repository->findBy(['usuario' => $user, 'rol' => $rolCoorg]);
+
+            $respJson = $this->get('serializer')->serialize($respJson, 'json', [
+                'circular_reference_handler' => function ($object) {
+                  return $object->getId();
+                },
+                'ignored_attributes' => ['usuarioscompetencias', '__initializer__', '__cloner__', '__isInitialized__','rol','usuario']
+            ]);
+
+            $array_comp = json_decode($respJson, true);
+            $array_comp = json_encode($array_comp);
+
+            if(empty($respJson)){
+                $respJson->messaging = "No hay solicitudes.";   
+                $statusCode = Response::HTTP_BAD_REQUEST; 
+            }else{
+                $statusCode = Response::HTTP_OK;
+                //$respJson->messaging = "Hay solicitudes.";
+            }
+        }
+        else{
+            $respJson = NULL;
+            $statusCode = Response::HTTP_BAD_REQUEST;
+        }
+        $respJson = json_encode($array_comp);
+        $response = new Response($array_comp);
+        $response->setStatusCode($statusCode);
+        $response->headers->set('Content-Type', 'application/json');
+        return $response;
+    }
+
 
     // ##################################################################
     // ###################### manejo de notificaciones ##################
@@ -633,11 +688,16 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
     /**
      * Recibe los datos de a quien mandarle la notificacion de co-organizador
      * Pre: el usuario existe
-     * @Rest\GET("/invitation-coorg"), defaults={"_format"="json"})
+     * @Rest\POST("/invitation-coorg"), defaults={"_format"="json"})
      * 
      * @return Response
      */
     public function receiveInvitationCoorganizator(Request $request){
+      $repository = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+      $repositoryUser=$this->getDoctrine()->getRepository(Usuario::class);
+      $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
+      $repositoryRol=$this->getDoctrine()->getRepository(Rol::class);
+     
       $respJson = (object) null;
       $statusCode;
 
@@ -648,25 +708,37 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
 
         // vemos si existen los datos necesarios
         if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->idCompetencia))){
-          $idUser = $dataRequest->idUsuario;
-          $idCompetition = $dataRequest->idCompetencia;
+            $idUser = $dataRequest->idUsuario;
+            $idCompetition = $dataRequest->idCompetencia;   
+            // buscamos los datos correspodientes a los id recibidos
+            $rolCoorg = $repositoryRol->findOneBy(['nombre' => Constant::ROL_SOLCOORG]);    
+            $user = $repositoryUser->find($idUser);
+            $competition = $repositoryComp->find($idCompetition);   
+            // enviamos la invitacion al usuario
+            $msg = "Has sido invitado a ser CO-ORGANIZADOR de la competencia: ".$competition->getNombre();
+            $this->notifyInvitationCoorg($user->getToken(), $competition->getNombre(), $msg);   
+            if(!empty($repository->findOneBy(['rol' => $rolCoorg,'usuario' => $user , 'competencia' => $competition]))){
+              $statusCode = Response::HTTP_BAD_REQUEST;
+              $respJson->messaging = "Ya existe una solicitud.";
+            }else{
+                 // creamos la nueva fila
+                 $newUser = new UsuarioCompetencia();
+                 $newUser->setUsuario($user);
+                 $newUser->setCompetencia($competition);
+                 $newUser->setRol($rolCoorg);
+                 //var_dump($newUser);
+                 // persistimos el nuevo dato
+                 $em = $this->getDoctrine()->getManager();
+                 $em->persist($newUser);
+                 $em->flush();
 
-          // buscamos los datos correspodientes a los id recibidos
-          $repositoryUser=$this->getDoctrine()->getRepository(Usuario::class);
-          $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
-          $user = $repositoryUser->find($idUser);
-          $competition = $repositoryComp->find($idCompetition);
-
-          // enviamos la invitacion al usuario
-          $msg = "Has sido invitado a ser CO-ORGANIZADOR de la competencia: ".$competition->getNombre();
-          $this->notifyInvitationCoorg($user->getToken(), $competition->getNombre(), $msg);
-
-          $statusCode = Response::HTTP_OK;
-          $respJson->messaging = "Invitacion enviada con exito.";
+                 $statusCode = Response::HTTP_OK;
+                 $respJson->messaging = "Invitacion enviada con exito.";
+            }
         }
         else{
-          $statusCode = Response::HTTP_BAD_REQUEST;
-          $respJson->messaging = "Solicitud mal formada. Faltan parametros.";
+            $statusCode = Response::HTTP_BAD_REQUEST;
+            $respJson->messaging = "Solicitud mal formada. Faltan parametros.";
           }
       }
       else{

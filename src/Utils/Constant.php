@@ -13,6 +13,7 @@ class Constant{
     const ROL_COMPETIDOR = 'COMPETIDOR';
     const ROL_ORGANIZADOR = 'ORGANIZADOR';
     const ROL_COORGANIZADOR = 'CO-ORGANIZADOR';
+    const ROL_SOLCOORG = 'SOL-COORG';
 
     // #############################################################################
     // ################################# TIPO TORNEO ###############################

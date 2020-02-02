@@ -318,10 +318,37 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
            WITH uc.rol = r.id
            AND uc.usuario = :idUsuario
            AND r.nombre = :rolUser
+           AND r.nombre = :rolUser2
        ')->setParameter('idUsuario', $idUsuario)
-       ->setParameter('rolUser', Constant::ROL_ORGANIZADOR);
+       ->setParameter('rolUser', Constant::ROL_ORGANIZADOR)
+       ->setParameter('rolUser2', Constant::ROL_COORGANIZADOR);
 
+      return $query->execute();
+  }
 
+  // recuperamos solicitudes de un usuario para ser co-organizador de competencias
+  public function findCompetitionsRequestCoOrganizateByUser($idUsuario, $idCompetencia)
+  {
+      $entityManager = $this->getEntityManager();
+      $query = $entityManager->createQuery(
+        '   SELECT c.id,c.nombre, cat.nombre categoria, d.nombre deporte, org.nombre tipo_organizacion, c.ciudad, c.genero, r.nombre rol
+            FROM App\Entity\Competencia c
+            INNER JOIN App\Entity\UsuarioCompetencia uc
+            WITH uc.competencia = c.id
+            INNER JOIN App\Entity\Categoria cat
+            WITH c.categoria = cat.id
+            INNER JOIN App\Entity\TipoOrganizacion org
+            WITH c.organizacion = org.id
+            INNER JOIN App\Entity\Deporte d
+            WITH cat.deporte = d.id
+            INNER JOIN App\Entity\Rol r
+            WITH uc.rol = r.id
+            AND uc.usuario = :idUsuario
+            AND r.nombre = :rolUser
+            AND r.nombre = :rolUser2
+        ')->setParameter('idUsuario', $idUsuario)
+        ->setParameter('rolUser', Constant::ROL_ORGANIZADOR)
+        ->setParameter('rolUser2', Constant::ROL_COORGANIZADOR);
       return $query->execute();
   }
   
