@@ -56,6 +56,12 @@ class Constant{
     const ESTADO_FINALIZADA = 'COMPETENCIA_FINALIZADA';
 
     // #############################################################################
+    // ############################# ESTADO_INVITACION ############################
+    const ESTADO_ALTA = 'ALTA';
+    const ESTADO_BAJA = 'BAJA';
+    const ESTADO_NO_DEFINIDO = 'N/D';
+
+    // #############################################################################
     // ################################# SERVICIOS #################################
 
     // servicios propios
