@@ -55,7 +55,7 @@ class EstadoController extends AbstractFOSRestController
             self::$enumEstados = array ();
             $oClass = new \ReflectionClass('App\Utils\Constant');
             $classConstants = $oClass->getConstants();
-            $constantPrefix = "ESTADO";
+            $constantPrefix = "ESTADO_COMP";
             foreach ($classConstants as $key => $val)
             {
                 if (substr($key, 0, strlen($constantPrefix)) === $constantPrefix)

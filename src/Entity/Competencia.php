@@ -305,7 +305,7 @@ class Competencia
 
     public function setEstado(string $estado): self
     {
-        if (!in_array($estado, array(Constant::ESTADO_SIN_INSCRIPCION, Constant::ESTADO_INSCRIPCION_ABIERTA, Constant::ESTADO_INICIADA, Constant::ESTADO_FINALIZADA))) {
+        if (!in_array($estado, array(Constant::ESTADO_COMP_SIN_INSCRIPCION, Constant::ESTADO_COMP_INSCRIPCION_ABIERTA, Constant::ESTADO_COMP_INICIADA, Constant::ESTADO_COMP_FINALIZADA))) {
             throw new \InvalidArgumentException("Estado invalido");
         }
         $this->estado = $estado;

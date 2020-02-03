@@ -51,16 +51,16 @@ class Constant{
     // #############################################################################
     // ############################# ESTADO_COMPETENCIA ############################
 
-    const ESTADO_SIN_INSCRIPCION = 'COMPETENCIA_SIN_INSCRIPCION';
-    const ESTADO_INSCRIPCION_ABIERTA = 'COMPETENCIA_INSCRIPCION_ABIERTA';
-    const ESTADO_INICIADA = 'COMPETENCIA_INICIADA';
-    const ESTADO_FINALIZADA = 'COMPETENCIA_FINALIZADA';
+    const ESTADO_COMP_SIN_INSCRIPCION = 'COMPETENCIA_SIN_INSCRIPCION';
+    const ESTADO_COMP_INSCRIPCION_ABIERTA = 'COMPETENCIA_INSCRIPCION_ABIERTA';
+    const ESTADO_COMP_INICIADA = 'COMPETENCIA_INICIADA';
+    const ESTADO_COMP_FINALIZADA = 'COMPETENCIA_FINALIZADA';
 
     // #############################################################################
     // ############################# ESTADO_INVITACION ############################
-    const ESTADO_ALTA = 'ALTA';
-    const ESTADO_BAJA = 'BAJA';
-    const ESTADO_NO_DEFINIDO = 'N/D';
+    const ESTADO_INV_ALTA = 'ALTA';
+    const ESTADO_INV_BAJA = 'BAJA';
+    const ESTADO_INV_NO_DEFINIDO = 'N/D';
 
     // #############################################################################
     // ############################ PARAMETROS SWIFMAIL ############################
