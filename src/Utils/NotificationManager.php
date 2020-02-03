@@ -22,8 +22,6 @@ class NotificationManager
         echo 'Construyendo el admin de notificaciones..'.PHP_EOL;
 
         // vinculamos el proyecto a la cuenta de servicio
-        // $factory = (new Factory())
-        // ->withServiceAccount('/var/www/html/proyDesa2019/config/proyectotorneosfcm-firebase-adminsdk-account.json');
         $factory = new Factory();
         // creamos los permisos necesarios
         $auth = $factory->createAuth();

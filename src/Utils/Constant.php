@@ -63,6 +63,18 @@ class Constant{
     const ESTADO_NO_DEFINIDO = 'N/D';
 
     // #############################################################################
+    // ############################ PARAMETROS SWIFMAIL ############################
+
+    // IMPORTANTE: para terminar de configurar el envio de los mails se debe permitir el envio
+    // de mjes desde la cuenta de gmail y permitir el acceso de app de poca confianza a la cuenta
+
+    const SWFMAILER_SERVER_SMTP = 'smtp.gmail.com';
+    const SWFMAILER_SERVER_SMTP_PORT = 587;
+    const SWFMAILER_SERVER_SMTP_SECURE = 'tls';
+    const SWFMAILER_SERVER_SMTP_USER = 'alex6tc90@gmail.com';
+    const SWFMAILER_SERVER_SMTP_USER_PASS = 'G1m2a3i4l';
+
+    // #############################################################################
     // ################################# SERVICIOS #################################
 
     // servicios propios
