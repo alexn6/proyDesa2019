@@ -376,18 +376,32 @@ class UsuarioController extends AbstractFOSRestController
         $dataUserRequest = json_decode($request->getContent());
         
           // recuperamos los datos del body
-          $correo = $dataUserRequest->correo;
+          // $usuario = $dataUserRequest->usuario;
+
+          // los declaramos aca para usarlos tmb fuera de los if
+          $userNombreUsuario = NULL;
+          $userCorreo = NULL;
+          
+          // buscamos el usuario por su correo y nombre de usuario
+          $userNombreUsuario = $repository->findOneBy(['nombreUsuario' => $dataUserRequest->usuario]);
+          $userCorreo = $repository->findOneBy(['correo' => $dataUserRequest->usuario]);
             
           // controlamos que el usuario exista
           $repositoryComp = $this->getDoctrine()->getRepository(Usuario::class);
-          $usuarioRegistrado = $repository->findOneBy(['correo' => $correo]);
+          // $usuarioRegistrado = $repository->findOneBy(['correo' => $correo]);
 
           // si no encontramos un usuario con el nombre de usuario pasamos a probar con el correo
-          if($usuarioRegistrado == NULL){
+          if(($userNombreUsuario == NULL)&&($userCorreo == NULL)){
             $statusCode = Response::HTTP_BAD_REQUEST;
-            $respJson->messaging = "Correo no registrado";
+            $respJson->messaging = "Nombre de usaurio o correo no registrado";
           }
           else{
+            if($userNombreUsuario != NULL){
+              $usuarioRegistrado = $userNombreUsuario;
+            }
+            else{
+              $usuarioRegistrado = $userCorreo;
+            }
             $newResetPass = mt_rand(100000,999999);
             // TODO: 
             $this->sendCodVerification($newResetPass, $usuarioRegistrado->getCorreo());
