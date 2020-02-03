@@ -141,6 +141,68 @@ class UsuarioController extends AbstractFOSRestController
       return $response;
     }
 
+    /**
+     * Cambia al contraseña del usuario
+     * @Rest\Put("/user/uppass"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function changePassUser(Request $request){
+      $respJson = (object) null;
+
+      // vemos si existe un body
+      if(!empty($request->getContent())){
+        // recuperamos los datos del body y pasamos a un array
+        $dataUserRequest = json_decode($request->getContent());      
+        // los declaramos aca para usarlos tmb fuera de los if
+        $userNombreUsuario = NULL;
+        $userCorreo = NULL;
+        
+        $repository = $this->getDoctrine()->getRepository(Usuario::class);
+        // buscamos el usuario por su correo y nombre de usuario
+        $userNombreUsuario = $repository->findOneBy(['nombreUsuario' => $dataUserRequest->usuario]);
+        $userCorreo = $repository->findOneBy(['correo' => $dataUserRequest->usuario]);
+        
+
+        // vemos si existe el usuario para actualizar sus datos
+        if(($userNombreUsuario == NULL)&&(($userCorreo == NULL))){
+          $statusCode = Response::HTTP_BAD_REQUEST;
+          $respJson->messaging = "Usuario inexistente";
+        }
+        else{
+          if($userNombreUsuario != NULL){
+            $usuario = $userNombreUsuario;
+          }
+          else{
+            $usuario = $userCorreo;
+          }
+
+          // encriptamos la contraseña
+          $passHash = $this->passwordEncoder->encodePassword($usuario, $dataUserRequest->pass);
+          $usuario->setPass($passHash);
+  
+          $em = $this->getDoctrine()->getManager();
+          $em->persist($usuario);
+          $em->flush();
+  
+          $statusCode = Response::HTTP_CREATED;
+          $respJson->messaging = "Contraseña cambiada con exito.";
+
+        }
+      }
+      else{
+        $statusCode = Response::HTTP_BAD_REQUEST;
+        $respJson->messaging = "Peticion mal formada. Faltan parametros.";
+      }
+  
+      $respJson = json_encode($respJson);
+      $response = new Response($respJson);
+      $response->headers->set('Content-Type', 'application/json');
+      $response->setStatusCode($statusCode);
+  
+      return $response;
+    }
+
   /**
      * Registra un nuevo usuario.
      * @Rest\Post("/user"), defaults={"_format"="json"})
@@ -375,47 +437,44 @@ class UsuarioController extends AbstractFOSRestController
         // recuperamos los datos del body y pasamos a un array
         $dataUserRequest = json_decode($request->getContent());
         
-          // recuperamos los datos del body
-          // $usuario = $dataUserRequest->usuario;
-
-          // los declaramos aca para usarlos tmb fuera de los if
-          $userNombreUsuario = NULL;
-          $userCorreo = NULL;
+        // los declaramos aca para usarlos tmb fuera de los if
+        $userNombreUsuario = NULL;
+        $userCorreo = NULL;
+        
+        // buscamos el usuario por su correo y nombre de usuario
+        $userNombreUsuario = $repository->findOneBy(['nombreUsuario' => $dataUserRequest->usuario]);
+        $userCorreo = $repository->findOneBy(['correo' => $dataUserRequest->usuario]);
           
-          // buscamos el usuario por su correo y nombre de usuario
-          $userNombreUsuario = $repository->findOneBy(['nombreUsuario' => $dataUserRequest->usuario]);
-          $userCorreo = $repository->findOneBy(['correo' => $dataUserRequest->usuario]);
-            
-          // controlamos que el usuario exista
-          $repositoryComp = $this->getDoctrine()->getRepository(Usuario::class);
-          // $usuarioRegistrado = $repository->findOneBy(['correo' => $correo]);
+        // controlamos que el usuario exista
+        $repositoryComp = $this->getDoctrine()->getRepository(Usuario::class);
+        // $usuarioRegistrado = $repository->findOneBy(['correo' => $correo]);
 
-          // si no encontramos un usuario con el nombre de usuario pasamos a probar con el correo
-          if(($userNombreUsuario == NULL)&&($userCorreo == NULL)){
-            $statusCode = Response::HTTP_BAD_REQUEST;
-            $respJson->messaging = "Nombre de usaurio o correo no registrado";
+        // si no encontramos un usuario con el nombre de usuario pasamos a probar con el correo
+        if(($userNombreUsuario == NULL)&&($userCorreo == NULL)){
+          $statusCode = Response::HTTP_BAD_REQUEST;
+          $respJson->messaging = "Nombre de usaurio o correo no registrado";
+        }
+        else{
+          if($userNombreUsuario != NULL){
+            $usuarioRegistrado = $userNombreUsuario;
           }
           else{
-            if($userNombreUsuario != NULL){
-              $usuarioRegistrado = $userNombreUsuario;
-            }
-            else{
-              $usuarioRegistrado = $userCorreo;
-            }
-            $newResetPass = mt_rand(100000,999999);
-            // TODO: 
-            $this->sendCodVerification($newResetPass, $usuarioRegistrado->getCorreo());
-            // encriptamos la contraseña
-            $passHash = $this->passwordEncoder->encodePassword($usuarioRegistrado, $newResetPass);
-            $usuarioRegistrado->setPass($passHash);
-    
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($usuarioRegistrado);
-            $em->flush();
-
-            $statusCode = Response::HTTP_OK;
-            $respJson->messaging = "Se envio un codigo de verificacion a su direccion de correo de su cuenta.";
+            $usuarioRegistrado = $userCorreo;
           }
+          $newResetPass = mt_rand(100000,999999);
+          // TODO: 
+          $this->sendCodVerification($newResetPass, $usuarioRegistrado->getCorreo());
+          // encriptamos la contraseña
+          $passHash = $this->passwordEncoder->encodePassword($usuarioRegistrado, $newResetPass);
+          $usuarioRegistrado->setPass($passHash);
+  
+          $em = $this->getDoctrine()->getManager();
+          $em->persist($usuarioRegistrado);
+          $em->flush();
+
+          $statusCode = Response::HTTP_OK;
+          $respJson->messaging = "Se envio un codigo de verificacion a su direccion de correo de su cuenta.";
+        }
       }
       else{
         $statusCode = Response::HTTP_BAD_REQUEST;
@@ -488,6 +547,8 @@ class UsuarioController extends AbstractFOSRestController
 
       return $response;
   }
+
+  
 
   /**
      * Lista de todos los usuarios que contengan el nombre de usuario pasado por parametro.
