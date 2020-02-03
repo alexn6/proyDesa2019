@@ -10,6 +10,7 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\Entity\Usuario;
+use App\Utils\VerificationMail;
 
  /**
  * Usuario controller
@@ -167,15 +168,25 @@ class UsuarioController extends AbstractFOSRestController
           $statusCode = Response::HTTP_BAD_REQUEST;
           $respJson->messaging = "El nombre de usuario esta en uso";
         }
-  
-        // controlamos que el correo no este en uso
-        $usuario_correo = $repository->findOneBy(['correo' => $correo]);
-        if($usuario_correo){
-          $statusCode = Response::HTTP_BAD_REQUEST;
-          $respJson->messaging = "El correo esta en uso por una cuenta existente";
+
+        // controlamos que exista el correo
+        $verificadorMail = new VerificationMail();
+        $existEmail = $verificadorMail->verify($correo);
+        if($existEmail){
+          // controlamos que el correo no este en uso
+          $usuario_correo = $repository->findOneBy(['correo' => $correo]);
+          if($usuario_correo){
+            $statusCode = Response::HTTP_BAD_REQUEST;
+            $respJson->messaging = "El correo esta en uso por una cuenta existente";
+          }
         }
+        else{
+          $statusCode = Response::HTTP_BAD_REQUEST;
+          $respJson->messaging = "Correo inexistente";
+        }
+
   
-        if((!$usuario)&&(!$usuario_correo)){
+        if((!$usuario)&&($existEmail)&&(!$usuario_correo)){
           // creamos el usuario
           $usuarioCreate = new Usuario();
           $usuarioCreate->setNombre($dataUserRequest->nombre);

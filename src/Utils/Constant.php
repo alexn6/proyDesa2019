@@ -65,8 +65,10 @@ class Constant{
     // #############################################################################
     // ########################## PARAMETROS Verif-Email ###########################
 
-    const URL_API_EMAIL_VERIFICACTION = 'https://emailverification.whoisxmlapi.com/api/v1';
-    const API_KEY_EMAIL_VERIFICATION = 'at_mxqfktROoumpgCzRktSeRjBBtzxaU';
+    // NOTA: las peticiones deben ser con comillas dobles, en caso contrario se pueden agregar
+    // caracteres no deseados(amp; por ej) a la hora de armar el string de la peticion
+    const URL_API_EMAIL_VERIFICACTION = "https://emailverification.whoisxmlapi.com/api/v1?";
+    const API_KEY_EMAIL_VERIFICATION = "at_mxqfktROoumpgCzRktSeRjBBtzxaU";
 
     // #############################################################################
     // ############################ PARAMETROS SWIFMAIL ############################
