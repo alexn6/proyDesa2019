@@ -63,6 +63,12 @@ class Constant{
     const ESTADO_INV_NO_DEFINIDO = 'N/D';
 
     // #############################################################################
+    // ########################## PARAMETROS Verif-Email ###########################
+
+    const URL_API_EMAIL_VERIFICACTION = 'https://emailverification.whoisxmlapi.com/api/v1';
+    const API_KEY_EMAIL_VERIFICATION = 'at_mxqfktROoumpgCzRktSeRjBBtzxaU';
+
+    // #############################################################################
     // ############################ PARAMETROS SWIFMAIL ############################
 
     // IMPORTANTE: para terminar de configurar el envio de los mails se debe permitir el envio
