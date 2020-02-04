@@ -13,7 +13,7 @@ class MailManager
 
     private function __construct()
     {
-        echo 'Construyendo el admin de mail..'.PHP_EOL;
+        //echo 'Construyendo el admin de mail..'.PHP_EOL;
 
         $transport = (new \Swift_SmtpTransport(Constant::SWFMAILER_SERVER_SMTP,
                                         Constant::SWFMAILER_SERVER_SMTP_PORT, 

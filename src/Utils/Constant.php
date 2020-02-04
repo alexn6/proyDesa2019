@@ -51,16 +51,24 @@ class Constant{
     // #############################################################################
     // ############################# ESTADO_COMPETENCIA ############################
 
-    const ESTADO_SIN_INSCRIPCION = 'COMPETENCIA_SIN_INSCRIPCION';
-    const ESTADO_INSCRIPCION_ABIERTA = 'COMPETENCIA_INSCRIPCION_ABIERTA';
-    const ESTADO_INICIADA = 'COMPETENCIA_INICIADA';
-    const ESTADO_FINALIZADA = 'COMPETENCIA_FINALIZADA';
+    const ESTADO_COMP_SIN_INSCRIPCION = 'COMPETENCIA_SIN_INSCRIPCION';
+    const ESTADO_COMP_INSCRIPCION_ABIERTA = 'COMPETENCIA_INSCRIPCION_ABIERTA';
+    const ESTADO_COMP_INICIADA = 'COMPETENCIA_INICIADA';
+    const ESTADO_COMP_FINALIZADA = 'COMPETENCIA_FINALIZADA';
 
     // #############################################################################
     // ############################# ESTADO_INVITACION ############################
-    const ESTADO_ALTA = 'ALTA';
-    const ESTADO_BAJA = 'BAJA';
-    const ESTADO_NO_DEFINIDO = 'N/D';
+    const ESTADO_INV_ALTA = 'ALTA';
+    const ESTADO_INV_BAJA = 'BAJA';
+    const ESTADO_INV_NO_DEFINIDO = 'N/D';
+
+    // #############################################################################
+    // ########################## PARAMETROS Verif-Email ###########################
+
+    // NOTA: las peticiones deben ser con comillas dobles, en caso contrario se pueden agregar
+    // caracteres no deseados(amp; por ej) a la hora de armar el string de la peticion
+    const URL_API_EMAIL_VERIFICACTION = "https://emailverification.whoisxmlapi.com/api/v1?";
+    const API_KEY_EMAIL_VERIFICATION = "at_mxqfktROoumpgCzRktSeRjBBtzxaU";
 
     // #############################################################################
     // ############################ PARAMETROS SWIFMAIL ############################

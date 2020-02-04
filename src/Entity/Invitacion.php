@@ -49,7 +49,7 @@ class Invitacion
 
     public function setEstado(string $estado): self
     {
-        if (!in_array($estado, array(Constant::ESTADO_ALTA, Constant::ESTADO_BAJA, Constant::ESTADO_NO_DEFINIDO))) {
+        if (!in_array($estado, array(Constant::ESTADO_INV_ALTA, Constant::ESTADO_INV_BAJA, Constant::ESTADO_INV_NO_DEFINIDO))) {
             throw new \InvalidArgumentException("Estado invalido");
         }
         $this->estado = $estado;

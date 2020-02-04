@@ -19,7 +19,7 @@ class NotificationManager
 
     private function __construct()
     {
-        echo 'Construyendo el admin de notificaciones..'.PHP_EOL;
+        //echo 'Construyendo el admin de notificaciones..'.PHP_EOL;
 
         // vinculamos el proyecto a la cuenta de servicio
         $factory = new Factory();
