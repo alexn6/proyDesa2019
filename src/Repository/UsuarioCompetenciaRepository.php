@@ -326,7 +326,7 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
   }
 
   // recuperamos solicitudes de un usuario para ser co-organizador de competencias
-  public function findCompetitionsRequestCoOrganizateByUser($idUsuario, $idCompetencia)
+ /* public function findCompetitionsRequestCoOrganizateByUser($idUsuario, $idCompetencia)
   {
       $entityManager = $this->getEntityManager();
       $query = $entityManager->createQuery(
@@ -349,6 +349,6 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
         ->setParameter('rolUser', Constant::ROL_ORGANIZADOR)
         ->setParameter('rolUser2', Constant::ROL_COORGANIZADOR);
       return $query->execute();
-  }
+  }*/
   
 }

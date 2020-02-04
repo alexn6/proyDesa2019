@@ -11,6 +11,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Entity\UsuarioCompetencia;
 use App\Entity\Usuario;
 use App\Entity\Competencia;
+use App\Entity\Invitacion;
 use App\Entity\Rol;
 
 use App\Utils\NotificationService;
@@ -655,30 +656,47 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
             $idUser = $dataRequest->idUsuario;
             $idCompetition = $dataRequest->idCompetencia;   
             // buscamos los datos correspodientes a los id recibidos
-            $rolCoorg = $repositoryRol->findOneBy(['nombre' => Constant::ROL_SOLCOORG]);    
+            $rolCoorg = $repositoryRol->findOneBy(['nombre' => Constant::ROL_SOLCOORG]); 
+            $organizador = $repositoryRol->findOneBy(['nombre' => Constant::ROL_ORGANIZADOR]);
+            
             $user = $repositoryUser->find($idUser);
             $competition = $repositoryComp->find($idCompetition);   
             // enviamos la invitacion al usuario
-            $msg = "Has sido invitado a ser CO-ORGANIZADOR de la competencia: ".$competition->getNombre();
-            $this->notifyInvitationCoorg($user->getToken(), $competition->getNombre(), $msg);   
-            if(!empty($repository->findOneBy(['rol' => $rolCoorg,'usuario' => $user , 'competencia' => $competition]))){
-              $statusCode = Response::HTTP_BAD_REQUEST;
-              $respJson->messaging = "Ya existe una solicitud.";
-            }else{
-                 // creamos la nueva fila
-                 $newUser = new UsuarioCompetencia();
-                 $newUser->setUsuario($user);
-                 $newUser->setCompetencia($competition);
-                 $newUser->setRol($rolCoorg);
-                 //var_dump($newUser);
-                 // persistimos el nuevo dato
-                 $em = $this->getDoctrine()->getManager();
-                 $em->persist($newUser);
-                 $em->flush();
+            if(!empty($competition)){
+              $msg = "Has sido invitado a ser CO-ORGANIZADOR de la competencia: ".$competition->getNombre();
+              $this->notifyInvitationCoorg($user->getToken(), $competition->getNombre(), $msg); 
+              
+              //TODO: Cuando se envia una invitacion tambien se persiste los datos en la tabla invitacion
+              if(!empty($repository->findOneBy(['rol' => $rolCoorg,'usuario' => $user , 'competencia' => $competition]))){
+                $statusCode = Response::HTTP_BAD_REQUEST;
+                $respJson->messaging = "Ya existe una solicitud.";
+              }else{
+                   $userComp = $repository->findOneBy(['rol' => $organizador,'competencia' => $competition]);
+                   $usuarioCompetencia = $repository->find($userComp->getId());
 
-                 $statusCode = Response::HTTP_OK;
-                 $respJson->messaging = "Invitacion enviada con exito.";
-            }
+                   // creamos la nueva fila en usuario competencia
+                   $newUser = new UsuarioCompetencia();
+                   $newUser->setUsuario($user);
+                   $newUser->setCompetencia($competition);
+                   $newUser->setRol($rolCoorg);
+                   // creamos una invitacion en la tabla
+                   $newInvitation = new Invitacion();
+                   $newInvitation->setUsuarioCompOrg($usuarioCompetencia);
+                   $newInvitation->setUsuarioDestino($user);
+                   $newInvitation->setEstado(Constant::ESTADO_NO_DEFINIDO);
+
+                   $em = $this->getDoctrine()->getManager();
+                   $em->persist($newUser);
+                   $em->persist($newInvitation);
+                   $em->flush();
+  
+                   $statusCode = Response::HTTP_OK;
+                   $respJson->messaging = "Invitacion enviada con exito.";
+              }
+            }else{
+              $statusCode = Response::HTTP_BAD_REQUEST;
+              $respJson->messaging = "Competencia no existe";
+          }
         }
         else{
             $statusCode = Response::HTTP_BAD_REQUEST;
@@ -701,7 +719,6 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
 
     // ##################################################################
     // ###################### actualizacion de roles ####################
-
     /**
      * Actualiza o crea una nueva fila con el rol de usuario_competencia a SEGUIDOR
      * @Rest\Put("/usercomp-rolfollow"), defaults={"_format"="json"})

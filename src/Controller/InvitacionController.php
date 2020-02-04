@@ -60,7 +60,6 @@ class InvitacionController extends AbstractFOSRestController
             $respJson = NULL;
             $statusCode = Response::HTTP_BAD_REQUEST;
         }
-
         //armo el array para el return 
         foreach ($array_comp as &$valor) {
             $aux = array();
@@ -91,7 +90,6 @@ class InvitacionController extends AbstractFOSRestController
   
         // vemos si existe un body
         if(!empty($request->get('idInvitacion'))){
-
             // recuperamos los parametros recibidos
             $idInvitacion = $request->get('idInvitacion');
 
