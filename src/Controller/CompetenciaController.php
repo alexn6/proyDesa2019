@@ -216,14 +216,20 @@ class CompetenciaController extends AbstractFOSRestController
         // estamos editando una competencia es xq la competencia existe
         $repository = $this->getDoctrine()->getRepository(Competencia::class);
         $competencia = $repository->find($dataCompetitionRequest->id);
-      
-        // TODO: controlar q no sea el estado "inscripcion_abierta"
         $competencia->setCiudad($dataCompetitionRequest->ciudad);
 
         try
         {
           $competencia->setGenero($dataCompetitionRequest->genero);
+          // TODO: controlar si cambia el estado de la competencia,
+          // mandar la notificacion del cambio a los seguidores y competidores en ese caso
+          $estadoActual = $competencia->getEstado();
+
           $competencia->setEstado($dataCompetitionRequest->estado);
+          if($estadoActual != $dataCompetitionRequest->estado){
+            // TODO: mandar notificacion
+            $this->sendNotification($dataCompetitionRequest->estado);
+          }
         }
         catch (\Exception $e)
         {
@@ -1104,6 +1110,11 @@ class CompetenciaController extends AbstractFOSRestController
         return false;
     }
     return true;
-}
+  }
+
+  // Mandamos la notificacion del cambio de estado de la competencia
+  private function sendNotification($newStatus){
+    
+  }
  
 }

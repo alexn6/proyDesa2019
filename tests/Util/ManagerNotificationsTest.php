@@ -6,6 +6,7 @@ use PHPUnit\Framework\TestCase;
 use App\Utils\NotificationManager;
 
 use Kreait\Firebase\Messaging\Notification;
+use App\Utils\Constant;
 
 class ManagerNotificationsTest extends TestCase{
 
@@ -23,20 +24,20 @@ class ManagerNotificationsTest extends TestCase{
     //     $this->assertEquals(0, 0);
     // }
 
-    public function testNotificationSpecificDeviceswithData(){
-        $title = 'title spec-dev-data';
-        $body = 'body spec-dev-data';
-        $notification = Notification::create($title, $body);
+    // public function testNotificationSpecificDeviceswithData(){
+    //     $title = 'title spec-dev-data';
+    //     $body = 'body spec-dev-data';
+    //     $notification = Notification::create($title, $body);
 
-        $data = [
-            'first_key' => 'First Value',
-            'second_key' => 'Second Value',
-        ];
+    //     $data = [
+    //         'first_key' => 'First Value',
+    //         'second_key' => 'Second Value',
+    //     ];
 
-        NotificationManager::getInstance()->notificationSpecificDevicesWithData(self::$tokenKm, $notification, $data);
+    //     NotificationManager::getInstance()->notificationSpecificDevicesWithData(self::$tokenKm, $notification, $data);
 
-        $this->assertEquals(0, 0);
-    }
+    //     $this->assertEquals(0, 0);
+    // }
 
     // public function testNotificationMultipleDevices(){
     //     $title = 'title multiple';
@@ -92,5 +93,16 @@ class ManagerNotificationsTest extends TestCase{
 
     //     $this->assertEquals(0, 0);
     // }
+
+    public function testNotificationEndCompetition(){
+        $title = 'Comptencia';
+        $body = Constant::ESTADO_COMP_FINALIZADA;
+
+        $notification = Notification::create($title, $body);
+
+        NotificationManager::getInstance()->notificationToTopic(self::$topic, $notification);
+
+        $this->assertEquals(0, 0);
+    }
 
 }

@@ -80,6 +80,59 @@ class InvitacionController extends AbstractFOSRestController
         return $response;
     }
    
+    /**
+     * Cambia el estado de una invitacion
+     * @Rest\Put("/invitations/upstatus"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function acceptInvitationCoorg(Request $request){
+        $respJson = (object) null;
+  
+        // vemos si existe un body
+        if(!empty($request->get('idInvitacion'))){
 
+            // recuperamos los parametros recibidos
+            $idInvitacion = $request->get('idInvitacion');
+
+            // recuperamos los datos del body y pasamos a un array
+            $dataUserRequest = json_decode($request->getContent());      
+            
+            $repository = $this->getDoctrine()->getRepository(Invitacion::class);
+            // buscamos el usuario por su correo y nombre de usuario
+            $invitacion = $repository->find($idInvitacion);
+    
+            // vemos si existe la invitacion para actualizar su estado
+            if($invitacion == NULL){
+                $statusCode = Response::HTTP_BAD_REQUEST;
+                $respJson->messaging = "Invitacion inexistente";
+            }
+            else{  
+                // cambiamos el esatdo
+                $invitacion->setEstado(Constant::ESTADO_INV_ALTA);
+
+                // TODO: actualizar la fila de usuarioComp de la invitacion (a rol COORG)
+        
+                $em = $this->getDoctrine()->getManager();
+                $em->persist($invitacion);
+                $em->flush();
+        
+                $statusCode = Response::HTTP_OK;
+                $respJson->messaging = "Estado de la invitacion actualizado.";
+
+            }
+        }
+        else{
+          $statusCode = Response::HTTP_BAD_REQUEST;
+          $respJson->messaging = "Peticion mal formada. Faltan parametros.";
+        }
+    
+        $respJson = json_encode($respJson);
+        $response = new Response($respJson);
+        $response->headers->set('Content-Type', 'application/json');
+        $response->setStatusCode($statusCode);
+    
+        return $response;
+      }
 
 }
