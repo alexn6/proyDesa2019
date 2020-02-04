@@ -60,7 +60,6 @@ class InvitacionController extends AbstractFOSRestController
             $respJson = NULL;
             $statusCode = Response::HTTP_BAD_REQUEST;
         }
-
         //armo el array para el return 
         foreach ($array_comp as &$valor) {
             $aux = array();
@@ -80,6 +79,5 @@ class InvitacionController extends AbstractFOSRestController
         return $response;
     }
    
-
 
 }
