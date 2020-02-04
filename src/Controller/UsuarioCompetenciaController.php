@@ -630,92 +630,92 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
     // ##################################################################
     // ###################### manejo de notificaciones ##################
 
-    /**
-     * Recibe los datos de a quien mandarle la notificacion de co-organizador
-     * Pre: el usuario existe
-     * @Rest\POST("/invitation-coorg"), defaults={"_format"="json"})
-     * 
-     * @return Response
-     */
-    public function receiveInvitationCoorganizator(Request $request){
-      $repository = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
-      $repositoryUser=$this->getDoctrine()->getRepository(Usuario::class);
-      $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
-      $repositoryRol=$this->getDoctrine()->getRepository(Rol::class);
+  //   /**
+  //    * Recibe los datos de a quien mandarle la notificacion de co-organizador
+  //    * Pre: el usuario existe
+  //    * @Rest\POST("/invitation-coorg"), defaults={"_format"="json"})
+  //    * 
+  //    * @return Response
+  //    */
+  //   public function receiveInvitationCoorganizator(Request $request){
+  //     $repository = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+  //     $repositoryUser=$this->getDoctrine()->getRepository(Usuario::class);
+  //     $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
+  //     $repositoryRol=$this->getDoctrine()->getRepository(Rol::class);
      
-      $respJson = (object) null;
-      $statusCode;
+  //     $respJson = (object) null;
+  //     $statusCode;
 
-      // controlamos que se haya recibido algo en el body
-      if(!empty($request->getContent())){
-        // recuperamos los datos del body y pasamos a un array
-        $dataRequest = json_decode($request->getContent());
+  //     // controlamos que se haya recibido algo en el body
+  //     if(!empty($request->getContent())){
+  //       // recuperamos los datos del body y pasamos a un array
+  //       $dataRequest = json_decode($request->getContent());
 
-        // vemos si existen los datos necesarios
-        if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->idCompetencia))){
-            $idUser = $dataRequest->idUsuario;
-            $idCompetition = $dataRequest->idCompetencia;   
-            // buscamos los datos correspodientes a los id recibidos
-            $rolCoorg = $repositoryRol->findOneBy(['nombre' => Constant::ROL_SOLCOORG]); 
-            $organizador = $repositoryRol->findOneBy(['nombre' => Constant::ROL_ORGANIZADOR]);
+  //       // vemos si existen los datos necesarios
+  //       if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->idCompetencia))){
+  //           $idUser = $dataRequest->idUsuario;
+  //           $idCompetition = $dataRequest->idCompetencia;   
+  //           // buscamos los datos correspodientes a los id recibidos
+  //           $rolCoorg = $repositoryRol->findOneBy(['nombre' => Constant::ROL_SOLCOORG]); 
+  //           $organizador = $repositoryRol->findOneBy(['nombre' => Constant::ROL_ORGANIZADOR]);
             
-            $user = $repositoryUser->find($idUser);
-            $competition = $repositoryComp->find($idCompetition);   
-            // enviamos la invitacion al usuario
-            if(!empty($competition)){
-              $msg = "Has sido invitado a ser CO-ORGANIZADOR de la competencia: ".$competition->getNombre();
-              $this->notifyInvitationCoorg($user->getToken(), $competition->getNombre(), $msg); 
+  //           $user = $repositoryUser->find($idUser);
+  //           $competition = $repositoryComp->find($idCompetition);   
+  //           // enviamos la invitacion al usuario
+  //           if(!empty($competition)){
+  //             $msg = "Has sido invitado a ser CO-ORGANIZADOR de la competencia: ".$competition->getNombre();
+  //             $this->notifyInvitationCoorg($user->getToken(), $competition->getNombre(), $msg); 
               
-              //TODO: Cuando se envia una invitacion tambien se persiste los datos en la tabla invitacion
-              if(!empty($repository->findOneBy(['rol' => $rolCoorg,'usuario' => $user , 'competencia' => $competition]))){
-                $statusCode = Response::HTTP_BAD_REQUEST;
-                $respJson->messaging = "Ya existe una solicitud.";
-              }else{
-                   $userComp = $repository->findOneBy(['rol' => $organizador,'competencia' => $competition]);
-                   $usuarioCompetencia = $repository->find($userComp->getId());
+  //             //TODO: Cuando se envia una invitacion tambien se persiste los datos en la tabla invitacion
+  //             if(!empty($repository->findOneBy(['rol' => $rolCoorg,'usuario' => $user , 'competencia' => $competition]))){
+  //               $statusCode = Response::HTTP_BAD_REQUEST;
+  //               $respJson->messaging = "Ya existe una solicitud.";
+  //             }else{
+  //                  $userComp = $repository->findOneBy(['rol' => $organizador,'competencia' => $competition]);
+  //                  $usuarioCompetencia = $repository->find($userComp->getId());
 
-                   // creamos la nueva fila en usuario competencia
-                   $newUser = new UsuarioCompetencia();
-                   $newUser->setUsuario($user);
-                   $newUser->setCompetencia($competition);
-                   $newUser->setRol($rolCoorg);
-                   // creamos una invitacion en la tabla
-                   $newInvitation = new Invitacion();
-                   $newInvitation->setUsuarioCompOrg($usuarioCompetencia);
-                   $newInvitation->setUsuarioDestino($user);
-                   $newInvitation->setEstado(Constant::ESTADO_NO_DEFINIDO);
+  //                  // creamos la nueva fila en usuario competencia
+  //                  $newUser = new UsuarioCompetencia();
+  //                  $newUser->setUsuario($user);
+  //                  $newUser->setCompetencia($competition);
+  //                  $newUser->setRol($rolCoorg);
+  //                  // creamos una invitacion en la tabla
+  //                  $newInvitation = new Invitacion();
+  //                  $newInvitation->setUsuarioCompOrg($usuarioCompetencia);
+  //                  $newInvitation->setUsuarioDestino($user);
+  //                  $newInvitation->setEstado(Constant::ESTADO_NO_DEFINIDO);
 
-                   $em = $this->getDoctrine()->getManager();
-                   $em->persist($newUser);
-                   $em->persist($newInvitation);
-                   $em->flush();
+  //                  $em = $this->getDoctrine()->getManager();
+  //                  $em->persist($newUser);
+  //                  $em->persist($newInvitation);
+  //                  $em->flush();
   
-                   $statusCode = Response::HTTP_OK;
-                   $respJson->messaging = "Invitacion enviada con exito.";
-              }
-            }else{
-              $statusCode = Response::HTTP_BAD_REQUEST;
-              $respJson->messaging = "Competencia no existe";
-          }
-        }
-        else{
-            $statusCode = Response::HTTP_BAD_REQUEST;
-            $respJson->messaging = "Solicitud mal formada. Faltan parametros.";
-          }
-      }
-      else{
-          $statusCode = Response::HTTP_BAD_REQUEST;
-          $respJson->messaging = "Solicitud mal formada. Faltan parametros.";
-      }
+  //                  $statusCode = Response::HTTP_OK;
+  //                  $respJson->messaging = "Invitacion enviada con exito.";
+  //             }
+  //           }else{
+  //             $statusCode = Response::HTTP_BAD_REQUEST;
+  //             $respJson->messaging = "Competencia no existe";
+  //         }
+  //       }
+  //       else{
+  //           $statusCode = Response::HTTP_BAD_REQUEST;
+  //           $respJson->messaging = "Solicitud mal formada. Faltan parametros.";
+  //         }
+  //     }
+  //     else{
+  //         $statusCode = Response::HTTP_BAD_REQUEST;
+  //         $respJson->messaging = "Solicitud mal formada. Faltan parametros.";
+  //     }
 
-      $respJson = json_encode($respJson);
+  //     $respJson = json_encode($respJson);
 
-      $response = new Response($respJson);
-      $response->headers->set('Content-Type', 'application/json');
-      $response->setStatusCode($statusCode);
+  //     $response = new Response($respJson);
+  //     $response->headers->set('Content-Type', 'application/json');
+  //     $response->setStatusCode($statusCode);
 
-      return $response;
-  }
+  //     return $response;
+  // }
 
     // ##################################################################
     // ###################### actualizacion de roles ####################
