@@ -317,8 +317,7 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
            INNER JOIN App\Entity\Rol r
            WITH uc.rol = r.id
            AND uc.usuario = :idUsuario
-           AND r.nombre = :rolUser
-           AND r.nombre = :rolUser2
+           AND (r.nombre = :rolUser OR r.nombre = :rolUser2)
        ')->setParameter('idUsuario', $idUsuario)
        ->setParameter('rolUser', Constant::ROL_ORGANIZADOR)
        ->setParameter('rolUser2', Constant::ROL_COORGANIZADOR);

@@ -185,7 +185,7 @@ class UsuarioController extends AbstractFOSRestController
           $em->persist($usuario);
           $em->flush();
   
-          $statusCode = Response::HTTP_CREATED;
+          $statusCode = Response::HTTP_OK;
           $respJson->messaging = "Contraseña cambiada con exito.";
 
         }
