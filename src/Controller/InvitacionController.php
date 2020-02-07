@@ -88,7 +88,7 @@ class InvitacionController extends AbstractFOSRestController
      */
     public function acceptInvitationCoorg(Request $request){
         $respJson = (object) null;
-  
+        
         // vemos si existe un body
         if(!empty($request->get('idInvitacion'))){
             // recuperamos los parametros recibidos
@@ -116,7 +116,7 @@ class InvitacionController extends AbstractFOSRestController
                 // Se envia notificacion con el resultado al organizador
                 $idUserCompOrg = $invitacion->getUsuarioCompOrg()->getUsuario()->getId();
                 $mjeresolucion = "ACEPTO";
-                $this->sendResultInvitacion($user->getNombreUsuario(), $idUserCompOrg, $mjeresolucion);
+               // $this->sendResultInvitacion($user->getNombreUsuario(), $idUserCompOrg, $mjeresolucion);
                 
                 // creamos la nueva fila en usuario competencia
                 $newUserComp = new UsuarioCompetencia();
@@ -178,7 +178,7 @@ class InvitacionController extends AbstractFOSRestController
                 $mjeresolucion = "RECHAZO";
                 
                 // Se enviar notificacion con el resultado al organizador
-                $this->sendResultInvitacion($userDestino, $idUserCompOrg, $mjeresolucion);
+               // $this->sendResultInvitacion($userDestino, $idUserCompOrg, $mjeresolucion);
 
                 $em = $this->getDoctrine()->getManager();
                 $em->persist($invitacion);
