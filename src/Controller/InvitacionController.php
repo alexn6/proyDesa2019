@@ -42,7 +42,7 @@ class InvitacionController extends AbstractFOSRestController
         $idUsuario = $request->get('idUsuario');
         // vemos si recibimos algun parametro
         if(!empty($idUsuario)){
-            $data = $repository->findBy(['usuarioDestino' => $user]);
+            $data = $repository->findBy(['usuarioDestino' => $user,'estado' => Constant::ESTADO_INV_NO_DEFINIDO]);
             
             $data= $this->get('serializer')->serialize($data, 'json', [
                 'circular_reference_handler' => function ($object) {
@@ -116,7 +116,7 @@ class InvitacionController extends AbstractFOSRestController
                 // Se envia notificacion con el resultado al organizador
                 $idUserCompOrg = $invitacion->getUsuarioCompOrg()->getUsuario()->getId();
                 $mjeresolucion = "ACEPTO";
-               // $this->sendResultInvitacion($user->getNombreUsuario(), $idUserCompOrg, $mjeresolucion);
+               //$this->sendResultInvitacion($user->getNombreUsuario(), $idUserCompOrg, $mjeresolucion);
                 
                 // creamos la nueva fila en usuario competencia
                 $newUserComp = new UsuarioCompetencia();
