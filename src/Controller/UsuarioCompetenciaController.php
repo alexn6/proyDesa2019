@@ -16,6 +16,7 @@ use App\Entity\Rol;
 
 use App\Utils\NotificationService;
 use App\Utils\Constant;
+use App\Utils\NotificationManager;
 
  /**
  * UsuarioCompetencia controller
@@ -313,82 +314,82 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         return $response;
     }
 
-    /**
-     * Se encarga de procesar la resolucion de la invitacion a Co-organizador
-     * Pre: los usuarios y competencia recibidos existen
-     * @Rest\Post("/resol-invitation-coorg"), defaults={"_format"="json"})
-     * 
-     * @return Response
-     */
-    public function resolInvitationCoorganizator(Request $request){
-      $respJson = (object) null;
-      $statusCode;
+  //   /**
+  //    * Se encarga de procesar la resolucion de la invitacion a Co-organizador
+  //    * Pre: los usuarios y competencia recibidos existen
+  //    * @Rest\Post("/resol-invitation-coorg"), defaults={"_format"="json"})
+  //    * 
+  //    * @return Response
+  //    */
+  //   public function resolInvitationCoorganizator(Request $request){
+  //     $respJson = (object) null;
+  //     $statusCode;
 
-      // controlamos que se haya recibido algo en el body
-      if(!empty($request->getContent())){
-        // recuperamos los datos del body y pasamos a un array
-        $dataRequest = json_decode($request->getContent());
+  //     // controlamos que se haya recibido algo en el body
+  //     if(!empty($request->getContent())){
+  //       // recuperamos los datos del body y pasamos a un array
+  //       $dataRequest = json_decode($request->getContent());
 
-        // vemos si existen los datos necesarios
-        if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->idCompetencia))&&(!empty($dataRequest->resolucion))){
-          $idUser = $dataRequest->idUsuario;
-          $idCompetition = $dataRequest->idCompetencia;
-          $resolucion = $dataRequest->resolucion;
+  //       // vemos si existen los datos necesarios
+  //       if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->idCompetencia))&&(!empty($dataRequest->resolucion))){
+  //         $idUser = $dataRequest->idUsuario;
+  //         $idCompetition = $dataRequest->idCompetencia;
+  //         $resolucion = $dataRequest->resolucion;
 
-          // buscamos los datos correspodientes a los id recibidos
-          $repositoryUser=$this->getDoctrine()->getRepository(Usuario::class);
-          $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
-          $user = $repositoryUser->find($idUser);
-          $competition = $repositoryComp->find($idCompetition);
+  //         // buscamos los datos correspodientes a los id recibidos
+  //         $repositoryUser=$this->getDoctrine()->getRepository(Usuario::class);
+  //         $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
+  //         $user = $repositoryUser->find($idUser);
+  //         $competition = $repositoryComp->find($idCompetition);
 
-          $msgResolutionInvitation;
+  //         $msgResolutionInvitation;
 
-          // vemos si se acepta la solicitud
-          if($resolucion === "aceptada"){
-            $msgResolutionInvitation = "El usuario <".$user->getNombreUsuario()."> ha aceptado formar parte de la competencia";
-            // creamos la nueva fila
-            $newUser = new UsuarioCompetencia();
-            $newUser->setUsuario($user);
-            $newUser->setCompetencia($competition);
-            $repositoryRol=$this->getDoctrine()->getRepository(Rol::class);
-            $rolCoorg = $repositoryRol->findOneBy(['nombre' => Constant::ROL_COORGANIZADOR]);
-            $newUser->setRol($rolCoorg);
-            //var_dump($newUser);
-            // persistimos el nuevo dato
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($newUser);
-            $em->flush();
-          }
-          else{
-            $msgResolutionInvitation = "El usuario <".$user->getNombreUsuario()."> rechazo la invitacion a formar parte de la competencia";
-          }
+  //         // vemos si se acepta la solicitud
+  //         if($resolucion === "aceptada"){
+  //           $msgResolutionInvitation = "El usuario <".$user->getNombreUsuario()."> ha aceptado formar parte de la competencia";
+  //           // creamos la nueva fila
+  //           $newUser = new UsuarioCompetencia();
+  //           $newUser->setUsuario($user);
+  //           $newUser->setCompetencia($competition);
+  //           $repositoryRol=$this->getDoctrine()->getRepository(Rol::class);
+  //           $rolCoorg = $repositoryRol->findOneBy(['nombre' => Constant::ROL_COORGANIZADOR]);
+  //           $newUser->setRol($rolCoorg);
+  //           //var_dump($newUser);
+  //           // persistimos el nuevo dato
+  //           $em = $this->getDoctrine()->getManager();
+  //           $em->persist($newUser);
+  //           $em->flush();
+  //         }
+  //         else{
+  //           $msgResolutionInvitation = "El usuario <".$user->getNombreUsuario()."> rechazo la invitacion a formar parte de la competencia";
+  //         }
 
-          $statusCode = Response::HTTP_OK;
-          $respJson->messaging = "Invitacion a co-organizador resuelta.";
-          // enviamos la notificacion al organizador
-          // recuperamos el token del organizador
-          $repositoryUserComp=$this->getDoctrine()->getRepository(UsuarioCompetencia::class);
-          $tokenOrganizator = $repositoryUserComp->findOrganizatorCompetencia($idCompetition);
-          $this->notifyResolutionInvitationCoorg($tokenOrganizator[0]['token'], $competition->getNombre(), $msgResolutionInvitation);
-        }
-        else{
-          $statusCode = Response::HTTP_BAD_REQUEST;
-          $respJson->messaging = "Solicitud mal formada";
-          }
-      }
-      else{
-          $statusCode = Response::HTTP_BAD_REQUEST;
-          $respJson->messaging = "Solicitud mal formada";
-      }
+  //         $statusCode = Response::HTTP_OK;
+  //         $respJson->messaging = "Invitacion a co-organizador resuelta.";
+  //         // enviamos la notificacion al organizador
+  //         // recuperamos el token del organizador
+  //         $repositoryUserComp=$this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+  //         $tokenOrganizator = $repositoryUserComp->findOrganizatorCompetencia($idCompetition);
+  //         $this->notifyResolutionInvitationCoorg($tokenOrganizator[0]['token'], $competition->getNombre(), $msgResolutionInvitation);
+  //       }
+  //       else{
+  //         $statusCode = Response::HTTP_BAD_REQUEST;
+  //         $respJson->messaging = "Solicitud mal formada";
+  //         }
+  //     }
+  //     else{
+  //         $statusCode = Response::HTTP_BAD_REQUEST;
+  //         $respJson->messaging = "Solicitud mal formada";
+  //     }
 
-      $respJson = json_encode($respJson);
+  //     $respJson = json_encode($respJson);
 
-      $response = new Response($respJson);
-      $response->headers->set('Content-Type', 'application/json');
-      $response->setStatusCode($statusCode);
+  //     $response = new Response($respJson);
+  //     $response->headers->set('Content-Type', 'application/json');
+  //     $response->setStatusCode($statusCode);
 
-      return $response;
-  }
+  //     return $response;
+  // }
 
     /**
      * Devuelve todas las competencias de un usuario
@@ -625,97 +626,6 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         $response->headers->set('Content-Type', 'application/json');
         return $response;
     }
-
-
-    // ##################################################################
-    // ###################### manejo de notificaciones ##################
-
-  //   /**
-  //    * Recibe los datos de a quien mandarle la notificacion de co-organizador
-  //    * Pre: el usuario existe
-  //    * @Rest\POST("/invitation-coorg"), defaults={"_format"="json"})
-  //    * 
-  //    * @return Response
-  //    */
-  //   public function receiveInvitationCoorganizator(Request $request){
-  //     $repository = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
-  //     $repositoryUser=$this->getDoctrine()->getRepository(Usuario::class);
-  //     $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
-  //     $repositoryRol=$this->getDoctrine()->getRepository(Rol::class);
-     
-  //     $respJson = (object) null;
-  //     $statusCode;
-
-  //     // controlamos que se haya recibido algo en el body
-  //     if(!empty($request->getContent())){
-  //       // recuperamos los datos del body y pasamos a un array
-  //       $dataRequest = json_decode($request->getContent());
-
-  //       // vemos si existen los datos necesarios
-  //       if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->idCompetencia))){
-  //           $idUser = $dataRequest->idUsuario;
-  //           $idCompetition = $dataRequest->idCompetencia;   
-  //           // buscamos los datos correspodientes a los id recibidos
-  //           $rolCoorg = $repositoryRol->findOneBy(['nombre' => Constant::ROL_SOLCOORG]); 
-  //           $organizador = $repositoryRol->findOneBy(['nombre' => Constant::ROL_ORGANIZADOR]);
-            
-  //           $user = $repositoryUser->find($idUser);
-  //           $competition = $repositoryComp->find($idCompetition);   
-  //           // enviamos la invitacion al usuario
-  //           if(!empty($competition)){
-  //             $msg = "Has sido invitado a ser CO-ORGANIZADOR de la competencia: ".$competition->getNombre();
-  //             $this->notifyInvitationCoorg($user->getToken(), $competition->getNombre(), $msg); 
-              
-  //             //TODO: Cuando se envia una invitacion tambien se persiste los datos en la tabla invitacion
-  //             if(!empty($repository->findOneBy(['rol' => $rolCoorg,'usuario' => $user , 'competencia' => $competition]))){
-  //               $statusCode = Response::HTTP_BAD_REQUEST;
-  //               $respJson->messaging = "Ya existe una solicitud.";
-  //             }else{
-  //                  $userComp = $repository->findOneBy(['rol' => $organizador,'competencia' => $competition]);
-  //                  $usuarioCompetencia = $repository->find($userComp->getId());
-
-  //                  // creamos la nueva fila en usuario competencia
-  //                  $newUser = new UsuarioCompetencia();
-  //                  $newUser->setUsuario($user);
-  //                  $newUser->setCompetencia($competition);
-  //                  $newUser->setRol($rolCoorg);
-  //                  // creamos una invitacion en la tabla
-  //                  $newInvitation = new Invitacion();
-  //                  $newInvitation->setUsuarioCompOrg($usuarioCompetencia);
-  //                  $newInvitation->setUsuarioDestino($user);
-  //                  $newInvitation->setEstado(Constant::ESTADO_NO_DEFINIDO);
-
-  //                  $em = $this->getDoctrine()->getManager();
-  //                  $em->persist($newUser);
-  //                  $em->persist($newInvitation);
-  //                  $em->flush();
-  
-  //                  $statusCode = Response::HTTP_OK;
-  //                  $respJson->messaging = "Invitacion enviada con exito.";
-  //             }
-  //           }else{
-  //             $statusCode = Response::HTTP_BAD_REQUEST;
-  //             $respJson->messaging = "Competencia no existe";
-  //         }
-  //       }
-  //       else{
-  //           $statusCode = Response::HTTP_BAD_REQUEST;
-  //           $respJson->messaging = "Solicitud mal formada. Faltan parametros.";
-  //         }
-  //     }
-  //     else{
-  //         $statusCode = Response::HTTP_BAD_REQUEST;
-  //         $respJson->messaging = "Solicitud mal formada. Faltan parametros.";
-  //     }
-
-  //     $respJson = json_encode($respJson);
-
-  //     $response = new Response($respJson);
-  //     $response->headers->set('Content-Type', 'application/json');
-  //     $response->setStatusCode($statusCode);
-
-  //     return $response;
-  // }
 
     // ##################################################################
     // ###################### actualizacion de roles ####################
@@ -974,7 +884,8 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         // buscamos el rol correspondiente
         $rol = $repositoryRol->findOneBy(['nombre' => $nameRol]);
 
-        //var_dump($usuario_comp);
+        $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
+        $competition = $repositoryComp->find($idCompetition);
         // vemos si hay que actualizar o crear un nuevo dato
         if($usuario_comp != NULL){
           // actualizamos el dato y lo persistimos
@@ -984,9 +895,7 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         }
         else{
           $repositoryUser=$this->getDoctrine()->getRepository(Usuario::class);
-          $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
           $user = $repositoryUser->find($idUser);
-          $competition = $repositoryComp->find($idCompetition);
 
           $newUser = new UsuarioCompetencia();
           $newUser->setUsuario($user);
@@ -999,6 +908,12 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
           $em->persist($newUser);
           $em->flush();
         }
+
+        // susbcribimos en el caso de que sean seguidores o competidores
+        if(($nameRol == Constant::ROL_SEGUIDOR) || ($nameRol == Constant::ROL_COMPETIDOR)){
+          // subscribimos al usuario al topico correspondiente
+          $this->subcribeUserToTopic($usuario_comp->getUsuario()->getToken(), $competition, $rol);
+        }
     }
 
     // notifica al usuario que su solicitud de incripcion a la competencia fue rechazada
@@ -1010,22 +925,22 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
     }
 
     // notifica al usuario que su solicitud de incripcion a la competencia fue rechazada
-    private function notifyInvitationCoorg($tokenUser, $nameCompetition, $msg){
-      $title = "Invitacion a CO-ORGANIZADOR";
+    // private function notifyInvitationCoorg($tokenUser, $nameCompetition, $msg){
+    //   $title = "Invitacion a CO-ORGANIZADOR";
 
-      $servNotification = new NotificationService();
-      $servNotification->sendSimpleNotificationFCM($title, $tokenUser, $msg);
-    }
+    //   $servNotification = new NotificationService();
+    //   $servNotification->sendSimpleNotificationFCM($title, $tokenUser, $msg);
+    // }
 
     // notifica al usuario que su solicitud de incripcion a la competencia fue rechazada
-    private function notifyResolutionInvitationCoorg($tokenUser, $nameCompetition, $msg){
-      $title = "Resolucion de invitacion organizadores.";
-      var_dump($tokenUser);
-      // var_dump($nameCompetition);
-      // var_dump($msg);
-      $servNotification = new NotificationService();
-      $servNotification->sendSimpleNotificationFCM($title, $tokenUser, $msg);
-    }
+    // private function notifyResolutionInvitationCoorg($tokenUser, $nameCompetition, $msg){
+    //   $title = "Resolucion de invitacion organizadores.";
+    //   var_dump($tokenUser);
+    //   // var_dump($nameCompetition);
+    //   // var_dump($msg);
+    //   $servNotification = new NotificationService();
+    //   $servNotification->sendSimpleNotificationFCM($title, $tokenUser, $msg);
+    // }
 
     // notifica al usuario que su solicitud de incripcion a la competencia fue rechazada
     private function notifyInscriptionToOrganizators($arrayTokens, $nameCompetition, $nameUser){
@@ -1034,6 +949,15 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
 
         $servNotification = new NotificationService();
         $servNotification->sendMultipleNotificationFCM($title, $arrayTokens, $msg);
+    }
+
+    // subscribimos un usuario al topico correspondiente a su rol de una competencia
+    private function subcribeUserToTopic($token, $competition, $rol){
+      $nameCompFiltered = str_replace(' ', '', $competition->getNombre());
+      $topic = $nameCompFiltered. '-' .$rol->getNombre();
+      // var_dump("token: ".$token);
+      // var_dump("topico: ".$topic);
+      NotificationManager::getInstance()->subscribeTopic($topic, $token);
     }
 
 }

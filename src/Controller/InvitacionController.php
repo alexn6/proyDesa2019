@@ -113,7 +113,7 @@ class InvitacionController extends AbstractFOSRestController
                 $repositoryRol = $this->getDoctrine()->getRepository(Rol::class);
                 $rol = $repositoryRol->findOneBy(['nombre' => Constant::ROL_COORGANIZADOR]);
 
-                // TODO: enviar notificacion con el resultado al organizador
+                // Se envia notificacion con el resultado al organizador
                 $idUserCompOrg = $invitacion->getUsuarioCompOrg()->getUsuario()->getId();
                 $mjeresolucion = "ACEPTO";
                 $this->sendResultInvitacion($user->getNombreUsuario(), $idUserCompOrg, $mjeresolucion);
@@ -176,7 +176,8 @@ class InvitacionController extends AbstractFOSRestController
                 $userDestino = $invitacion->getUsuarioDestino()->getNombreUsuario();
                 $idUserCompOrg = $invitacion->getUsuarioCompOrg()->getUsuario()->getId();
                 $mjeresolucion = "RECHAZO";
-                // TODO: enviar notificacion con el resultado al organizador
+                
+                // Se enviar notificacion con el resultado al organizador
                 $this->sendResultInvitacion($userDestino, $idUserCompOrg, $mjeresolucion);
 
                 $em = $this->getDoctrine()->getManager();

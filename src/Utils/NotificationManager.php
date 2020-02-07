@@ -140,4 +140,20 @@ class NotificationManager
         self::$manager->send($message);
     }
 
+    public function subscribeTopic($topic, $tokens){
+        self::$manager->subscribeToTopic($topic, $tokens);
+    }
+
+    public function unsubscribeTopic($topic, $tokens){
+        self::$manager->unsubscribeFromTopic($topic, $tokens);
+    }
+
+    public function getTopicsSusbcribed($token){
+        $appInstance = self::$manager->getAppInstance($token);
+        /** @var \Kreait\Firebase\Messaging\TopicSubscriptions $subscriptions */
+        $subscriptions = $appInstance->topicSubscriptions();
+
+        return $subscriptions;
+    }
+
 }

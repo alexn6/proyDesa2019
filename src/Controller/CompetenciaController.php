@@ -22,6 +22,8 @@ use App\Entity\Deporte;
 
 use App\Utils\Constant;
 use App\Utils\TablePositionService;
+use App\Utils\NotificationManager;
+use Kreait\Firebase\Messaging\Notification;
 
 /**
  * Competencia controller
@@ -225,11 +227,11 @@ class CompetenciaController extends AbstractFOSRestController
           // mandar la notificacion del cambio a los seguidores y competidores en ese caso
           $estadoActual = $competencia->getEstado();
 
-          $competencia->setEstado($dataCompetitionRequest->estado);
           if($estadoActual != $dataCompetitionRequest->estado){
-            // TODO: mandar notificacion
-            $this->sendNotification($dataCompetitionRequest->estado);
+            //mandamos una notificacion cada vez q cambiamos el estado de la competencia
+            $this->sendNotificationChangeStatus($competencia, $dataCompetitionRequest->estado);
           }
+          $competencia->setEstado($dataCompetitionRequest->estado);
         }
         catch (\Exception $e)
         {
@@ -1113,8 +1115,21 @@ class CompetenciaController extends AbstractFOSRestController
   }
 
   // Mandamos la notificacion del cambio de estado de la competencia
-  private function sendNotification($newStatus){
-    
+  private function sendNotificationChangeStatus($competencia, $estado){
+    $nameCompFiltered = str_replace(' ', '', $competencia->getNombre());
+
+    $topicFollowers = $nameCompFiltered. '-' .Constant::ROL_SEGUIDOR;
+    $topicCompetitors = $nameCompFiltered. '-' .Constant::ROL_COMPETIDOR;
+
+    //var_dump("Manda la notif al topico: ".$topicFollowers);
+
+    $title = 'Competencia: '.$competencia->getNombre();
+    $body = 'La competencia paso a '.$estado;
+
+    $notification = Notification::create($title, $body);
+
+    NotificationManager::getInstance()->notificationToTopic($topicFollowers, $notification);
+    //NotificationManager::getInstance()->notificationToTopic($topicCompetitors, $notification);
   }
  
 }
