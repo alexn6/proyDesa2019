@@ -10,7 +10,7 @@ use App\Utils\Constant;
 
 class NotificationTopicCompetitionTest extends TestCase{
 
-    public static $tokenSeg = 'dpgqWvic_lM:APA91bG2QQd_SyCRwC1kOhXKuJVYop2n0H0TMgN6FRePIZTLpnw8TPUEGfOHkPHyB865DiHzr4TncuXETNn5RzAj3ExsCUMyrz4FVf_JxNCxJKy6yb1Tm4F0zwtfX5CSAtsMhNF_xQPY';
+    public static $tokenSeg = 'dYVgTrDaIC8:APA91bEQ86LACFK2NrDBmUsbF62xs36gHeJWY017xXx-5iBOTxNdYWySXJYiEonkgU_CHAP_pdsMF6Tyoai8JaYnFnaZ5lX-73fykLkrVUUM7fYU99YdtjDVuqhuEI9IQ5XEqs9N6PWG';
     public static $nombreComp = "TorneodePrueba";
 
     // tener en cuenta la demora del registro de subscripcion

@@ -10,7 +10,7 @@ use App\Utils\Constant;
 
 class ManagerNotificationsTest extends TestCase{
 
-    public static $miToken = 'dx3sViEPObw:APA91bHxTYWG4RSpu3Tza86_nVp2vXEnKPhZXzct-70-GoO1VdgT2Jbl2slpnC2NLLytEo7qmcuaH_jrPE6z7Xr5u4kCpoRJ0muKzu_HVThj_tzsTha-l2WmBNBXQ8vnglbmCIbwHhAy';
+    public static $miToken = 'cP_68Nf4Xu0:APA91bGqSy28wDHdZcll5bIQL5wMKTN8E8muA5D99Fr4hzsYAmKqe6oYHNzyxJF8PvSivS4I-Ejg9lW5rytAvOgusRR0pUPdyAZbTPIk6LQeQXvGVbalMMrrL49Zl0OyaTd0b7SXLkqD';
     public static $tokenKm = 'edvr0L4V6vI:APA91bHYAyHoy_WyP3-eRgCFturudsbrsaaYbj3cksR3wtzLbQmbF_3ga81Ei9_oWwxpNbgg1buAN3-ODFoUyfvUeW2D6u9MGEHiIjQ69fSCSkiWQ_3UlVMkI17cHoJ50LlL_4SokdmO';
     public static $topic = "my-firts-topic";
 

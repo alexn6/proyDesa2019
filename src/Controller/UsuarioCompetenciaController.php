@@ -834,7 +834,9 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
           $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
           $usuario = $repositoryUser->find($idUsuario);
           $competencia = $repositoryComp->find($idCompetencia);
-          $competenciaNoSeguida = $competencia->getNombre();
+          //$competenciaNoSeguida = $competencia->getNombre();
+
+          $this->unsubcribeUserToTopic($usuario->getToken(), $competencia, $rolSeguidor);
           // buscamos el seguidor
           $follower = $repository->findOneBy(['usuario' => $usuario, 'competencia' => $competencia, 'rol' => $rolSeguidor]);
           // eliminamos el dato y refrescamos la DB
@@ -843,7 +845,7 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
           $em->flush();
 
           $statusCode = Response::HTTP_OK;
-          $respJson->messaging = "Ya no es seguidor de la competencia: ".$competenciaNoSeguida;
+          $respJson->messaging = "Ya no es seguidor de la competencia: ".$competencia->getNombre();
         }
         else{
           $statusCode = Response::HTTP_BAD_REQUEST;
@@ -880,12 +882,22 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
     
         // buscamos la fila correspondiente
         $usuario_comp = $repository->findOneBy(['usuario' => $idUser, 'competencia' => $idCompetition]);
+        
+        $repositoryUser=$this->getDoctrine()->getRepository(Usuario::class);
+        $user = $repositoryUser->find($idUser);
 
         // buscamos el rol correspondiente
         $rol = $repositoryRol->findOneBy(['nombre' => $nameRol]);
 
         $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
         $competition = $repositoryComp->find($idCompetition);
+
+        // susbcribimos en el caso de que sean seguidores o competidores
+        if(($nameRol == Constant::ROL_SEGUIDOR) || ($nameRol == Constant::ROL_COMPETIDOR)){
+          // subscribimos al usuario al topico correspondiente
+          $this->subcribeUserToTopic($user->getToken(), $competition, $rol);
+        }
+
         // vemos si hay que actualizar o crear un nuevo dato
         if($usuario_comp != NULL){
           // actualizamos el dato y lo persistimos
@@ -894,8 +906,6 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
           $em->flush();
         }
         else{
-          $repositoryUser=$this->getDoctrine()->getRepository(Usuario::class);
-          $user = $repositoryUser->find($idUser);
 
           $newUser = new UsuarioCompetencia();
           $newUser->setUsuario($user);
@@ -907,12 +917,6 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
           $em = $this->getDoctrine()->getManager();
           $em->persist($newUser);
           $em->flush();
-        }
-
-        // susbcribimos en el caso de que sean seguidores o competidores
-        if(($nameRol == Constant::ROL_SEGUIDOR) || ($nameRol == Constant::ROL_COMPETIDOR)){
-          // subscribimos al usuario al topico correspondiente
-          $this->subcribeUserToTopic($usuario_comp->getUsuario()->getToken(), $competition, $rol);
         }
     }
 
@@ -958,6 +962,15 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
       // var_dump("token: ".$token);
       // var_dump("topico: ".$topic);
       NotificationManager::getInstance()->subscribeTopic($topic, $token);
+    }
+
+    // subscribimos un usuario al topico correspondiente a su rol de una competencia
+    private function unsubcribeUserToTopic($token, $competition, $rol){
+      $nameCompFiltered = str_replace(' ', '', $competition->getNombre());
+      $topic = $nameCompFiltered. '-' .$rol->getNombre();
+      // var_dump("token: ".$token);
+      // var_dump("topico: ".$topic);
+      NotificationManager::getInstance()->unsubscribeTopic($topic, $token);
     }
 
 }
