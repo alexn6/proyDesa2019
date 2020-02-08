@@ -14,6 +14,7 @@ use App\Entity\Competencia;
 use App\Entity\Rol;
 use App\Entity\Invitacion;
 
+
 use Kreait\Firebase\Messaging\Notification;
 use App\Utils\NotificationManager;
 use App\Utils\Constant;
@@ -24,6 +25,81 @@ use App\Utils\Constant;
      */
 class InvitacionController extends AbstractFOSRestController
 {
+    // ##################################################################
+    // ###################### manejo de notificaciones ##################
+
+    /**
+     * Recibe los datos de a quien mandarle la notificacion de co-organizador
+     * Pre: el usuario existe
+     * @Rest\POST("/invitation-coorg"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function receiveInvitationCoorganizator(Request $request){
+        $repository = $this->getDoctrine()->getRepository(Invitacion::class);
+        $repositoryUser=$this->getDoctrine()->getRepository(Usuario::class);
+        $repositoryComp=$this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+       // $repositoryEstado=$this->getDoctrine()->getRepository(Estado::class);
+       
+        $respJson = (object) null;
+        $statusCode;
+  
+        // controlamos que se haya recibido algo en el body
+        if(!empty($request->getContent())){
+          // recuperamos los datos del body y pasamos a un array
+          $dataRequest = json_decode($request->getContent());
+  
+          // vemos si existen los datos necesarios
+          if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->idCompetencia))){
+              $idUser = $dataRequest->idUsuario;
+              $idCompetition = $dataRequest->idCompetencia;   
+              // buscamos los datos correspodientes a los id recibidos
+              $user = $repositoryUser->find($idUser);
+              $competition = $repositoryComp->findOneBy(['competencia' => $idCompetition]);  
+              // enviamos la invitacion al usuario
+              //$msg = "Has sido invitado a ser CO-ORGANIZADOR ";
+            //  $this->notifyInvitationCoorg($user->getToken(), $competition->getNombre(), $msg);   
+              if(!empty($repository->findOneBy(['usuarioDestino' => $user , 'usuarioCompOrg' => $competition]))){
+                $statusCode = Response::HTTP_BAD_REQUEST;
+                $respJson->messaging = "Ya existe una solicitud.";
+              }else{
+                   // creamos la nueva fila
+                   $newUser = new Invitacion();
+                   $newUser->setUsuarioDestino($user);
+                   $newUser->setUsuarioCompOrg($competition);
+                   $newUser->setEstado(Constant::ESTADO_INV_NO_DEFINIDO);
+                   
+                   // persistimos el nuevo dato
+                   $em = $this->getDoctrine()->getManager();
+                   $em->persist($newUser);
+                   $em->flush();
+  
+                   $statusCode = Response::HTTP_OK;
+                   $respJson->messaging = "Invitacion enviada con exito.";
+              }
+          }
+          else{
+              $statusCode = Response::HTTP_BAD_REQUEST;
+              $respJson->messaging = "Solicitud mal formada. Faltan parametros.";
+            }
+        }
+        else{
+            $statusCode = Response::HTTP_BAD_REQUEST;
+            $respJson->messaging = "Solicitud mal formada. Faltan parametros.";
+        }
+  
+        $respJson = json_encode($respJson);
+  
+        $response = new Response($respJson);
+        $response->headers->set('Content-Type', 'application/json');
+        $response->setStatusCode($statusCode);
+  
+        return $response;
+    }
+  
+  
+
+
     /**
      * Devuelve todas los solicitantes de una competencia
      * @Rest\Get("/invitations"), defaults={"_format"="json"})
