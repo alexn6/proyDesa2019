@@ -3,6 +3,7 @@
 use PHPUnit\Framework\TestCase;
 
 use App\Utils\MailManager;
+use App\Utils\Constant;
 
 class ManagerMailTest extends TestCase{
 
@@ -33,11 +34,11 @@ class ManagerMailTest extends TestCase{
     public function testSendMailManager(){
 
         $asunto = 'Test Manager';
-        $mail_desde = 'alex6tc90@gmail.com';
+        //$mail_desde = 'alex6tc90@gmail.com';
         $mail_destino = 'alex6tc90@gmail.com';
         $msg = 'El manager funciona correctamente!';
 
-        MailManager::getInstance()->sendMail($asunto, $mail_desde, $mail_destino, $msg);
+        MailManager::getInstance()->sendMail($asunto, Constant::SWFMAILER_SERVER_SMTP_USER, $mail_destino, $msg);
 
         $this->assertEquals(0, 0);
     }

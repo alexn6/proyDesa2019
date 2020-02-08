@@ -13,6 +13,7 @@ use App\Entity\Usuario;
 use App\Utils\VerificationMail;
 use App\Utils\MailManager;
 use App\Utils\NotificationManager;
+use App\Utils\Constant;
 
  /**
  * Usuario controller
@@ -548,10 +549,10 @@ class UsuarioController extends AbstractFOSRestController
 
     private function sendCodVerification($codVerification, $mailDestino){
       $asunto = 'Proyecto Torneos';
-      $mail_desde = 'alex6tc90@gmail.com';
+      // $mail_desde = 'alex6tc90@gmail.com';
       $msg = 'su codigo de verificacion es '.$codVerification.'. No lo compartas.';
 
-      MailManager::getInstance()->sendMail($asunto, $mail_desde, $mailDestino, $msg);
+      MailManager::getInstance()->sendMail($asunto, $mail_desde, Constant::SWFMAILER_SERVER_SMTP_USER, $msg);
 
     }
 

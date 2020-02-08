@@ -79,8 +79,10 @@ class Constant{
     const SWFMAILER_SERVER_SMTP = 'smtp.gmail.com';
     const SWFMAILER_SERVER_SMTP_PORT = 587;
     const SWFMAILER_SERVER_SMTP_SECURE = 'tls';
-    const SWFMAILER_SERVER_SMTP_USER = 'alex6tc90@gmail.com';
-    const SWFMAILER_SERVER_SMTP_USER_PASS = 'G1m2a3i4l';
+    // const SWFMAILER_SERVER_SMTP_USER = 'alex6tc90@gmail.com';
+    // const SWFMAILER_SERVER_SMTP_USER_PASS = 'G1m2a3i4l';
+    const SWFMAILER_SERVER_SMTP_USER = 'torneosycompetenciasapp@gmail.com';
+    const SWFMAILER_SERVER_SMTP_USER_PASS = 'desarrollo2020';
 
     // #############################################################################
     // ################################# SERVICIOS #################################
