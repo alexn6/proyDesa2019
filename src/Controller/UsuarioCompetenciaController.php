@@ -18,6 +18,8 @@ use App\Utils\NotificationService;
 use App\Utils\Constant;
 use App\Utils\NotificationManager;
 
+use Kreait\Firebase\Messaging\Notification;
+
  /**
  * UsuarioCompetencia controller
  * @Route("/api",name="api_")
@@ -922,11 +924,12 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
 
     // notifica al usuario que su solicitud de incripcion a la competencia fue rechazada
     private function notifySolInscription($tokenUser, $nameCompetition, $msg){
-        $title = "Resolucion de inscripcion";
+      $title = "Resolución de inscripción";
 
-        $servNotification = new NotificationService();
-        $servNotification->sendSimpleNotificationFCM($title, $tokenUser, $msg);
-    }
+      $notification = Notification::create($title, $msg);
+
+      NotificationManager::getInstance()->notificationSpecificDevices($tokenUser, $notification);
+  }
 
     // notifica al usuario que su solicitud de incripcion a la competencia fue rechazada
     // private function notifyInvitationCoorg($tokenUser, $nameCompetition, $msg){
@@ -947,13 +950,32 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
     // }
 
     // notifica al usuario que su solicitud de incripcion a la competencia fue rechazada
-    private function notifyInscriptionToOrganizators($arrayTokens, $nameCompetition, $nameUser){
-        $title = "Inscripcion: ".$nameCompetition;
-        $msg = "El usuario ".$nameUser." quiere formar parte de tu competencia";
+    // private function notifyInscriptionToOrganizators($arrayTokens, $nameCompetition, $nameUser){
+    //     $title = "Inscripcion: ".$nameCompetition;
+    //     $msg = "El usuario ".$nameUser." quiere formar parte de tu competencia";
 
-        $servNotification = new NotificationService();
-        $servNotification->sendMultipleNotificationFCM($title, $arrayTokens, $msg);
-    }
+    //     $servNotification = new NotificationService();
+    //     $servNotification->sendMultipleNotificationFCM($title, $arrayTokens, $msg);
+    // }
+    private function notifyInscriptionToOrganizators($arrayTokens, $nameCompetition, $nameUser){
+      $title = "Inscripcion: ".$nameCompetition;
+      $body = "El usuario ".$nameUser." quiere formar parte de tu competencia";
+
+      $tokenDevices = array();
+
+      foreach ($arrayTokens as &$valor) {
+        array_push($tokenDevices, $valor['token']);
+      }
+
+      $notification = Notification::create($title, $body);
+
+      // var_dump($arrayTokens);
+      // var_dump($tokenDevices);
+
+      if(count($tokenDevices) > 0){
+        NotificationManager::getInstance()->notificationMultipleDevices($tokenDevices, $notification);
+      }
+  }
 
     // subscribimos un usuario al topico correspondiente a su rol de una competencia
     private function subcribeUserToTopic($token, $competition, $rol){
