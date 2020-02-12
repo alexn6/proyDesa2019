@@ -33,7 +33,7 @@ class DbClodFirestoreManager
     }
 
 
-    // Envia un mensaje al token recibido
+    // Recuperamos los elementos de una coleccion
     public function getCollection($pathCollection){
         $collection;
         try {
@@ -79,8 +79,40 @@ class DbClodFirestoreManager
         }
         $document = $collection->document($documentId);
         $snapshot = $document->snapshot();
+
+        //var_dump($snapshot);
         
         return $snapshot->data();
     }
 
+    public function insertDocument($pathCollection, $data, $documentId){
+        $collection;
+        try {
+            // recuperamos la coleccion de documentos
+            $collection = self::$manager->collection($pathCollection);
+        } catch (InvalidMessage $e) {
+            print_r($e->errors());
+            return;
+        }
+        $collection->document($documentId)->set($data);
+    }
+
+    // Recuperamos los elementos de una coleccion ordenados por el campo especificado
+    // de manera ascendente
+    public function getCollectionOrderAsc($pathCollection, $field){
+        $collection;
+        try {
+            // recuperamos la coleccion de documentos
+            $collection = self::$manager->collection($pathCollection);
+        } catch (InvalidMessage $e) {
+            print_r($e->errors());
+
+            return;
+        }
+
+        $query = $collection->orderBy($field, 'ASC');
+        $snapshot = $query->documents();
+    
+        return $snapshot;
+    }
 }

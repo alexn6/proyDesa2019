@@ -1,121 +1,61 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
-//use Kreait\Firebase;
+
 use App\Utils\DbClodFirestoreManager;
 
-// use Kreait\Firebase\Messaging\Notification;
-// use App\Utils\Constant;
-
-// use Google\Cloud\Firestore\FirestoreClient;
-// require '/var/www/html/proyDesa2019/vendor/autoload.php';
+use Google\Cloud\Core\Timestamp;
 
 class ManagerDbCloudFirestoreTest extends TestCase{
 
-    // public function testCreateDbFirestore(){
-    //     $firestore = new FirestoreClient([
-    //         'projectId' => 'proyectotorneosfcm'
-    //     ]
-    //     );
+    // public function testSizeCollection(){
+    //     $pathColleccion = 'news-test/comp-test/news';
+    //     $size = DbClodFirestoreManager::getInstance()->sizeCollection($pathColleccion);
 
-    //     // creamos una db y agregamos algunas noticias de prueba
-    //     $collectionReference = $firestore->collection('news-test');
+    //     $this->assertEquals(2, $size);
+    // }
 
-    //     $new1 = $collectionReference->add([
-    //         'new_one' => 'Noticia de prueba 1'
-    //     ]);
-    //     $new2 = $collectionReference->add([
-    //         'new_two' => 'Noticia de prueba 2'
-    //     ]);
-
-    //     // recuperamos todas las noticias de la db
-    //     $documents = $collectionReference->listDocuments();
-    //     foreach ($documents as $document) {
-    //         echo $document->name() . PHP_EOL;
-    //     }
-
-
-    //     // $factory = new Firebase\Factory();
-    //     // $firestore = $factory->createFirestore();
-
-    //     // $database = $firestore->database();
-
-    //     // $new1 = $database->add([
-    //     //     'new_one' => 'Noticia de prueba 1'
-    //     // ]);
-    //     // $new2 = $database->add([
-    //     //     'new_two' => 'Noticia de prueba 2'
-    //     // ]);
-
-    //     // // recuperamos todas las noticias de la db
-    //     // $documents = $database->listDocuments();
-    //     // foreach ($documents as $document) {
-    //     //     echo $document->name() . PHP_EOL;
-    //     // }
+    // // recuperamos los datos de un noticia de una coleccion determinada
+    // public function testDataDocument(){
+    //     $pathColleccion = 'news-test/comp-test/news';
+    //     $documentId = '2';
+    //     $data = DbClodFirestoreManager::getInstance()->getDataDocumentCollection($pathColleccion, $documentId);
+        
+    //     var_dump($data);
 
     //     $this->assertEquals(0, 0);
     // }
 
-    // // recuperamos una noticia especifica de una competencia por medio de su id y accedemos a sus datos
-    // public function testGetDataDbCloudOneNews(){
-    //     $firestore = new FirestoreClient([
-    //         'projectId' => 'proyectotorneosfcm'
-    //     ]
-    //     );
+    // public function testAddDocument(){
+    //     $pathCollection = 'news-test/comp-test/news';
+    //     $documentId = 3;
+    //     $data = ['title' => 'Inicio de jornada', 
+    //                 'resume' => 'Comienza la jornada nº n de la competencia', 
+    //                 'descripcion' => 'Aca va toda la info de la noticia',
+    //                 'uptime' => new Timestamp(new DateTime())
+    //             ];
 
-    //     $document = $firestore->document('news-test/comp-test/news/1');
-    //     $snapshot = $document->snapshot();
-    //     $infoNoticia = $snapshot->data();
+    //     // recuperamos la cantidad de elementos antes de realizar el insert
+    //     $sizeBefore = DbClodFirestoreManager::getInstance()->sizeCollection($pathCollection);
 
-    //     //var_dump($document);
-    //     var_dump($document->id());
-    //     //var_dump($snapshot);
-    //     var_dump($infoNoticia);
+    //     DbClodFirestoreManager::getInstance()->insertDocument($pathCollection, $data, $documentId);
 
-    //     $this->assertEquals(0, 0);
+    //     $sizeAfter = DbClodFirestoreManager::getInstance()->sizeCollection($pathCollection);
+
+    //     $this->assertEquals($sizeBefore + 1, $sizeAfter);
     // }
 
-    // // recuperamos un documento especifico por medio de su id y accedemos a sus datos
-    // public function testGetDataDbCloudAllNews(){
-    //     $firestore = new FirestoreClient([
-    //         'projectId' => 'proyectotorneosfcm'
-    //     ]
-    //     );
+    public function testGetCollecctionOrderAsc(){
+        $pathCollection = 'news-test/comp-test/news';
+        $field = 'uptime';
+        $collection = DbClodFirestoreManager::getInstance()->getCollectionOrderAsc($pathCollection, $field);
+        //$collection = DbClodFirestoreManager::getInstance()->getCollection($pathCollection);
 
-    //     $collectionNewsCompetition = $firestore->collection('news-test/comp-test/news');    
-
-    //     // $new = $collectionNewsCompetition->document('1');
-    //     // $snapshotNew = $new->snapshot();
-    //     // $infoNew = $snapshotNew->data();
-
-
-    //     // vemos la cantidad de noticias de la competencia
-    //     $newsCompetition = $collectionNewsCompetition->listDocuments();
-    //     foreach ($newsCompetition as $document) {
-    //         $snapshot = $document->snapshot();
-    //         $infoNoticia = $snapshot->data();
-    //         echo("Titulo de la noticia: ".$infoNoticia['title']."\n");
-    //     }
-
-    //     // coomprobamos la cant de noticias de la competencia
-    //     $this->assertEquals(2, iterator_count($newsCompetition));
-    // }
-
-        public function testSizeCollection(){
-            $pathColleccion = 'news-test/comp-test/news';
-            $size = DbClodFirestoreManager::getInstance()->sizeCollection($pathColleccion);
-
-            $this->assertEquals(2, $size);
+        foreach($collection as $document){
+            echo($document->id()."\n");
         }
 
-        public function testDataDocument(){
-            $pathColleccion = 'news-test/comp-test/news';
-            $documentId = '2';
-            $data = DbClodFirestoreManager::getInstance()->getDataDocumentCollection($pathColleccion, $documentId);
-            
-            var_dump($data);
-
-            $this->assertEquals(0, 0);
-        }
+        $this->assertEquals(2, 2);
+    }
 
 }
