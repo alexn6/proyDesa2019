@@ -63,6 +63,11 @@ class Constant{
     const ESTADO_INV_NO_DEFINIDO = 'N/D';
 
     // #############################################################################
+    // ########################## Config DbCloudFirestore ###########################
+
+    const PROJECT_FIREBASE = 'proyectotorneosfcm';
+
+    // #############################################################################
     // ########################## PARAMETROS Verif-Email ###########################
 
     // NOTA: las peticiones deben ser con comillas dobles, en caso contrario se pueden agregar

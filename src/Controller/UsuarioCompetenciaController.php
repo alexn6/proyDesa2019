@@ -206,6 +206,9 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
             $rolCompetidor = $repositoryRol->findOneBy(['nombre' => Constant::ROL_COMPETIDOR]);
             
             $rolSolicitante = $repositoryRol->findOneBy(['nombre' => Constant::ROL_SOLICITANTE]);
+
+            // subscribimos al competidor a su topico correspondiente
+            $this->subcribeUserToTopic($user->getToken(), $competition, $rolCompetidor);
             
             // vamos a buscar el elemento
             $repository=$this->getDoctrine()->getRepository(UsuarioCompetencia::class);
