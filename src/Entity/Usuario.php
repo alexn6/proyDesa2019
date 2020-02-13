@@ -54,6 +54,12 @@ class Usuario implements UserInterface
      */
     private $usuarioscompetencias;
 
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\Notification")
+     * @ORM\JoinColumn(name="notifications_id", referencedColumnName="id")
+     */
+    private $notification;
+
     public function __construct()
     {
         $this->usuarioscompetencias = new ArrayCollection();
@@ -192,6 +198,18 @@ class Usuario implements UserInterface
     public function setToken(string $token): self
     {
         $this->token = $token;
+
+        return $this;
+    }
+
+    public function getNotification(): ?Notification
+    {
+        return $this->notification;
+    }
+
+    public function setNotification(?Notification $notification): self
+    {
+        $this->notification = $notification;
 
         return $this;
     }
