@@ -45,17 +45,46 @@ class ManagerDbCloudFirestoreTest extends TestCase{
     //     $this->assertEquals($sizeBefore + 1, $sizeAfter);
     // }
 
-    public function testGetCollecctionOrderAsc(){
-        $pathCollection = 'news-test/comp-test/news';
-        $field = 'uptime';
-        $collection = DbClodFirestoreManager::getInstance()->getCollectionOrderAsc($pathCollection, $field);
-        //$collection = DbClodFirestoreManager::getInstance()->getCollection($pathCollection);
+    // public function testGetCollecctionOrderAsc(){
+    //     $pathCollection = 'news-test/comp-test/news';
+    //     $field = 'uptime';
+    //     $collection = DbClodFirestoreManager::getInstance()->getCollectionOrderAsc($pathCollection, $field);
 
-        foreach($collection as $document){
-            echo($document->id()."\n");
-        }
+    //     foreach($collection as $document){
+    //         echo($document->id()."\n");
+    //     }
+
+    //     $this->assertEquals(2, 2);
+    // }
+
+    public function testGetOldestDocument(){
+        $pathCollection = 'news-test/comp-test/news';
+        $fieldTime = 'uptime';
+        $docSnapshot = DbClodFirestoreManager::getInstance()->getOldestDocument($pathCollection, $fieldTime);
+
+        $data = $docSnapshot->data();
+        
+        //var_dump($docSnapshot->id());
+        // var_dump($data);
+        // var_dump($docSnapshot->path());
+        $pathCollection =$docSnapshot->reference()->parent()->path();
+        $subPath = explode("/", $pathCollection);
+        var_dump($subPath[1]);
 
         $this->assertEquals(2, 2);
     }
+
+    // public function testGetNewestNDocuments(){
+    //     $pathCollection = 'news-test/comp-test/news';
+    //     $fieldTime = 'uptime';
+    //     $n = 4;
+    //     $arrayDocSnapshot = DbClodFirestoreManager::getInstance()->getLastednDocument($pathCollection, $fieldTime, $n);
+
+    //     foreach($arrayDocSnapshot as $document){
+    //         echo(" Id de la noticia => ".$document->id()."\n");
+    //     }
+
+    //     $this->assertEquals(4, count($arrayDocSnapshot));
+    // }
 
 }

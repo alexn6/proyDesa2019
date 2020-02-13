@@ -99,6 +99,7 @@ class DbClodFirestoreManager
 
     // Recuperamos los elementos de una coleccion ordenados por el campo especificado
     // de manera ascendente
+    // @return iterator<documentSnapshot>
     public function getCollectionOrderAsc($pathCollection, $field){
         $collection;
         try {
@@ -114,5 +115,46 @@ class DbClodFirestoreManager
         $snapshot = $query->documents();
     
         return $snapshot;
+    }
+
+    // return DocumentSnapshot
+    // Recuperamos el elemento mas viejo de una colleccion
+    public function getOldestDocument($pathCollection, $fieldTime){
+        $collection;
+        try {
+            // recuperamos la coleccion de documentos
+            $collection = self::$manager->collection($pathCollection);
+        } catch (InvalidMessage $e) {
+            print_r($e->errors());
+
+            return;
+        }
+
+        $query = $collection->orderBy($fieldTime, 'ASC')->limit(1);
+        $snapshot = $query->documents();
+
+        $rows = $snapshot->rows();
+        $documentsnapshot = $rows[0];
+    
+        return $documentsnapshot;
+    }
+
+    // @return: DocumentSnapshot[]
+    // Recuperamos los n elementos mas recientes de una colleccion
+    public function getLastednDocument($pathCollection, $fieldTime, $n){
+        $collection;
+        try {
+            // recuperamos la coleccion de documentos
+            $collection = self::$manager->collection($pathCollection);
+        } catch (InvalidMessage $e) {
+            print_r($e->errors());
+
+            return;
+        }
+
+        $query = $collection->orderBy($fieldTime, 'DESC')->limit($n);
+        $snapshot = $query->documents();
+    
+        return $snapshot->rows();
     }
 }

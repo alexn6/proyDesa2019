@@ -433,75 +433,74 @@ class UsuarioController extends AbstractFOSRestController
   }
 
   /**
-     * Actualiza el rol de usuario_competencia
-     * @Rest\Put("/user-token"), defaults={"_format"="json"})
-     * 
-     * @return Response
-     */
-    public function updateToken(Request $request){
+   * Actualiza el rol de usuario_competencia
+   * @Rest\Put("/user-token"), defaults={"_format"="json"})
+   * 
+   * @return Response
+   */
+  public function updateToken(Request $request){
 
-      $respJson = (object) null;
-      $statusCode;
+    $respJson = (object) null;
+    $statusCode;
 
-      if(!empty($request->getContent())){
+    if(!empty($request->getContent())){
 
-        // recuperamos los datos del body y pasamos a un array
-        $dataRequest = json_decode($request->getContent());
+      // recuperamos los datos del body y pasamos a un array
+      $dataRequest = json_decode($request->getContent());
 
-        if((!empty($dataRequest->nombreUsuario))&&(!empty($dataRequest->token))){
-          // vemos si existen los datos necesarios
-          $nombreUsuario = $dataRequest->nombreUsuario;
-          $new_token = $dataRequest->token;
+      if((!empty($dataRequest->nombreUsuario))&&(!empty($dataRequest->token))){
+        // vemos si existen los datos necesarios
+        $nombreUsuario = $dataRequest->nombreUsuario;
+        $new_token = $dataRequest->token;
+        
+        // buscamos el usuario
+        $repository=$this->getDoctrine()->getRepository(Usuario::class);
+        $usuario = $repository->findOneBy(['nombreUsuario' => $nombreUsuario]);
+
+        if($usuario != NULL){
+          // TODO: incluir esto de manera correcta
+          // $tokenViejo = $usuario->getToken();
+          // if($tokenViejo != $new_token){
+          //   // vemos si existia un token
+          //   if($tokenViejo != NULL){
+          //     $this->updateSubscriptionsTopics($tokenViejo, $new_token);
+          //   }
+          //   $em = $this->getDoctrine()->getManager();
+          //   $usuario->setToken($new_token);
+          //   $em->flush();
+          // }
           
-          // buscamos el usuario
-          $repository=$this->getDoctrine()->getRepository(Usuario::class);
-          $usuario = $repository->findOneBy(['nombreUsuario' => $nombreUsuario]);
-
-          if($usuario != NULL){
-            // $tokenViejo = $usuario->getToken();
-            // if($tokenViejo != $new_token){
-            //   // vemos si existia un token
-            //   if($tokenViejo != NULL){
-            //     $this->updateSubscriptionsTopics($tokenViejo, $new_token);
-            //   }
-            //   $em = $this->getDoctrine()->getManager();
-            //   $usuario->setToken($new_token);
-            //   $em->flush();
-            // }
-            
-            $em = $this->getDoctrine()->getManager();
-            $usuario->setToken($new_token);
-            $em->flush();
-    
-            $respJson->messaging = "Actualizacion realizada";
-          }
-          else{
-            $respJson->messaging = "El usuario no existe";
-          }
-          $statusCode = Response::HTTP_OK;
+          $em = $this->getDoctrine()->getManager();
+          $usuario->setToken($new_token);
+          $em->flush();
+  
+          $respJson->messaging = "Actualizacion realizada";
         }
         else{
-          $statusCode = Response::HTTP_BAD_REQUEST;
-          $respJson->messaging = "Solicitud mal formada";
+          $respJson->messaging = "El usuario no existe";
         }
-        
+        $statusCode = Response::HTTP_OK;
       }
       else{
         $statusCode = Response::HTTP_BAD_REQUEST;
         $respJson->messaging = "Solicitud mal formada";
       }
-
       
-      $respJson = json_encode($respJson);
+    }
+    else{
+      $statusCode = Response::HTTP_BAD_REQUEST;
+      $respJson->messaging = "Solicitud mal formada";
+    }
 
-      $response = new Response($respJson);
-      $response->headers->set('Content-Type', 'application/json');
-      $response->setStatusCode($statusCode);
+    
+    $respJson = json_encode($respJson);
 
-      return $response;
+    $response = new Response($respJson);
+    $response->headers->set('Content-Type', 'application/json');
+    $response->setStatusCode($statusCode);
+
+    return $response;
   }
-
-  
 
   /**
      * Lista de todos los usuarios que contengan el nombre de usuario pasado por parametro.
@@ -548,12 +547,12 @@ class UsuarioController extends AbstractFOSRestController
 
 
     private function sendCodVerification($codVerification, $mailDestino){
-      $asunto = 'Proyecto Torneos';
+      // $asunto = 'Proyecto Torneos';
       // $mail_desde = 'alex6tc90@gmail.com';
       $msg = 'su codigo de verificacion es '.$codVerification.'. No lo compartas.';
 
-      MailManager::getInstance()->sendMail($asunto, $mail_desde, Constant::SWFMAILER_SERVER_SMTP_USER, $msg);
-
+      // MailManager::getInstance()->sendMail($asunto, $mail_desde, Constant::SWFMAILER_SERVER_SMTP_USER, $msg);
+      MailManager::getInstance()->sendMail(Constant::APP_MOVIL_NAME, Constant::SWFMAILER_SERVER_SMTP_USER, $mailDestino, $msg);
     }
 
     // mantenemos las subscripciones del token anterior
