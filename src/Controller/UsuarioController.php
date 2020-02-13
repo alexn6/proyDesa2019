@@ -10,6 +10,8 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\Entity\Usuario;
+use App\Entity\Notification;
+
 use App\Utils\VerificationMail;
 use App\Utils\MailManager;
 use App\Utils\NotificationManager;
@@ -252,6 +254,17 @@ class UsuarioController extends AbstractFOSRestController
 
   
         if((!$usuario)&&($existEmail)&&(!$usuario_correo)){
+
+          $repositoryNotif = $this->getDoctrine()->getRepository(Notification::class);
+
+          // creamos las notificaciones a seguir
+          $notification = new Notification();
+          $notification->setSeguidor(true);
+          $notification->setCompetidor(true);
+          $em = $this->getDoctrine()->getManager();
+          $em->persist($notification);
+          $em->flush();
+
           // creamos el usuario
           $usuarioCreate = new Usuario();
           $usuarioCreate->setNombre($dataUserRequest->nombre);
@@ -260,6 +273,7 @@ class UsuarioController extends AbstractFOSRestController
           $usuarioCreate->setCorreo($correo);
           $usuarioCreate->setPass($dataUserRequest->pass);
           $usuarioCreate->setToken($dataUserRequest->token);
+          $usuarioCreate->setNotification($notification);
   
           // encriptamos la contraseña
           $passHash = $this->passwordEncoder->encodePassword($usuarioCreate, $usuarioCreate->getNombre());
