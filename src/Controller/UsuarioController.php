@@ -519,7 +519,7 @@ class UsuarioController extends AbstractFOSRestController
   /**
    * Actualiza la configuracion del tipo de competencia de las cuales
    * quiere recibir notificaciones
-   * @Rest\Put("/user-notif"), defaults={"_format"="json"})
+   * @Rest\Post("/user-notif"), defaults={"_format"="json"})
    * 
    * @return Response
    */
@@ -532,7 +532,7 @@ class UsuarioController extends AbstractFOSRestController
       // recuperamos los datos del body y pasamos a un array
       $dataRequest = json_decode($request->getContent());
 
-      if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->seguidor))&&(!empty($dataRequest->competidor))){
+      if((isset($dataRequest->idUsuario))&&(isset($dataRequest->seguidor))&&(isset($dataRequest->competidor))){
         // vemos si existen los datos necesarios
         $idUsuario = $dataRequest->idUsuario;
         $enable_notif_seguidor = $dataRequest->seguidor;
@@ -544,22 +544,33 @@ class UsuarioController extends AbstractFOSRestController
 
         if($usuario != NULL){ 
           $em = $this->getDoctrine()->getManager();
+          
+          // $namesCompetitionsFollow = $repository->namesCompetitionsFollow($idUsuario);
+          // $namesCompetitionsFollow = $this->getArrayNameCompetitions($namesCompetitionsFollow);
+          // var_dump($namesCompetitionsFollow);
+
+          // $namesCompetitionsCompete = $repository->namesCompetitionsCompete($idUsuario);
+          // $namesCompetitionsCompete = $this->getArrayNameCompetitions($namesCompetitionsCompete);
+          // var_dump($namesCompetitionsCompete);
+
+          // var_dump($usuario->getNotification()->getSeguidor());
+          // var_dump($usuario->getNotification()->getCompetidor());
+
           // si cambia la config anterior
-          if($usuario->getNotification()->getseguidor() != $enable_notif_seguidor){
-            // TODO: aca deberiamos revisar si subscribimos o desusbcribimos al [FUNC1]
+          if($usuario->getNotification()->getSeguidor() != $enable_notif_seguidor){
+            // TODO: aca deberiamos revisar si subscribimos o desusbcribimos al
             // usuario de las competencias
-            // TRUE => busco competencias que SIGO y me subscribo
-            // FALSE => busco competencias que SIGO y me desubscribo
-            //as
+            $this->updateSubscriptions($usuario, $enable_notif_seguidor, Constant::ROL_SEGUIDOR);
             $usuario->getNotification()->setSeguidor($enable_notif_seguidor);
           }
+
           if($usuario->getNotification()->getCompetidor() != $enable_notif_competidor){
             // TODO: aca deberiamos revisar si subscribimos o desusbcribimos al [FUNC1]
             // usuario de las competencias
-            // TRUE => busco competencias que SIGO y me subscribo
-            // FALSE => busco competencias que SIGO y me desubscribo
+            $this->updateSubscriptions($usuario, $enable_notif_competidor, Constant::ROL_COMPETIDOR);
             $usuario->getNotification()->setCompetidor($enable_notif_competidor);
           }
+
           $em->flush();
   
           $respJson->messaging = "Actualizacion realizada";
@@ -632,7 +643,44 @@ class UsuarioController extends AbstractFOSRestController
       return $response;
     }
 
+    // ##########################################################################################
+    // ############################## FUNCIONES PRIVADAS ########################################
 
+    private function getArrayNameCompetitions($arrayCompetions){
+      $arrayNames = array();
+      foreach ($arrayCompetions as &$competition) {
+        array_push($arrayNames, $competition['nombre']);
+      }
+
+      return $arrayNames;
+    }
+
+    // actualiza el estado de todas las subscripciones de las competencias de las
+    // que forma parte un usuario, segun su rol
+    private function updateSubscriptions($user, $enable, $nameRol){
+      $repository = $this->getDoctrine()->getRepository(Usuario::class);
+      $arrayTopics;
+      // vemos segun el rol los topicos a los que etsa subscrito
+      if($nameRol == Constant::ROL_SEGUIDOR){
+        $arrayTopics = $repository->namesCompetitionsFollow($user->getId());
+      }
+      //var_dump($nameRol);
+      if($nameRol == Constant::ROL_COMPETIDOR){
+        $arrayTopics = $repository->namesCompetitionsCompete($user->getId());
+      }
+      // var_dump($arrayTopics);
+      // var_dump($enable);
+      $arrayTopics = $this->getArrayNameCompetitions($arrayTopics);
+
+      // dependiendo del estado de habilitado subscribimos o desubscribimos
+      if($enable){
+        NotificationManager::getInstance()->susbcribeAllTopic($user->getToken(), $arrayTopics);
+      }
+      if(!$enable){
+        NotificationManager::getInstance()->unsusbcribeAllTopic($user->getToken());
+      }
+      
+    }
 
     private function sendCodVerification($codVerification, $mailDestino){
       // $asunto = 'Proyecto Torneos';

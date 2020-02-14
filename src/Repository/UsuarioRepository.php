@@ -3,6 +3,12 @@
 namespace App\Repository;
 
 use App\Entity\Usuario;
+use App\Entity\Rol;
+use App\Entity\Competencia;
+use App\Entity\UsuarioCompetencia;
+
+use App\Utils\Constant;
+
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
 
@@ -58,4 +64,45 @@ class UsuarioRepository extends ServiceEntityRepository
         
         return $query->execute();
     }
+
+    // recuperamos los nombres de las competencias que SIGUE un usuario
+  public function namesCompetitionsFollow($idUsuario)
+  {
+      $entityManager = $this->getEntityManager();
+
+      $query = $entityManager->createQuery(
+          '   SELECT c.nombre
+              FROM App\Entity\UsuarioCompetencia uc
+              INNER JOIN App\Entity\Competencia c
+              WITH uc.competencia = c.id
+              INNER JOIN App\Entity\Rol r
+              WITH uc.rol = r.id
+              AND uc.usuario = :idUsuario
+              AND r.nombre = :rol
+          ')->setParameter('rol', Constant::ROL_SEGUIDOR)
+          ->setParameter('idUsuario', $idUsuario);    
+
+      return $query->execute();
+  }
+
+  // recuperamos los nombres de las competencias que COMPITE un usuario
+  public function namesCompetitionsCompete($idUsuario)
+  {
+      $entityManager = $this->getEntityManager();
+
+      $query = $entityManager->createQuery(
+          '   SELECT c.nombre
+              FROM App\Entity\UsuarioCompetencia uc
+              INNER JOIN App\Entity\Competencia c
+              WITH uc.competencia = c.id
+              INNER JOIN App\Entity\Rol r
+              WITH uc.rol = r.id
+              AND uc.usuario = :idUsuario
+              AND r.nombre = :rol
+          ')->setParameter('rol', Constant::ROL_COMPETIDOR)
+          ->setParameter('idUsuario', $idUsuario);    
+
+      return $query->execute();
+  }
+
 }

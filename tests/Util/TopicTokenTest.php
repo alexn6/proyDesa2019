@@ -49,7 +49,7 @@ class TopicTokenTest extends TestCase{
     //     $this->assertEquals(0, count($subscriptions));
     // }
 
-    // function no funcional
+    // funcion no funcional
     // public function testValidToken(){
     //     $token = 'd9VIxftAB14:APA91bEPKajfIb7--LpXSNOhxwL52D3ib9efWVE7rNP-XRmlrTt0p-7zCw95yPwQ0nxfKx14Yim7gUUqq2w5ctZ0szrHIQBLBrbSm5IeXzlL_84XFCr6uEnxHJUwJz5Zh6sRwRkWRwQd';
     //     NotificationManager::getInstance()->validToken($token);
@@ -70,17 +70,25 @@ class TopicTokenTest extends TestCase{
     // }
 
     // desusbcribe a un token de sus subcripciones
-    public function testUnsubscribeAllTopics(){
+    // public function testUnsubscribeAllTopics(){
+    //     $token = 'd9VIxftAB14:APA91bEPKajfIb7--LpXSNOhxwL52D3ib9efWVE7rNP-XRmlrTt0p-7zCw95yPwQ0nxfKx14Yim7gUUqq2w5ctZ0szrHIQBLBrbSm5IeXzlL_84XFCr6uEnxHJUwJz5Zh6sRwRkWRwQd';
+
+    //     $subscriptionsOld = NotificationManager::getInstance()->getTopicsSusbcribed($token);
+    //     $this->assertEquals(2, count($subscriptionsOld));
+
+    //     NotificationManager::getInstance()->unsusbcribeAllTopic($token);
+
+    //     $subscriptionsAfter = NotificationManager::getInstance()->getTopicsSusbcribed($token);
+
+    //     $this->assertEquals(0, count($subscriptionsAfter));
+    // }
+
+    // recupera los topicos a los que el usaurio esta subscrito
+    public function testGetSubscribeTopics(){
         $token = 'd9VIxftAB14:APA91bEPKajfIb7--LpXSNOhxwL52D3ib9efWVE7rNP-XRmlrTt0p-7zCw95yPwQ0nxfKx14Yim7gUUqq2w5ctZ0szrHIQBLBrbSm5IeXzlL_84XFCr6uEnxHJUwJz5Zh6sRwRkWRwQd';
+        $subscriptions = NotificationManager::getInstance()->getTopicsSusbcribed($token);
 
-        $subscriptionsOld = NotificationManager::getInstance()->getTopicsSusbcribed($token);
-        $this->assertEquals(2, count($subscriptionsOld));
-
-        NotificationManager::getInstance()->unsusbcribeAllTopic($token);
-
-        $subscriptionsAfter = NotificationManager::getInstance()->getTopicsSusbcribed($token);
-
-        $this->assertEquals(0, count($subscriptionsAfter));
+        $this->assertEquals(0, count($subscriptions));
     }
 
 }

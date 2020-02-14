@@ -155,7 +155,6 @@ class NotificationManager
         $subscriptions = $appInstance->topicSubscriptions();
 
         foreach ($subscriptions as $subscription) {
-            echo "Fue desubscrito de {$subscription->topic()}\n";
             self::$manager->unsubscribeFromTopic($subscription->topic(), $token);
         }
     }

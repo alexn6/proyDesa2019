@@ -137,7 +137,7 @@ class CompetenciaController extends AbstractFOSRestController
           $competenciaCreate->setFrecDias($dataCompetitionRequest->frecuencia);
           $competenciaCreate->setCategoria($categoria);
           $competenciaCreate->setOrganizacion($tipoorg);
-          $competenciaCreate->setEstado(Constant::ESTADO_SIN_INSCRIPCION);
+          $competenciaCreate->setEstado(Constant::ESTADO_COMP_SIN_INSCRIPCION);
 
           $hayGrupos = property_exists((object) $dataCompetitionRequest,'cant_grupos');
           if($hayGrupos){
