@@ -13,6 +13,7 @@ use App\Utils\CreatorEncuentros;
 use App\Entity\Competencia;
 use App\Entity\UsuarioCompetencia;
 use App\Entity\TipoOrganizacion;
+use App\Entity\Encuentro;
 
 use App\Controller\EncuentroController;
 use App\Utils\Validation;
@@ -267,7 +268,7 @@ class GeneradorEncuentroController extends AbstractFOSRestController
      */
     public function generateMatchesCompetition(Request $request){
         $idCompetition = $request->get('idCompetencia');
-
+        $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
         $respJson = (object) null;
         $statusCode;
        
@@ -287,43 +288,51 @@ class GeneradorEncuentroController extends AbstractFOSRestController
                 // recuperamos los usuario_competencia de una competencia
                 // $participantes = $repositoryUsComp->findNameCompetidoresByCompetencia($idCompetencia);
                 $participantes = $repositoryUsComp->findAliasCompetidoresByCompetencia($idCompetencia);
+                $comprobar = $repositoryEnc->findOneBy(['competencia' => $competition]);
 
-                if(!($this->validarCantCompetidores($competition, $participantes))){
+                if(!empty($comprobar)){
                     $respJson->matches = NULL;
-                    $statusCode = Response::HTTP_BAD_REQUEST;
-                    $respJson->msg = "No cuenta con suficientes participantes para crear la competencia";
-                }
-                else{
-                    // recuperamos la lista de los nombres de los participantes
-                    $nombre_participantes = array();
-                    foreach ($participantes as &$valor) {
-                        // array_push($nombre_participantes, $valor['nombreUsuario']);
-                        array_push($nombre_participantes, $valor['alias']);
-                    }
-
-                    // recuperamos el tipo de org de la competencia
-                    $repositoryTypeorg = $this->getDoctrine()->getRepository(TipoOrganizacion::class);
-                    $tipoorg = $repositoryTypeorg->find($competition->getOrganizacion());
-                    $codigo_tipo = $tipoorg->getCodigo();
-    
-                    $generatorMatches = new CreatorEncuentros();
-                    if(strcmp($codigo_tipo, "FASEGRUP") == 0){
-                        $matchesCompetition = $generatorMatches->createMatches($nombre_participantes, $codigo_tipo, $competition->getCantGrupos());
+                    $respJson->msg = "Encuentros ya generados";
+                    $statusCode = Response::HTTP_BAD_REQUEST; 
+                }else{
+                    if(!($this->validarCantCompetidores($competition, $participantes))){
+                        $respJson->matches = NULL;
+                        $statusCode = Response::HTTP_BAD_REQUEST;
+                        $respJson->msg = "No cuenta con suficientes participantes para crear la competencia";
                     }
                     else{
-                        // var_dump($competition);
-                        $matchesCompetition = $generatorMatches->createMatches($nombre_participantes, $codigo_tipo, null);
+                        // recuperamos la lista de los nombres de los participantes
+                        $nombre_participantes = array();
+                        foreach ($participantes as &$valor) {
+                            // array_push($nombre_participantes, $valor['nombreUsuario']);
+                            array_push($nombre_participantes, $valor['alias']);
+                        }
+
+                        // recuperamos el tipo de org de la competencia
+                        $repositoryTypeorg = $this->getDoctrine()->getRepository(TipoOrganizacion::class);
+                        $tipoorg = $repositoryTypeorg->find($competition->getOrganizacion());
+                        $codigo_tipo = $tipoorg->getCodigo();
+        
+                        $generatorMatches = new CreatorEncuentros();
+                        if(strcmp($codigo_tipo, "FASEGRUP") == 0){
+                            $matchesCompetition = $generatorMatches->createMatches($nombre_participantes, $codigo_tipo, $competition->getCantGrupos());
+                        }
+                        else{
+                            // var_dump($competition);
+                            $matchesCompetition = $generatorMatches->createMatches($nombre_participantes, $codigo_tipo, null);
+                        }
+        
+                        // vamos a persistir los datos de los encuentros generados
+                        $this->forward('App\Controller\EncuentroController::saveFixture', [
+                            'matches'  => $matchesCompetition,
+                            'competencia' => $competition,
+                            'tipoorg' => $codigo_tipo
+                        ]);
+                        $statusCode = Response::HTTP_OK;
+                        $respJson->msg = "Generacion realizada con exito";
+                        $respJson->matches = $matchesCompetition;
                     }
-    
-                    // vamos a persistir los datos de los encuentros generados
-                    $this->forward('App\Controller\EncuentroController::saveFixture', [
-                        'matches'  => $matchesCompetition,
-                        'competencia' => $competition,
-                        'tipoorg' => $codigo_tipo
-                    ]);
-                    $statusCode = Response::HTTP_OK;
-                    $respJson->msg = "Generacion realizada con exito";
-                    $respJson->matches = $matchesCompetition;
+                
                 }
             }
         }
