@@ -165,7 +165,6 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
           $statusCode = Response::HTTP_BAD_REQUEST;
           $respJson->messaging = "Solicitud mal formada";
         }
-  
         
         $respJson = json_encode($respJson);
   
@@ -207,8 +206,11 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
             
             $rolSolicitante = $repositoryRol->findOneBy(['nombre' => Constant::ROL_SOLICITANTE]);
 
-            // subscribimos al competidor a su topico correspondiente
-            $this->subcribeUserToTopic($user->getToken(), $competition, $rolCompetidor);
+            // controlamos si el usuario tiene habilitadas las notificaciones
+            if($user->getNotification()->getCompetidor()){
+              // subscribimos al competidor a su topico correspondiente
+              $this->subcribeUserToTopic($user->getToken(), $competition, $rolCompetidor);
+            }
             
             // vamos a buscar el elemento
             $repository=$this->getDoctrine()->getRepository(UsuarioCompetencia::class);
@@ -898,9 +900,21 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         $competition = $repositoryComp->find($idCompetition);
 
         // susbcribimos en el caso de que sean seguidores o competidores
-        if(($nameRol == Constant::ROL_SEGUIDOR) || ($nameRol == Constant::ROL_COMPETIDOR)){
-          // subscribimos al usuario al topico correspondiente
-          $this->subcribeUserToTopic($user->getToken(), $competition, $rol);
+        // if(($nameRol == Constant::ROL_SEGUIDOR) || ($nameRol == Constant::ROL_COMPETIDOR)){
+        //   // subscribimos al usuario al topico correspondiente
+        //   $this->subcribeUserToTopic($user->getToken(), $competition, $rol);
+        // }
+        if($nameRol == Constant::ROL_SEGUIDOR){
+          if($user->getNotification()->getSeguidor()){
+            // subscribimos al usuario al topico correspondiente
+            $this->subcribeUserToTopic($user->getToken(), $competition, $rol);
+          }
+        }
+        if($nameRol == Constant::ROL_COMPETIDOR){
+          if($user->getNotification()->getCompetidor()){
+            // subscribimos al usuario al topico correspondiente
+            $this->subcribeUserToTopic($user->getToken(), $competition, $rol);
+          }
         }
 
         // vemos si hay que actualizar o crear un nuevo dato

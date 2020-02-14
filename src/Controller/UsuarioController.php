@@ -517,6 +517,80 @@ class UsuarioController extends AbstractFOSRestController
   }
 
   /**
+   * Actualiza la configuracion del tipo de competencia de las cuales
+   * quiere recibir notificaciones
+   * @Rest\Put("/user-notif"), defaults={"_format"="json"})
+   * 
+   * @return Response
+   */
+  public function updateConfigNotif(Request $request){
+
+    $respJson = (object) null;
+    $statusCode;
+
+    if(!empty($request->getContent())){
+      // recuperamos los datos del body y pasamos a un array
+      $dataRequest = json_decode($request->getContent());
+
+      if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->seguidor))&&(!empty($dataRequest->competidor))){
+        // vemos si existen los datos necesarios
+        $idUsuario = $dataRequest->idUsuario;
+        $enable_notif_seguidor = $dataRequest->seguidor;
+        $enable_notif_competidor = $dataRequest->competidor;
+        
+        // buscamos el usuario
+        $repository = $this->getDoctrine()->getRepository(Usuario::class);
+        $usuario = $repository->find($idUsuario);
+
+        if($usuario != NULL){ 
+          $em = $this->getDoctrine()->getManager();
+          // si cambia la config anterior
+          if($usuario->getNotification()->getseguidor() != $enable_notif_seguidor){
+            // TODO: aca deberiamos revisar si subscribimos o desusbcribimos al [FUNC1]
+            // usuario de las competencias
+            // TRUE => busco competencias que SIGO y me subscribo
+            // FALSE => busco competencias que SIGO y me desubscribo
+            //as
+            $usuario->getNotification()->setSeguidor($enable_notif_seguidor);
+          }
+          if($usuario->getNotification()->getCompetidor() != $enable_notif_competidor){
+            // TODO: aca deberiamos revisar si subscribimos o desusbcribimos al [FUNC1]
+            // usuario de las competencias
+            // TRUE => busco competencias que SIGO y me subscribo
+            // FALSE => busco competencias que SIGO y me desubscribo
+            $usuario->getNotification()->setCompetidor($enable_notif_competidor);
+          }
+          $em->flush();
+  
+          $respJson->messaging = "Actualizacion realizada";
+        }
+        else{
+          $respJson->messaging = "El usuario no existe";
+        }
+        $statusCode = Response::HTTP_OK;
+      }
+      else{
+        $statusCode = Response::HTTP_BAD_REQUEST;
+        $respJson->messaging = "Solicitud mal formada";
+      }
+      
+    }
+    else{
+      $statusCode = Response::HTTP_BAD_REQUEST;
+      $respJson->messaging = "Solicitud mal formada";
+    }
+
+    
+    $respJson = json_encode($respJson);
+
+    $response = new Response($respJson);
+    $response->headers->set('Content-Type', 'application/json');
+    $response->setStatusCode($statusCode);
+
+    return $response;
+  }
+
+  /**
      * Lista de todos los usuarios que contengan el nombre de usuario pasado por parametro.
      * @Rest\Get("/users/getUsersByUsername"), defaults={"_format"="json"})
      * 
