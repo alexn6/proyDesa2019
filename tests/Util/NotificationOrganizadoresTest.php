@@ -1,28 +1,29 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
-use App\Utils\NotificationService;
+
+use App\Utils\NotificationManager;
+
+use Kreait\Firebase\Messaging\Notification;
 
 class NotificationOrganizadoresTest extends TestCase{
 
     public function testNotificationOrganizadores(){
-        $servNotification = new NotificationService();
+
+        $tokenOrg1 ='fUcPY2Yii7w:APA91bFF_FS_LHpvCYGQ0h_wi9tivXsMwR2llC0KWudPCO2pTbI30yBdoUfF0hBIfIlkz_o9Lj3ZaM9P42siPRf6I532cfolqxvd0v4lNDed6-q8AnRV0rKI6kAB7N4V7LBZ0dyeFArc';
+        $tokenOrg2 = 'eOCyHO6FkxE:APA91bH6y-nDnsRMW4Xo-4sdN44g_Z9Y89ai0yNX-RU-3TpVNi5fXwF0vQybMlwkitHwcHXCwwK1ZoMVa4AwgOGCVMWQm0j_sTCpjMFHxaV-0oTjfk1fWBb2761nZivDBP_pPmWyV8wl';
+        // preparamos el array de tokens
+        $tokenDevices = [$tokenOrg1, $tokenOrg2];
+        var_dump($tokenDevices);
 
         $title = "Solicitud de inscripcion";
-        $token ='da7cU3tPSs8:APA91bH2QFvIB8uGSgNmioaHBGTBkTrcYSCy-Rpsp8VDlnH8UmKIC6prC3jC0n5TMx55rldz5VBmJOOja7fJdCw-xzguuz1RXxCqGjFJ7kErSjPI4gQ6pBgFNGKgzw0BIO0I_NpHZDPy';
+        $body = "El usuario SeñorX quiere unirse a la competencia";
+        $notification = Notification::create($title, $body);
 
-        // preparamos el array de tokens
-        $miToken = "f4SIsbWupSs:APA91bEcEIY9hbGVhAIBZOwDt60z325H_f0xyopyOzCzHub0qCMhXwyye9X_7VmF5fJNDjipB5fnF3gnGuW7L8D8jy6PNTM0yVmu7ddKaupmzwJZRCk-At2nPM-Du2u6OZl1qKpeK6Fl";
-        // $gorToken = "dXI4g5vjJj4:APA91bE-XP3JP5LL1zGl_5ZRfSzFW57AEfSB8ucScJB1o60Fe4qzEHgYx3KgPI9Yj1qdawkfeSZMQ3K9JKINl-lGfW9jpqIFyqIqtcHmHy6k-X1oq1u6QG1JxZxEYwUNQx4oTLnEcmH1";
-        $sergio = "eqze7kZM1qg:APA91bF_9xt695EyqcsUJYQeYY7kEzZw-cF9V-PDl9o_DS2PuL98GlUUW8UyfDZrWjibDhcVd3Qv0MzJoqSMLr23coRNtoByPwfSG0Gmt0nNbXolgGwzfWC1cSi9bSylnSm1H2hO9yNE";
-        $tokenDevices = [$miToken, $sergio];
-
-        $msg = "El usuario SeñorX quiere unirse a la competencia";
-
-        $result = $servNotification->sendMultipleNotificationFCM($title, $tokenDevices, $msg);
+        $result = NotificationManager::getInstance()->notificationMultipleDevices($tokenDevices, $notification);
 
         print_r($result);
-        // 
+        
         $this->assertEquals(0, 0);
     }
 }

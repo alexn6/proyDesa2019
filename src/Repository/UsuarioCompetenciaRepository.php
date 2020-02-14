@@ -221,6 +221,27 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
       return $query->execute();
   }
 
+  // recuperamos los nombres de las competencias que SIGUE o PARTICIPA un usuario
+  public function namesCompetitionsParticipe($idUsuario)
+  {
+      $entityManager = $this->getEntityManager();
+
+      $query = $entityManager->createQuery(
+          '   SELECT c.nombre
+              FROM App\Entity\UsuarioCompetencia uc
+              INNER JOIN App\Entity\Competencia c
+              WITH uc.competencia = c.id
+              INNER JOIN App\Entity\Rol r
+              WITH uc.rol = r.id
+              AND uc.usuario = :idUsuario
+              AND (r.nombre = :rol1 OR r.nombre = :rol2)
+          ')->setParameter('rol1', Constant::ROL_SEGUIDOR)
+          ->setParameter('rol2', Constant::ROL_COMPETIDOR)
+          ->setParameter('idUsuario', $idUsuario);    
+
+      return $query->execute();
+  }
+
   // ######################################################################
   // #################### COMPETENCIA SEGUN ROL USUARIO ##################
 

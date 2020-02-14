@@ -5,6 +5,12 @@ namespace App\Utils;
 class Constant{
 
     // #############################################################################
+    // ################################ APP ANDROID ###############################
+    const APP_MOVIL_NAME = 'Proyecto Torneos';
+
+    const CANT_MAX_NOTICIAS = 3;
+
+    // #############################################################################
     // ################################# ROLES #####################################
 
     const ROL_ESPECTADOR = 'ESPECTADOR';
@@ -63,6 +69,11 @@ class Constant{
     const ESTADO_INV_NO_DEFINIDO = 'N/D';
 
     // #############################################################################
+    // ########################## Config DbCloudFirestore ###########################
+
+    const PROJECT_FIREBASE = 'proyectotorneosfcm';
+
+    // #############################################################################
     // ########################## PARAMETROS Verif-Email ###########################
 
     // NOTA: las peticiones deben ser con comillas dobles, en caso contrario se pueden agregar
@@ -79,8 +90,10 @@ class Constant{
     const SWFMAILER_SERVER_SMTP = 'smtp.gmail.com';
     const SWFMAILER_SERVER_SMTP_PORT = 587;
     const SWFMAILER_SERVER_SMTP_SECURE = 'tls';
-    const SWFMAILER_SERVER_SMTP_USER = 'alex6tc90@gmail.com';
-    const SWFMAILER_SERVER_SMTP_USER_PASS = 'G1m2a3i4l';
+    // const SWFMAILER_SERVER_SMTP_USER = 'alex6tc90@gmail.com';
+    // const SWFMAILER_SERVER_SMTP_USER_PASS = 'G1m2a3i4l';
+    const SWFMAILER_SERVER_SMTP_USER = 'torneosycompetenciasapp@gmail.com';
+    const SWFMAILER_SERVER_SMTP_USER_PASS = 'desarrollo2020';
 
     // #############################################################################
     // ################################# SERVICIOS #################################

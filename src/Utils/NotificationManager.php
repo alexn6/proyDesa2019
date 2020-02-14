@@ -45,9 +45,6 @@ class NotificationManager
             return;
         }
         
-        // $message = CloudMessage::withTarget('token', $tokenDevice)
-        //     ->withNotification(Notification::create('Title', 'Body'))
-        //     ->withData(['key' => 'Algun dato']);
         $message = CloudMessage::withTarget('token', $tokenDevice)
             ->withNotification($notification);
     
@@ -69,15 +66,11 @@ class NotificationManager
             return;
         }
         
-        // $message = CloudMessage::withTarget('token', $tokenDevice)
-        //     ->withNotification(Notification::create('Title', 'Body'))
-        //     ->withData(['key' => 'Algun dato']);
         $message = CloudMessage::withTarget('token', $tokenDevice)
             ->withNotification($notification)
             ->withData($data);
     
         try {
-            // $myAdminsdkFirebase->validate($message);
             self::$manager->validate($message);
         } catch (InvalidMessage $e) {
             print_r($e->errors());
@@ -93,8 +86,8 @@ class NotificationManager
         
         $sendReport = self::$manager->sendMulticast($message, $deviceTokens);
 
-        echo 'Successful sends: '.$sendReport->successes()->count().PHP_EOL;
-        echo 'Failed sends: '.$sendReport->failures()->count().PHP_EOL;
+        // echo 'Successful sends: '.$sendReport->successes()->count().PHP_EOL;
+        // echo 'Failed sends: '.$sendReport->failures()->count().PHP_EOL;
 
         if ($sendReport->hasFailures()) {
             foreach ($sendReport->failures()->getItems() as $failure) {
@@ -111,8 +104,8 @@ class NotificationManager
         
         $sendReport = self::$manager->sendMulticast($message, $deviceTokens);
 
-        echo 'Successful sends: '.$sendReport->successes()->count().PHP_EOL;
-        echo 'Failed sends: '.$sendReport->failures()->count().PHP_EOL;
+        // echo 'Successful sends: '.$sendReport->successes()->count().PHP_EOL;
+        // echo 'Failed sends: '.$sendReport->failures()->count().PHP_EOL;
 
         if ($sendReport->hasFailures()) {
             foreach ($sendReport->failures()->getItems() as $failure) {
@@ -140,14 +133,53 @@ class NotificationManager
         self::$manager->send($message);
     }
 
-    public function subscribeTopic($topic, $tokens){
-        self::$manager->subscribeToTopic($topic, $tokens);
+    public function subscribeTopic($topic, $token){
+        self::$manager->subscribeToTopic($topic, $token);
     }
 
-    public function unsubscribeTopic($topic, $tokens){
-        self::$manager->unsubscribeFromTopic($topic, $tokens);
+    public function unsubscribeTopic($topic, $token){
+        self::$manager->unsubscribeFromTopic($topic, $token);
     }
 
+    // subscribe al token a la lista de topicos recibidos
+    public function susbcribeAllTopic($token, $arrayTopics){
+        for ($i=0; $i < count($arrayTopics); $i++) {
+            $topic = $arrayTopics[$i];
+            self::$manager->subscribeToTopic($topic, $token);
+        }
+    }
+
+    // desubscribe al token a la lista de topicos recibidos
+    public function unsusbcribeAllTopic($token){
+        $appInstance = self::$manager->getAppInstance($token);
+        $subscriptions = $appInstance->topicSubscriptions();
+
+        foreach ($subscriptions as $subscription) {
+            echo "Fue desubscrito de {$subscription->topic()}\n";
+            self::$manager->unsubscribeFromTopic($subscription->topic(), $token);
+        }
+    }
+
+    // public function validToken($token){
+    //     $factory = new Factory();
+    //     $auth = $factory->createAuth();
+
+    //     try {
+    //         $verifiedIdToken = $auth->verifyIdToken($token);
+    //     } catch (\InvalidArgumentException $e) {
+    //         echo 'TOKEN INVALIDO. '.$e->getMessage();
+    //         return false;
+    //     } catch (InvalidToken $e) {
+    //         echo 'TOKEN INVALIDO. '.$e->getMessage();
+    //         return false;
+    //     }
+
+    //     return true;
+    //     // $uid = $verifiedIdToken->getClaim('sub');
+    //     // $user = $auth->getUser($uid);
+    // }
+
+    // devuelve todas las subscripciones registradas de un token
     public function getTopicsSusbcribed($token){
         $appInstance = self::$manager->getAppInstance($token);
         /** @var \Kreait\Firebase\Messaging\TopicSubscriptions $subscriptions */

@@ -1121,7 +1121,7 @@ class CompetenciaController extends AbstractFOSRestController
     $topicFollowers = $nameCompFiltered. '-' .Constant::ROL_SEGUIDOR;
     $topicCompetitors = $nameCompFiltered. '-' .Constant::ROL_COMPETIDOR;
 
-    //var_dump("Manda la notif al topico: ".$topicFollowers);
+    //var_dump("Manda la notif al topico: ".$topicCompetitors);
 
     $title = 'Competencia: '.$competencia->getNombre();
     $body = 'La competencia paso a '.$estado;
@@ -1129,7 +1129,7 @@ class CompetenciaController extends AbstractFOSRestController
     $notification = Notification::create($title, $body);
 
     NotificationManager::getInstance()->notificationToTopic($topicFollowers, $notification);
-    //NotificationManager::getInstance()->notificationToTopic($topicCompetitors, $notification);
+    NotificationManager::getInstance()->notificationToTopic($topicCompetitors, $notification);
   }
  
 }
