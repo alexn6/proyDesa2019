@@ -92,10 +92,12 @@ class NoticiasController extends AbstractFOSRestController
 
         // recuperamos las ultimas noticias de cada competencia y las juntamos en un array
         foreach ($namesCompetitions as $name) {
-            // var_dump($name);
+            //var_dump($name);
             $newsCompetition = $this->getLastedNewsCompetition($name['nombre']);
             $newsAllCompetitions = array_merge($newsAllCompetitions, $newsCompetition);
         }
+
+        //var_dump($newsCompetition);
 
         // recuperamos nada mas que los datos de las noticias de nuestro interes
         $newsAllCompetitions = $this->getDataDocuments($newsAllCompetitions);
@@ -111,10 +113,12 @@ class NoticiasController extends AbstractFOSRestController
         }
         
         return $newsAllCompetitions;
+        //return null;
     }
 
     // recuperamos las ultimas n noticias de una competencia
     private function getLastedNewsCompetition($nameCompetition){
+        //var_dump($nameCompetition);
         $pathCollection = 'dbproyectotorneos/'.$nameCompetition.'/news';
         $field = 'uptime';  // ordenamos por fecha de subida
         $n = 4;
