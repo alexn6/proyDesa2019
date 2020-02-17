@@ -8,12 +8,14 @@ use Google\Cloud\Core\Timestamp;
 
 class ManagerDbCloudFirestoreTest extends TestCase{
 
-    // public function testSizeCollection(){
-    //     $pathColleccion = 'news-test/comp-test/news';
-    //     $size = DbClodFirestoreManager::getInstance()->sizeCollection($pathColleccion);
+    public function testSizeCollection(){
+        // $pathColleccion = 'news-test/comp-test/news';
+        $pathColleccion = 'dbproyectotorneos/Olimpico/news';
+        
+        $size = DbClodFirestoreManager::getInstance()->sizeCollection($pathColleccion);
 
-    //     $this->assertEquals(2, $size);
-    // }
+        $this->assertEquals(1, $size);
+    }
 
     // // recuperamos los datos de un noticia de una coleccion determinada
     // public function testDataDocument(){
@@ -75,19 +77,19 @@ class ManagerDbCloudFirestoreTest extends TestCase{
     //     $this->assertEquals(2, 2);
     // }
 
-    public function testGetNewestNDocuments(){
-        //$pathCollection = 'news-test/comp-test/news';
-        $pathCollection = 'dbproyectotorneos/Torneo de Prueba/news';
-        $fieldTime = 'uptime';
-        $n = 4;
-        $arrayDocSnapshot = DbClodFirestoreManager::getInstance()->getLastednDocument($pathCollection, $fieldTime, $n);
+    // public function testGetNewestNDocuments(){
+    //     //$pathCollection = 'news-test/comp-test/news';
+    //     $pathCollection = 'dbproyectotorneos/Torneo de Prueba/news';
+    //     $fieldTime = 'uptime';
+    //     $n = 4;
+    //     $arrayDocSnapshot = DbClodFirestoreManager::getInstance()->getLastednDocument($pathCollection, $fieldTime, $n);
 
-        foreach($arrayDocSnapshot as $document){
-            echo(" Id de la noticia => ".$document->id()."\n");
-        }
+    //     foreach($arrayDocSnapshot as $document){
+    //         echo(" Id de la noticia => ".$document->id()."\n");
+    //     }
 
-        $this->assertEquals(4, count($arrayDocSnapshot));
-    }
+    //     $this->assertEquals(4, count($arrayDocSnapshot));
+    // }
     
 
 }

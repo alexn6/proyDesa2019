@@ -9,6 +9,7 @@ class Constant{
     const APP_MOVIL_NAME = 'Proyecto Torneos';
 
     const CANT_MAX_NOTICIAS = 3;
+    const CANT_MAX_NOTICIAS_CLOUD = 5;
 
     // #############################################################################
     // ################################# ROLES #####################################

@@ -276,7 +276,7 @@ class UsuarioController extends AbstractFOSRestController
           $usuarioCreate->setNotification($notification);
   
           // encriptamos la contraseña
-          $passHash = $this->passwordEncoder->encodePassword($usuarioCreate, $usuarioCreate->getNombre());
+          $passHash = $this->passwordEncoder->encodePassword($usuarioCreate, $usuarioCreate->getPass());
           $usuarioCreate->setPass($passHash);
   
           $em = $this->getDoctrine()->getManager();
@@ -582,13 +582,13 @@ class UsuarioController extends AbstractFOSRestController
       }
       else{
         $statusCode = Response::HTTP_BAD_REQUEST;
-        $respJson->messaging = "Solicitud mal formada";
+        $respJson->messaging = "Solicitud mal formada. Faltan parametros.";
       }
       
     }
     else{
       $statusCode = Response::HTTP_BAD_REQUEST;
-      $respJson->messaging = "Solicitud mal formada";
+      $respJson->messaging = "Solicitud mal formada. Faltan parametros.";
     }
 
     

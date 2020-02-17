@@ -10,11 +10,15 @@ use Symfony\Component\Routing\Annotation\Route;
 
 use App\Entity\Usuario;
 use App\Entity\UsuarioCompetencia;
+use App\Entity\Competencia;
 
 use App\Model\Noticia;
 
 use App\Utils\Constant;
 use App\Utils\DbClodFirestoreManager;
+use Google\Cloud\Core\Timestamp;
+
+use \Datetime;
 
  /**
  * Usuario controller
@@ -22,6 +26,70 @@ use App\Utils\DbClodFirestoreManager;
  */
 class NoticiasController extends AbstractFOSRestController
 {
+    /**
+     * Persiste una noticia en la db cloud, queda en la coleccion de la competencia correspodiente
+     * @Rest\Post("/publish"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function publishNew(Request $request){
+
+        $respJson = (object) null;
+        $statusCode;
+
+        if(empty($request->getContent())){
+            $statusCode = Response::HTTP_BAD_REQUEST;
+            $respJson->messaging = "Peticion mal formada. Faltan parametros.";
+        }
+        else{
+            // recuperamos los datos del body y pasamos a un array
+            $dataRequest = json_decode($request->getContent());
+      
+            if((isset($dataRequest->idCompetencia))&&(isset($dataRequest->idPublicador))&&(isset($dataRequest->titulo))&&(isset($dataRequest->resumen))&&(isset($dataRequest->descripcion))){
+                // recuperamos el parametro recibido
+                $idCompetencia = $dataRequest->idCompetencia;
+        
+                // buscamos la competencia
+                $repository = $this->getDoctrine()->getRepository(Competencia::class);
+                $competencia = $repository->find($idCompetencia);
+
+                if($competencia == NULL){
+                    $respJson->messaging = "La competencia no existe";
+                    $statusCode = Response::HTTP_OK;
+                }
+                else{
+                    $idPublicador = $dataRequest->idPublicador;
+    
+                    // buscamos la competencia
+                    $repository = $this->getDoctrine()->getRepository(Usuario::class);
+                    $usuario = $repository->find($idPublicador);
+
+                    if($usuario == NULL){
+                        $respJson->messaging = "El usuario publicador no existe";
+                        $statusCode = Response::HTTP_OK;
+                    }
+                    else{
+                        $this->publishNewCloud($competencia, $usuario, $dataRequest->titulo, $dataRequest->resumen, $dataRequest->descripcion);
+                        $respJson->messaging = "Noticia publicada con exito.";
+                        $statusCode = Response::HTTP_OK;
+                    }
+                }
+            }
+            else{
+                $statusCode = Response::HTTP_BAD_REQUEST;
+                $respJson->messaging = "Peticion mal formada. Faltan parametros.";
+            }
+        }
+            
+        $respJson = json_encode($respJson);
+
+        $response = new Response($respJson);
+        $response->headers->set('Content-Type', 'application/json');
+        $response->setStatusCode($statusCode);
+
+        return $response;
+    }
+
     /**
      * Recupera como maximo las 50 ultimas noticias de las competencias de las que el
      * usuario es participe como SEGUIDOR o COMPETIDOR
@@ -77,6 +145,8 @@ class NoticiasController extends AbstractFOSRestController
     }
 
 
+    // ###########################################################################
+    // ######################### FUNCIONES PRIVADAS #########################
 
     // recupera las ultimas noticias de las competencias en las q forma parte el usuario
     // @return null si no existen competencias
@@ -148,6 +218,26 @@ class NoticiasController extends AbstractFOSRestController
         $subPath = explode("/", $pathCollection);
 
         return $subPath[1];
+    }
+
+    // guardamos una noticia en la db nube de mi aplicacion
+    private function publishNewCloud($competencia, $usuario, $title, $resume, $descripcion){
+        $pathCollection = 'dbproyectotorneos/'.$competencia->getNombre().'/news';
+        // $pathCollection = 'news-test/comp-test/news';
+        $cantNews = DbClodFirestoreManager::getInstance()->sizeCollection($pathCollection);
+        $documentId = $cantNews + 1;
+        if($cantNews >= Constant::CANT_MAX_NOTICIAS_CLOUD){
+            // borramos la noticia mas antigua y guardamos la nueva
+        }
+        // creamos los datos de la noticia
+        $data = ['title' => $title, 
+                    'resume' => $resume, 
+                    'descripcion' => $descripcion,
+                    'uptime' => new Timestamp(new DateTime()),
+                    'publisher' => $usuario->getNombreUsuario()
+                ];
+
+        DbClodFirestoreManager::getInstance()->insertDocument($pathCollection, $data, $documentId);
     }
 
 }
