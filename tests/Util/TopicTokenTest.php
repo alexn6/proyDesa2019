@@ -18,6 +18,15 @@ class TopicTokenTest extends TestCase{
     // tener en cuenta la demora del registro de subscripcion
     // tal vez con una promesa o algo asi se podria controlar esto
 
+    // public function testSubscribe(){
+    //     $topic = "TorneodePrueba";
+    //     $token = 'cIQwwCHfZ1k:APA91bHodW8J9KXaVmbLCSMbkdjnmh0V2q3YzHfbsY6C2XBMQ8lp-18V-tbbuyAQm9s87jYn9-9tp4ijvnkysWopT6uMx3WhGhf-3gQMy_OlaDkwwWvJSSKZb5sThgyxpQIKfArBKL9w';
+    //     // suscribimos al token a 3 topicos
+    //     NotificationManager::getInstance()->subscribeTopic($topic, $token);
+
+    //     $this->assertEquals(0, 0);
+    // }
+
     // recuperamos todos los topicos a los que se subscribe un token (instancia)
     // public function testMySubscriptions(){
 
@@ -85,10 +94,15 @@ class TopicTokenTest extends TestCase{
 
     // recupera los topicos a los que el usaurio esta subscrito
     public function testGetSubscribeTopics(){
-        $token = 'd9VIxftAB14:APA91bEPKajfIb7--LpXSNOhxwL52D3ib9efWVE7rNP-XRmlrTt0p-7zCw95yPwQ0nxfKx14Yim7gUUqq2w5ctZ0szrHIQBLBrbSm5IeXzlL_84XFCr6uEnxHJUwJz5Zh6sRwRkWRwQd';
+        $token = 'cEYWz4rA8BQ:APA91bFPS3Kq6BrFXG28Ht_5IK4Oa3c1sAEXmmo6DflPlApRz54aST3MYcpCbPiBT0COnrbNX_yv9tu2PsyMR411gvebIQJnhdIB41plN_XpQdhkYpYwm7mk0iNkay3RaqsY1b7-vKdh';
         $subscriptions = NotificationManager::getInstance()->getTopicsSusbcribed($token);
 
-        $this->assertEquals(0, count($subscriptions));
+        foreach ($subscriptions as $subscription) {
+            // echo "{$subscription->registrationToken()} fue subscrito a {$subscription->topic()}\n";
+            echo "Esta subscrito a {$subscription->topic()}\n";
+        }
+
+        $this->assertEquals(1, count($subscriptions));
     }
 
 }

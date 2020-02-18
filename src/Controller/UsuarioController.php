@@ -671,6 +671,10 @@ class UsuarioController extends AbstractFOSRestController
       // var_dump($arrayTopics);
       // var_dump($enable);
       $arrayTopics = $this->getArrayNameCompetitions($arrayTopics);
+      // agregamos el rol a cada competencia
+      for ($i=0; $i < count($arrayTopics); $i++) {
+        $arrayTopics[$i] = $arrayTopics[$i].'-'.$nameRol;
+    }
 
       // dependiendo del estado de habilitado subscribimos o desubscribimos
       if($enable){
@@ -692,23 +696,23 @@ class UsuarioController extends AbstractFOSRestController
     }
 
     // mantenemos las subscripciones del token anterior
-    private function updateSubscriptionsTopics($tokenViejo, $new_token){
+    // private function updateSubscriptionsTopics($tokenViejo, $new_token){
 
-      // recuperamos las subscripciones a los topicos
-      $subscriptions = NotificationManager::getInstance()->getTopicsSusbcribed($tokenViejo);
+    //   // recuperamos las subscripciones a los topicos
+    //   $subscriptions = NotificationManager::getInstance()->getTopicsSusbcribed($tokenViejo);
 
-      // desubscribimos al token viejo de los topicos
-      foreach ($subscriptions as $subscription) {
-          // echo "{$subscription->registrationToken()} fue subscrito a {$subscription->topic()}\n";
-          //echo "Fue subscrito a {$subscription->topic()}\n";
-          NotificationManager::getInstance()->unsubscribeTopic($subscription->topic(), $tokenViejo);
-      }
+    //   // desubscribimos al token viejo de los topicos
+    //   foreach ($subscriptions as $subscription) {
+    //       // echo "{$subscription->registrationToken()} fue subscrito a {$subscription->topic()}\n";
+    //       //echo "Fue subscrito a {$subscription->topic()}\n";
+    //       NotificationManager::getInstance()->unsubscribeTopic($subscription->topic(), $tokenViejo);
+    //   }
 
-      // subscribimos el token nuevo a los topicos que estaba usbscripto el token viejo
-      foreach ($subscriptions as $subscription) {
-        // echo "{$subscription->registrationToken()} fue subscrito a {$subscription->topic()}\n";
-        NotificationManager::getInstance()->subscribeTopic($subscription->topic(), $new_token);
-      }
-    }
+    //   // subscribimos el token nuevo a los topicos que estaba usbscripto el token viejo
+    //   foreach ($subscriptions as $subscription) {
+    //     // echo "{$subscription->registrationToken()} fue subscrito a {$subscription->topic()}\n";
+    //     NotificationManager::getInstance()->subscribeTopic($subscription->topic(), $new_token);
+    //   }
+    // }
 
 }

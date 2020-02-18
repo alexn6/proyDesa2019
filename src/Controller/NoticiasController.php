@@ -16,6 +16,9 @@ use App\Model\Noticia;
 
 use App\Utils\Constant;
 use App\Utils\DbClodFirestoreManager;
+use App\Utils\NotificationManager;
+
+use Kreait\Firebase\Messaging\Notification;
 use Google\Cloud\Core\Timestamp;
 
 use \Datetime;
@@ -55,7 +58,7 @@ class NoticiasController extends AbstractFOSRestController
 
                 if($competencia == NULL){
                     $respJson->messaging = "La competencia no existe";
-                    $statusCode = Response::HTTP_OK;
+                    $statusCode = Response::HTTP_NO_CONTENT;
                 }
                 else{
                     $idPublicador = $dataRequest->idPublicador;
@@ -66,9 +69,12 @@ class NoticiasController extends AbstractFOSRestController
 
                     if($usuario == NULL){
                         $respJson->messaging = "El usuario publicador no existe";
-                        $statusCode = Response::HTTP_OK;
+                        $statusCode = Response::HTTP_NO_CONTENT;
                     }
                     else{
+                        // informar a los usuarios SEG y COMP q se publico tal noticia
+                        $this->sendNotificationPublishNews($competencia, $dataRequest->resumen);
+                        // almacenamos la noticia en la db cloud
                         $this->publishNewCloud($competencia, $usuario, $dataRequest->titulo, $dataRequest->resumen, $dataRequest->descripcion);
                         $respJson->messaging = "Noticia publicada con exito.";
                         $statusCode = Response::HTTP_OK;
@@ -116,14 +122,14 @@ class NoticiasController extends AbstractFOSRestController
 
             if($usuario == NULL){
                 $respJson->messaging = "El usuario no existe";
-                $statusCode = Response::HTTP_OK;
+                $statusCode = Response::HTTP_NO_CONTENT;
             }
             else{
                 // hacemos el string serializable , controlamos las autoreferencias
                 $news = $this->lastedNews($idUser);
                 if($news == NULL){
                     $respJson->messaging = "El usuario no aun no sigue ni participa en ninguna competencia.";
-                    $statusCode = Response::HTTP_OK;
+                    $statusCode = Response::HTTP_NO_CONTENT;
                 }
                 else{
                     $news = $this->get('serializer')->serialize($news, 'json');
@@ -239,5 +245,20 @@ class NoticiasController extends AbstractFOSRestController
 
         DbClodFirestoreManager::getInstance()->insertDocument($pathCollection, $data, $documentId);
     }
+
+    // Mandamos la notificacion del cambio de estado de la competencia
+  private function sendNotificationPublishNews($competencia, $resumenNoticia){
+    $nameComp = str_replace(' ', '', $competencia->getNombre());
+
+    $topicFollowers = $nameComp. '-' .Constant::ROL_SEGUIDOR;
+    $topicCompetitors = $nameComp. '-' .Constant::ROL_COMPETIDOR;
+
+    $title = 'Competencia: '.$competencia->getNombre();
+    
+    $notification = Notification::create($title, $resumenNoticia);
+
+    NotificationManager::getInstance()->notificationToTopic($topicFollowers, $notification);
+    NotificationManager::getInstance()->notificationToTopic($topicCompetitors, $notification);
+  }
 
 }

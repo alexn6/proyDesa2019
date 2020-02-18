@@ -145,6 +145,7 @@ class NotificationManager
     public function susbcribeAllTopic($token, $arrayTopics){
         for ($i=0; $i < count($arrayTopics); $i++) {
             $topic = $arrayTopics[$i];
+            $topic = str_replace(' ', '', $topic);
             self::$manager->subscribeToTopic($topic, $token);
         }
     }
@@ -153,6 +154,7 @@ class NotificationManager
     public function unsusbcribeAllTopic($token){
         $appInstance = self::$manager->getAppInstance($token);
         $subscriptions = $appInstance->topicSubscriptions();
+        var_dump(count($subscriptions));
 
         foreach ($subscriptions as $subscription) {
             self::$manager->unsubscribeFromTopic($subscription->topic(), $token);
