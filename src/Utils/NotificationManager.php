@@ -154,7 +154,7 @@ class NotificationManager
     public function unsusbcribeAllTopic($token){
         $appInstance = self::$manager->getAppInstance($token);
         $subscriptions = $appInstance->topicSubscriptions();
-        var_dump(count($subscriptions));
+        //var_dump(count($subscriptions));
 
         foreach ($subscriptions as $subscription) {
             self::$manager->unsubscribeFromTopic($subscription->topic(), $token);

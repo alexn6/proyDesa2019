@@ -517,6 +517,49 @@ class UsuarioController extends AbstractFOSRestController
   }
 
   /**
+   * Devuelve la configuracion de notificaciones del usaurio
+   * @Rest\Get("/user-notif/config"), defaults={"_format"="json"})
+   * 
+   * @return Response
+   */
+  public function getConfigNotif(Request $request){
+
+    $respJson = (object) null;
+    $statusCode;
+
+    if(!empty($request->get('idUsuario'))){        
+        // buscamos el usuario
+        $repository = $this->getDoctrine()->getRepository(Usuario::class);
+        $usuario = $repository->find($request->get('idUsuario'));
+
+        if($usuario != NULL){
+          $config = (object) null;
+          $config->seguidor = $usuario->getNotification()->getSeguidor();
+          $config->competidor = $usuario->getNotification()->getCompetidor();
+          $respJson = $config;
+          $statusCode = Response::HTTP_OK;
+        }
+        else{
+          $respJson->messaging = "El usuario no existe";
+          $statusCode = Response::HTTP_NO_CONTENT;
+        }
+    }
+    else{
+      $statusCode = Response::HTTP_BAD_REQUEST;
+      $respJson->messaging = "Solicitud mal formada. Faltan parametros.";
+    }
+
+    
+    $respJson = json_encode($respJson);
+
+    $response = new Response($respJson);
+    $response->headers->set('Content-Type', 'application/json');
+    $response->setStatusCode($statusCode);
+
+    return $response;
+  }
+  
+  /**
    * Actualiza la configuracion del tipo de competencia de las cuales
    * quiere recibir notificaciones
    * @Rest\Post("/user-notif"), defaults={"_format"="json"})
@@ -545,38 +588,39 @@ class UsuarioController extends AbstractFOSRestController
         if($usuario != NULL){ 
           $em = $this->getDoctrine()->getManager();
           
-          // $namesCompetitionsFollow = $repository->namesCompetitionsFollow($idUsuario);
-          // $namesCompetitionsFollow = $this->getArrayNameCompetitions($namesCompetitionsFollow);
-          // var_dump($namesCompetitionsFollow);
-
-          // $namesCompetitionsCompete = $repository->namesCompetitionsCompete($idUsuario);
-          // $namesCompetitionsCompete = $this->getArrayNameCompetitions($namesCompetitionsCompete);
-          // var_dump($namesCompetitionsCompete);
-
-          // var_dump($usuario->getNotification()->getSeguidor());
-          // var_dump($usuario->getNotification()->getCompetidor());
-
+          if($enable_notif_seguidor == 'true'){
+            $enable_notif_seguidor = 1;
+          }
+          else{
+            $enable_notif_seguidor = 0;
+          }
+          if($enable_notif_competidor == 'true'){
+            $enable_notif_competidor = 1;
+          }
+          else{
+            $enable_notif_competidor = 0;
+          }
+                    
           // si cambia la config anterior
           if($usuario->getNotification()->getSeguidor() != $enable_notif_seguidor){
-            // TODO: aca deberiamos revisar si subscribimos o desusbcribimos al
-            // usuario de las competencias
+            // vemos si subscribimos o desusbcribimos al usuario de las competencias
             $this->updateSubscriptions($usuario, $enable_notif_seguidor, Constant::ROL_SEGUIDOR);
             $usuario->getNotification()->setSeguidor($enable_notif_seguidor);
           }
 
           if($usuario->getNotification()->getCompetidor() != $enable_notif_competidor){
-            // TODO: aca deberiamos revisar si subscribimos o desusbcribimos al [FUNC1]
-            // usuario de las competencias
+            // vemos si subscribimos o desusbcribimos al usuario de las competencias
             $this->updateSubscriptions($usuario, $enable_notif_competidor, Constant::ROL_COMPETIDOR);
             $usuario->getNotification()->setCompetidor($enable_notif_competidor);
           }
 
           $em->flush();
   
-          $respJson->messaging = "Actualizacion realizada";
+          $respJson->messaging = "Actualizacion realizada.";
         }
         else{
           $respJson->messaging = "El usuario no existe";
+          $statusCode = Response::HTTP_NO_CONTENT;
         }
         $statusCode = Response::HTTP_OK;
       }
@@ -674,7 +718,7 @@ class UsuarioController extends AbstractFOSRestController
       // agregamos el rol a cada competencia
       for ($i=0; $i < count($arrayTopics); $i++) {
         $arrayTopics[$i] = $arrayTopics[$i].'-'.$nameRol;
-    }
+      }
 
       // dependiendo del estado de habilitado subscribimos o desubscribimos
       if($enable){
