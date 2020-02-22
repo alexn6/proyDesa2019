@@ -49,46 +49,46 @@ class PredioController extends AbstractFOSRestController
         return $response;
     }
 
-    /**
-     * Devuelve todas los predios de una competencia
-     * @Rest\Get("/grounds/competition"), defaults={"_format"="json"})
-     * 
-     * @return Response
-     */
-    public function getGroundsByCompetition(Request $request){
-        $repository=$this->getDoctrine()->getRepository(Predio::class);
+    // /**
+    //  * Devuelve todas los predios de una competencia
+    //  * @Rest\Get("/grounds/competition"), defaults={"_format"="json"})
+    //  * 
+    //  * @return Response
+    //  */
+    // public function getGroundsByCompetition(Request $request){
+    //     $repository=$this->getDoctrine()->getRepository(Predio::class);
       
-        $respJson = (object) null;
+    //     $respJson = (object) null;
 
-        $idCompetencia = $request->get('idCompetencia');
-        $idPredio = null;
-        // vemos si recibimos algun parametro
-        if(!empty($idCompetencia)){
-            $grounds = $repository->findGroundsByCompetetition($idCompetencia,$idPredio);
-            $statusCode = Response::HTTP_OK;
+    //     $idCompetencia = $request->get('idCompetencia');
+    //     $idPredio = null;
+    //     // vemos si recibimos algun parametro
+    //     if(!empty($idCompetencia)){
+    //         $grounds = $repository->findGroundsByCompetetition($idCompetencia,$idPredio);
+    //         $statusCode = Response::HTTP_OK;
 
-            $grounds = $this->get('serializer')->serialize($grounds, 'json', [
-                'circular_reference_handler' => function ($object) {
-                    return $object->getId();
-                },
-                'ignored_attributes' => ['competencia']
-            ]);
-        }
-        else{
-            $grounds  = NULL;
-            $statusCode = Response::HTTP_BAD_REQUEST;
-            $respJson->messaging = "Faltan parametros";
-        }
+    //         $grounds = $this->get('serializer')->serialize($grounds, 'json', [
+    //             'circular_reference_handler' => function ($object) {
+    //                 return $object->getId();
+    //             },
+    //             'ignored_attributes' => ['competencia']
+    //         ]);
+    //     }
+    //     else{
+    //         $grounds  = NULL;
+    //         $statusCode = Response::HTTP_BAD_REQUEST;
+    //         $respJson->messaging = "Faltan parametros";
+    //     }
 
-        $respJson = json_decode($grounds);
-        $respJson = json_encode($respJson);
+    //     $respJson = json_decode($grounds);
+    //     $respJson = json_encode($respJson);
         
-        $response = new Response($respJson);
-        $response->setStatusCode(Response::HTTP_OK);
-        $response->headers->set('Content-Type', 'application/json');
+    //     $response = new Response($respJson);
+    //     $response->setStatusCode(Response::HTTP_OK);
+    //     $response->headers->set('Content-Type', 'application/json');
     
-        return $response;
-    }
+    //     return $response;
+    // }
 
     /**
      * Crea un predio.
