@@ -97,6 +97,12 @@ class Competencia
      */
     private $estado;
 
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\Inscripcion")
+     * @ORM\JoinColumn(name="inscripcion_id", referencedColumnName="id")
+     */
+    private $inscripcion;
+
     public function __construct()
     {
         $this->usuarioscompetencias = new ArrayCollection();
@@ -311,6 +317,18 @@ class Competencia
         $this->estado = $estado;
 
         return $this;        
+    }
+
+    public function getInscripcion(): ?Inscripcion
+    {
+        return $this->inscripcion;
+    }
+
+    public function setInscripcion(?Inscripcion $inscripcion): self
+    {
+        $this->inscripcion = $inscripcion;
+
+        return $this;
     }
 
 }
