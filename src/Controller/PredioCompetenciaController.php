@@ -10,6 +10,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpClient\HttpClient;    // para incorporar servicios rest
 
 use App\Entity\Predio;
+use App\Entity\PredioCompetencia;
 use App\Entity\Competencia;
 use App\Entity\Campo;
 
@@ -21,58 +22,38 @@ use App\Controller\CampoController;
  * Predio controller
  * @Route("/api",name="api_")
  */
-class PredioController extends AbstractFOSRestController
+class PredioCompetenciaController extends AbstractFOSRestController
 {
-    /**
-     * Lista de todos las predios.
-     * @Rest\Get("/grounds"), defaults={"_format"="json"})
-     * 
-     * @return Response
-     */
-    public function allGrounds()
-    {
-
-        $repository = $this->getDoctrine()->getRepository(Predio::class);
-        $grounds = $repository->findall();
-
-        $grounds = $this->get('serializer')->serialize($grounds, 'json', [
-            'circular_reference_handler' => function ($object) {
-                return $object->getId();
-            },
-            'ignored_attributes' => ['competencia', 'prediocompetencia']
-        ]);
-
-        $response = new Response($grounds);
-        $response->setStatusCode(Response::HTTP_OK);
-        $response->headers->set('Content-Type', 'application/json');
-
-        return $response;
-    }
-
     /**
      * Devuelve todas los predios de una competencia
      * @Rest\Get("/grounds/competition"), defaults={"_format"="json"})
      * 
      * @return Response
      */
-    public function getGroundsByCompetition(Request $request){
-        $repository=$this->getDoctrine()->getRepository(Predio::class);
-      
+    public function getGroundsByCompetition(Request $request){      
         $respJson = (object) null;
+        $statusCode;
+        $grounds = null;
 
-        $idCompetencia = $request->get('idCompetencia');
-        $idPredio = null;
+        $idCompetencia = $request->get('id');
+
         // vemos si recibimos algun parametro
         if(!empty($idCompetencia)){
-            $grounds = $repository->findGroundsByCompetetition($idCompetencia,$idPredio);
-            $statusCode = Response::HTTP_OK;
+            $repository = $this->getDoctrine()->getRepository(PredioCompetencia::class);
+            $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
 
-            $grounds = $this->get('serializer')->serialize($grounds, 'json', [
-                'circular_reference_handler' => function ($object) {
-                    return $object->getId();
-                },
-                'ignored_attributes' => ['competencia']
-            ]);
+            $competencia = $repositoryComp->find($idCompetencia);
+
+            if($competencia == null){
+                $statusCode = Response::HTTP_BAD_REQUEST;
+                $respJson->messaging = "Peticion mal formada. Faltan parametros.";
+            }
+            else{
+                // buscamos los predios de la competencia
+                $grounds = $repository->groundsByCompetetition($idCompetencia);
+                $respJson = $grounds;
+                $statusCode = Response::HTTP_OK;
+            }
         }
         else{
             $grounds  = NULL;
@@ -80,7 +61,6 @@ class PredioController extends AbstractFOSRestController
             $respJson->messaging = "Faltan parametros";
         }
 
-        $respJson = json_decode($grounds);
         $respJson = json_encode($respJson);
         
         $response = new Response($respJson);
@@ -92,6 +72,7 @@ class PredioController extends AbstractFOSRestController
 
     /**
      * Crea un predio.
+     * TODO: aca deberiamos dejar que el usuario cree un predio y al mismo tiempo se lo asigne a su competencia
      * @Rest\Post("/grounds"), defaults={"_format"="json"})
      * 
      * @return Response

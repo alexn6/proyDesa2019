@@ -19,6 +19,27 @@ class PredioCompetenciaRepository extends ServiceEntityRepository
         parent::__construct($registry, PredioCompetencia::class);
     }
 
+    //Recuperar predios por id de competencia
+    public function groundsByCompetetition($idCompetencia){
+        $entityManager = $this->getEntityManager();
+       
+        $stringQueryBase = 'SELECT p.id, p.nombre, p.direccion, p.ciudad 
+                            FROM App\Entity\PredioCompetencia pc
+                            INNER JOIN App\Entity\Competencia c
+                            WITH pc.competencia = c.id
+                            INNER JOIN App\Entity\Predio p
+                            WITH pc.predio = p.id
+                            AND c.id =' .$idCompetencia;
+                        
+        // if($idPredio != NULL){
+        //     $stringQueryPredio = ' AND p.id = '.$idPredio;
+        //     $stringQueryBase = $stringQueryBase.$stringQueryPredio;
+                
+        // }
+        $query = $entityManager->createQuery($stringQueryBase);    
+        return $query->execute();   
+    }
+
     // /**
     //  * @return PredioCompetencia[] Returns an array of PredioCompetencia objects
     //  */
