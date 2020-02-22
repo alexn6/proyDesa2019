@@ -21,12 +21,6 @@ class Predio
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Competencia")
-     * @ORM\JoinColumn(name="competencia_id", referencedColumnName="id")
-     */
-    private $competencia;
-
-    /**
      * @ORM\Column(type="string", length=50)
      */
     private $nombre;
@@ -41,6 +35,16 @@ class Predio
      */
     // ############# despues cambiar por la entidad Ciudad #############
     private $ciudad;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\PredioCompetencia", mappedBy="predio")
+     */
+    private $prediocompetencia;
+
+    public function __construct()
+    {
+        $this->prediocompetencia = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -83,15 +87,35 @@ class Predio
         return $this;
     }
 
-    public function getCompetencia(): ?Competencia
+    /**
+     * @return Collection|PredioCompetencia[]
+     */
+    public function getPrediocompetencia(): Collection
     {
-        return $this->competencia;
+        return $this->prediocompetencia;
     }
 
-    public function setCompetencia(?Competencia $competencia): self
+    public function addPrediocompetencium(PredioCompetencia $prediocompetencium): self
     {
-        $this->competencia = $competencia;
+        if (!$this->prediocompetencia->contains($prediocompetencium)) {
+            $this->prediocompetencia[] = $prediocompetencium;
+            $prediocompetencium->setPredio($this);
+        }
 
         return $this;
     }
+
+    public function removePrediocompetencium(PredioCompetencia $prediocompetencium): self
+    {
+        if ($this->prediocompetencia->contains($prediocompetencium)) {
+            $this->prediocompetencia->removeElement($prediocompetencium);
+            // set the owning side to null (unless already changed)
+            if ($prediocompetencium->getPredio() === $this) {
+                $prediocompetencium->setPredio(null);
+            }
+        }
+
+        return $this;
+    }
+
 }

@@ -103,9 +103,15 @@ class Competencia
      */
     private $inscripcion;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\PredioCompetencia", mappedBy="competencia")
+     */
+    private $prediocompetencia;
+
     public function __construct()
     {
         $this->usuarioscompetencias = new ArrayCollection();
+        $this->prediocompetencia = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -327,6 +333,37 @@ class Competencia
     public function setInscripcion(?Inscripcion $inscripcion): self
     {
         $this->inscripcion = $inscripcion;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|PredioCompetencia[]
+     */
+    public function getPrediocompetencia(): Collection
+    {
+        return $this->prediocompetencia;
+    }
+
+    public function addPrediocompetencium(PredioCompetencia $prediocompetencium): self
+    {
+        if (!$this->prediocompetencia->contains($prediocompetencium)) {
+            $this->prediocompetencia[] = $prediocompetencium;
+            $prediocompetencium->setCompetencia($this);
+        }
+
+        return $this;
+    }
+
+    public function removePrediocompetencium(PredioCompetencia $prediocompetencium): self
+    {
+        if ($this->prediocompetencia->contains($prediocompetencium)) {
+            $this->prediocompetencia->removeElement($prediocompetencium);
+            // set the owning side to null (unless already changed)
+            if ($prediocompetencium->getCompetencia() === $this) {
+                $prediocompetencium->setCompetencia(null);
+            }
+        }
 
         return $this;
     }
