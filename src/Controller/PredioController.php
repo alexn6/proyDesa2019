@@ -49,47 +49,6 @@ class PredioController extends AbstractFOSRestController
         return $response;
     }
 
-    // /**
-    //  * Devuelve todas los predios de una competencia
-    //  * @Rest\Get("/grounds/competition"), defaults={"_format"="json"})
-    //  * 
-    //  * @return Response
-    //  */
-    // public function getGroundsByCompetition(Request $request){
-    //     $repository=$this->getDoctrine()->getRepository(Predio::class);
-      
-    //     $respJson = (object) null;
-
-    //     $idCompetencia = $request->get('idCompetencia');
-    //     $idPredio = null;
-    //     // vemos si recibimos algun parametro
-    //     if(!empty($idCompetencia)){
-    //         $grounds = $repository->findGroundsByCompetetition($idCompetencia,$idPredio);
-    //         $statusCode = Response::HTTP_OK;
-
-    //         $grounds = $this->get('serializer')->serialize($grounds, 'json', [
-    //             'circular_reference_handler' => function ($object) {
-    //                 return $object->getId();
-    //             },
-    //             'ignored_attributes' => ['competencia']
-    //         ]);
-    //     }
-    //     else{
-    //         $grounds  = NULL;
-    //         $statusCode = Response::HTTP_BAD_REQUEST;
-    //         $respJson->messaging = "Faltan parametros";
-    //     }
-
-    //     $respJson = json_decode($grounds);
-    //     $respJson = json_encode($respJson);
-        
-    //     $response = new Response($respJson);
-    //     $response->setStatusCode(Response::HTTP_OK);
-    //     $response->headers->set('Content-Type', 'application/json');
-    
-    //     return $response;
-    // }
-
     /**
      * Crea un predio.
      * @Rest\Post("/grounds"), defaults={"_format"="json"})
@@ -104,45 +63,33 @@ class PredioController extends AbstractFOSRestController
         // vemos si existe un body
         if(!empty($request->getContent())){
   
-          $repository=$this->getDoctrine()->getRepository(Predio::class);
+          $repository = $this->getDoctrine()->getRepository(Predio::class);
     
           // recuperamos los datos del body y pasamos a un array
           $dataPredioRequest = json_decode($request->getContent());
           
           if(!$this->correctDataCreate($dataPredioRequest)){
-            $respJson->success = false;
             $statusCode = Response::HTTP_BAD_REQUEST;
             $respJson->messaging = "Peticion mal formada. Faltan parametros o cuentan con nombres erroneos.";
           }
           else{
               // recuperamos los datos del body
               $nombre = $dataPredioRequest->nombre;
-              $idCompetencia = $dataPredioRequest->idCompetencia;
+            //   $idCompetencia = $dataPredioRequest->idCompetencia;
               $direccion = $dataPredioRequest->direccion;
               $ciudad = $dataPredioRequest->ciudad;
                 
               // controlamos que el nombre de predio este disponible
-              $predio = $repository->findOneBy(['nombre' => $nombre, 'competencia' => $idCompetencia]);
+              $predio = $repository->findOneBy(['nombre' => $nombre]);
               if($predio){
-                $respJson->success = false;
                 $statusCode = Response::HTTP_BAD_REQUEST;
                 $respJson->messaging = "El nombre del predio esta en uso";
               }
               else{
-                  // controlamos que la competencia exista
-                  $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
-                  $competencia = $repositoryComp->find($idCompetencia);
-                  if($competencia == NULL){
-                    $respJson->success = false;
-                    $statusCode = Response::HTTP_BAD_REQUEST;
-                    $respJson->messaging = "Competencia inexistente";
-                  }
-                  else{
                     // creamos el predio
                     $newPredio = new Predio();
                     $newPredio->setNombre($nombre);
                     $newPredio->setDireccion($direccion);
-                    $newPredio->setCompetencia($competencia);
                     $newPredio->setCiudad($ciudad);
             
                     $em = $this->getDoctrine()->getManager();
@@ -150,16 +97,11 @@ class PredioController extends AbstractFOSRestController
                     $em->flush();
             
                     $statusCode = Response::HTTP_CREATED;
-            
-                    $respJson->success = true;
                     $respJson->messaging = "Creacion exitosa";
-                  }
               }
           }
-  
         }
         else{
-          $respJson->success = false;
           $statusCode = Response::HTTP_BAD_REQUEST;
           $respJson->messaging = "Peticion mal formada";
         }
@@ -250,9 +192,6 @@ class PredioController extends AbstractFOSRestController
 
     // controlamos que los datos recibidos esten completos
     private function correctDataCreate($dataRequest){
-        if(!property_exists((object) $dataRequest,'idCompetencia')){
-            return false;
-        }
         if(!property_exists((object) $dataRequest,'nombre')){
             return false;
         }
