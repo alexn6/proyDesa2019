@@ -13,6 +13,8 @@ use \Datetime;
 use App\Entity\Turno;
 use App\Entity\Competencia;
 
+use App\Utils\Constant;
+
 /**
  * Categorias controller
  * @Route("/api",name="api_")
@@ -144,6 +146,73 @@ class TurnoController extends AbstractFOSRestController
         return $response;
     }
 
+    /**
+     * Crea un conjunto de turnos.
+     * @Rest\Post("/turn-set"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function createSet(Request $request){
+      $respJson = (object) null;
+      $statusCode;
+
+      // vemos si existe un body
+      if(!empty($request->getContent())){
+        // recuperamos los datos del body y pasamos a un array
+        $dataTurnoRequest = json_decode($request->getContent());
+        
+        if(!$this->correctDataCreate($dataTurnoRequest)){
+          $statusCode = Response::HTTP_BAD_REQUEST;
+          $respJson->messaging = "Peticion mal formada. Faltan parametros o estan mal descriptos.";
+        }
+        else{
+            // recuperamos los datos del body
+            $idCompetencia = $dataTurnoRequest->idCompetencia;
+            $horaInicio = $dataTurnoRequest->horaInicio;
+            $n_turnos = $dataTurnoRequest->cantidad;
+
+            $duracion = 90;
+            if(isset($dataTurnoRequest->duracion)){
+              $duracion = $dataTurnoRequest->duracion;
+            }
+
+            $repositoryCompetencia = $this->getDoctrine()->getRepository(Competencia::class);
+            $competencia = $repositoryCompetencia->find($idCompetencia);
+
+            if($competencia == null){
+              $statusCode = Response::HTTP_BAD_REQUEST;
+              $respJson->messaging = "La competencia no existe.";
+            }
+            else{
+              $setTurns = $this->createSetTurn($competencia, $horaInicio, $duracion, $n_turnos);
+
+              // persistimos los turnos
+              $em = $this->getDoctrine()->getManager();
+              for ($i=0; $i < count($setTurns); $i++) { 
+                $em->persist($setTurns[$i]);
+              }
+              $em->flush();
+
+              $statusCode = Response::HTTP_CREATED;
+              $respJson->messaging = "Creacion exitosa";
+            }
+        }
+
+      }
+      else{
+        $statusCode = Response::HTTP_BAD_REQUEST;
+        $respJson->messaging = "Peticion mal formada. Faltan parametros o cuentan con nombres erroneos.";
+      }
+      
+      $respJson = json_encode($respJson);
+
+      $response = new Response($respJson);
+      $response->headers->set('Content-Type', 'application/json');
+      $response->setStatusCode($statusCode);
+    
+      return $response;
+    }
+
     // ######################################################################################
     // ############################ funciones auxiliares ####################################
 
@@ -153,12 +222,12 @@ class TurnoController extends AbstractFOSRestController
           var_dump("No existe el idComp");
           return false;
       }
-      if(!property_exists((object) $dataRequest,'hs_desde')){
-        var_dump("No existe el hs_desde");
+      if(!property_exists((object) $dataRequest,'horaInicio')){
+        var_dump("No existe la hora de inicio");
         return false;
       }
-      if(!property_exists((object) $dataRequest,'hs_hasta')){
-        var_dump("No existe el hs_hasta");
+      if(!property_exists((object) $dataRequest,'cantidad')){
+        var_dump("No existe la cantidad");
         return false;
       }
 
@@ -181,6 +250,34 @@ class TurnoController extends AbstractFOSRestController
     }
 
     return true; 
+  }
+
+  // crea un conjunto de turno
+  private function createSetTurn($competencia, $horaInicio, $duracion, $n){
+    $setTurns = array();
+    $horaInicio = DateTime::createFromFormat(Constant::FORMAT_DATE_HOUR, $horaInicio);
+
+    for ($i=0; $i < $n; $i++) {
+      $hora_desde = clone $horaInicio;
+      $hora_hasta = clone $horaInicio;
+
+      // vamos con el fin del turno
+      $hora_hasta->modify("+{$duracion} minutes");
+
+      //creamos el turno
+      $newTurno = new Turno();
+      $newTurno->setCompetencia($competencia);
+      $newTurno->setHoraDesde($hora_desde);
+      $newTurno->setHoraHasta($hora_hasta);
+
+      // agregamos lños turnos a un array
+      array_push($setTurns, $newTurno);
+
+      // seteamos el inicio del nuevo turno
+      $horaInicio = clone $hora_hasta;
+    }
+
+    return $setTurns;
   }
 
 }
