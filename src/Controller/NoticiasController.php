@@ -132,9 +132,8 @@ class NoticiasController extends AbstractFOSRestController
                     $statusCode = Response::HTTP_NO_CONTENT;
                 }
                 else{
-                    $news = $this->get('serializer')->serialize($news, 'json');
-                    $news = json_decode($news);
-                    //$respJson->news = $news;
+                    // $news = $this->get('serializer')->serialize($news, 'json');
+                    // $news = json_decode($news);
                     $respJson = $news;
                     $statusCode = Response::HTTP_OK;
                 }
@@ -185,11 +184,26 @@ class NoticiasController extends AbstractFOSRestController
 
         // controlamos que no superen las n max noticias
         if(count($newsAllCompetitions) > Constant::CANT_MAX_NOTICIAS){
-            return $newsAllCompetitions = array_slice($newsAllCompetitions, 0, Constant::CANT_MAX_NOTICIAS);
+            $newsAllCompetitions = array_slice($newsAllCompetitions, 0, Constant::CANT_MAX_NOTICIAS);
         }
-        
-        return $newsAllCompetitions;
-        //return null;
+       
+        // pasamos el array a un nuevo array para cambiar el formato de la fecha
+        $news = array();
+        foreach ($newsAllCompetitions as &$new) {
+            $date = $new->getUptime(); 
+
+            $newResp = (object) null;
+            $newResp->id = $new->getId();
+            $newResp->competition = $new->getCompetition();
+            $newResp->title = $new->getTitle();
+            $newResp->resume = $new->getResume();
+            $newResp->descripcion = $new->getDescripcion();
+            $newResp->uptime = $date->formatAsString();
+            
+            // var_dump($date->formatAsString());
+            array_push($news, $newResp);
+        }
+        return $news;
     }
 
     // recuperamos las ultimas n noticias de una competencia
@@ -209,9 +223,9 @@ class NoticiasController extends AbstractFOSRestController
         foreach ($arrayDocuments as $document) {
             $arrayFields = $document->data();
             $nameCompetition = $this->nameCompetitionNews($document);
-            $date = $arrayFields['uptime']->get('date');
-            //var_dump($date);
+            //$date = $arrayFields['uptime']->get('date');
             $dataObjectNew = new Noticia($document->id(), $nameCompetition, $arrayFields['title'], $arrayFields['resume'], $arrayFields['descripcion'], $arrayFields['uptime']);
+            //$dataObjectNew = new Noticia($document->id(), $nameCompetition, $arrayFields['title'], $arrayFields['resume'], $arrayFields['descripcion'], $date);
             array_push($arraydata, $dataObjectNew);
         }
 

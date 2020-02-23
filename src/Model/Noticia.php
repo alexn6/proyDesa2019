@@ -78,6 +78,7 @@ class Noticia implements Serializable
 
         return $this;
     }
+    
     public function getUptime(): ?Timestamp
     {
         return $this->uptime;
