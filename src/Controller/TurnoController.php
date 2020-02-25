@@ -171,10 +171,7 @@ class TurnoController extends AbstractFOSRestController
             $horaInicio = $dataTurnoRequest->horaInicio;
             $n_turnos = $dataTurnoRequest->cantidad;
 
-            $duracion = 90;
-            if(isset($dataTurnoRequest->duracion)){
-              $duracion = $dataTurnoRequest->duracion;
-            }
+            $duracion = $dataTurnoRequest->duracion;
 
             $repositoryCompetencia = $this->getDoctrine()->getRepository(Competencia::class);
             $competencia = $repositoryCompetencia->find($idCompetencia);
@@ -270,7 +267,7 @@ class TurnoController extends AbstractFOSRestController
       $newTurno->setHoraDesde($hora_desde);
       $newTurno->setHoraHasta($hora_hasta);
 
-      // agregamos lños turnos a un array
+      // agregamos los turnos a un array
       array_push($setTurns, $newTurno);
 
       // seteamos el inicio del nuevo turno
