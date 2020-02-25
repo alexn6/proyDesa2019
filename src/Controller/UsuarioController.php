@@ -49,7 +49,7 @@ class UsuarioController extends AbstractFOSRestController
       'circular_reference_handler' => function ($object) {
         return $object->getId();
       },
-      'ignored_attributes' => ['usuarioscompetencias', 'roles', 'password', 'pass', 'salt']
+      'ignored_attributes' => ['usuarioscompetencias', 'roles', 'password', 'pass', 'salt','token','notification']
     ]);
 
     $response = new Response($users);
