@@ -34,6 +34,11 @@ class Categoria
     private $min_integrantes;
 
     /**
+     * @ORM\Column(type="integer")
+     */
+    private $duracion_default;    
+    
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Deporte")
      * @ORM\JoinColumn(name="deporte_id", referencedColumnName="id")
      */
@@ -91,5 +96,18 @@ class Categoria
 
         return $this;
     }
+
+    public function getDuracionDefault(): ?int
+    {
+        return $this->duracion_default;
+    }
+
+    public function setDuracionDefault(int $duracion_default): self
+    {
+        $this->duracion_default = $duracion_default;
+
+        return $this;
+    }
+   
 
 }
