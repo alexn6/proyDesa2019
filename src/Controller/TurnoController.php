@@ -21,8 +21,6 @@ use App\Utils\Constant;
  */
 class TurnoController extends AbstractFOSRestController
 {
-
-
     /**
      * Devuelve todas los predios de una competencia
      * @Rest\Get("/turn/competition"), defaults={"_format"="json"})
@@ -71,7 +69,6 @@ class TurnoController extends AbstractFOSRestController
   
       return $response;
   }
-
 
     /**
      * Crea un predio.
@@ -209,6 +206,73 @@ class TurnoController extends AbstractFOSRestController
     
       return $response;
     }
+
+
+    /**
+     * Elimina un predio
+     * @Rest\Delete("/del-turn"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function delete(Request $request){
+
+      $respJson = (object) null;
+      $statusCode;
+
+      $idCompetencia = $request->get('idCompetencia');
+      $idTurno = $request->get('idTurno');
+    
+      // vemos si recibimos el id de un predio para eliminarlo
+      if(empty($idCompetencia)){
+              $respJson->success = false;
+              $statusCode = Response::HTTP_BAD_REQUEST;
+              $respJson->messaging = "Peticion mal formada.";
+      }else{
+          if(empty($idTurno)){
+              $respJson->success = false;
+              $statusCode = Response::HTTP_BAD_REQUEST;
+              $respJson->messaging = "Peticion mal formada. Faltan parametros.";
+          }
+          else{          
+              $repository = $this->getDoctrine()->getRepository(Turno::class);
+              $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
+              
+              $competencia = $repositoryComp->find($idCompetencia);
+              $turno = $repository->find($idTurno);
+
+              if(empty($competencia) || empty($turno)){
+                $statusCode = Response::HTTP_BAD_REQUEST;
+                $respJson->messaging = "Competencia o turno no existe";
+              }
+
+              $turno = $repository->findOneBy(['competencia'=>$idCompetencia,'id'=>$idTurno]);
+              if($turno == NULL){
+                  $respJson->success = true;
+                  $statusCode = Response::HTTP_OK;
+                  $respJson->messaging = "El turno y/o competencia incorrecta o inexistente";
+              }
+              else{
+                  // eliminamos el dato y refrescamos la DB
+                  $em = $this->getDoctrine()->getManager();
+                  $em->remove($turno);
+                  $em->flush();
+      
+                  $respJson->success = true;
+                  $statusCode = Response::HTTP_OK;
+                  $respJson->messaging = "Eiminacion correcta";
+              }
+          }
+      
+      }
+      $respJson = json_encode($respJson);
+
+      $response = new Response($respJson);
+      $response->headers->set('Content-Type', 'application/json');
+      $response->setStatusCode($statusCode);
+
+      return $response;
+  }
+
 
     // ######################################################################################
     // ############################ funciones auxiliares ####################################

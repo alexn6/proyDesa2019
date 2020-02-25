@@ -64,5 +64,160 @@ class PredioCompetenciaController extends AbstractFOSRestController
     
         return $response;
     }
+
+    /**
+     * Crea un predio.
+     * @Rest\Post("/set-ground"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function create(Request $request){
+
+        $respJson = (object) null;
+        $statusCode;
+
+        // vemos si existe un body
+        if(!empty($request->getContent())){
+  
+          $repository = $this->getDoctrine()->getRepository(Predio::class);
+          $repositoryPredComp = $this->getDoctrine()->getRepository(PredioCompetencia::class);
+          $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
+
+    
+          // recuperamos los datos del body y pasamos a un array
+          $dataPredioRequest = json_decode($request->getContent());
+          
+          if(!$this->correctDataCreate($dataPredioRequest)){
+            $statusCode = Response::HTTP_BAD_REQUEST;
+            $respJson->messaging = "Peticion mal formada. Faltan parametros o cuentan con nombres erroneos.";
+          }
+          else{
+              // recuperamos los datos del body
+              $idPredio = $dataPredioRequest->idPredio;
+            //   $idCompetencia = $dataPredioRequest->idCompetencia;
+              $idCompetencia = $dataPredioRequest->idCompetencia;
+                
+              // controlamos que la competencia exista
+              $competencia = $repositoryComp->find($idCompetencia);
+              $predio = $repository->find($idPredio);
+              if(empty($competencia) || empty($predio)){
+                $statusCode = Response::HTTP_BAD_REQUEST;
+                $respJson->messaging = "Competencia o predio no existe";
+              }
+              if($repositoryPredComp->findOneBy(['predio' => $predio, 'competencia'=> $competencia])){
+                $statusCode = Response::HTTP_BAD_REQUEST;
+                $respJson->messaging = "Predio ya asignado a competencia";
+                }else{
+                
+                    // creamos el predio
+                    $newPredio = new PredioCompetencia();
+                    $newPredio->setPredio($predio);
+                    $newPredio->setCompetencia($competencia);
+                    
+                    $em = $this->getDoctrine()->getManager();
+                    $em->persist($newPredio);
+                    $em->flush();
+            
+                    $statusCode = Response::HTTP_CREATED;
+                    $respJson->messaging = "Creacion exitosa";
+                }
+            }
+        }
+        else{
+          $statusCode = Response::HTTP_BAD_REQUEST;
+          $respJson->messaging = "Peticion mal formada";
+        }
+        
+        $respJson = json_encode($respJson);
+  
+        $response = new Response($respJson);
+        $response->headers->set('Content-Type', 'application/json');
+        $response->setStatusCode($statusCode);
+  
+        return $response;
+    }
+
+
+    /**
+     * Elimina un predio
+     * @Rest\Delete("/del-groundCompetition"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function delete(Request $request){
+
+        $respJson = (object) null;
+        $statusCode;
+
+        $idCompetencia = $request->get('idCompetencia');
+        $idPredio = $request->get('idPredio');
+      
+        // vemos si recibimos el id de un predio para eliminarlo
+        if(empty($idCompetencia)){
+                $respJson->success = false;
+                $statusCode = Response::HTTP_BAD_REQUEST;
+                $respJson->messaging = "Peticion mal formada.";
+        }else{
+            if(empty($idPredio)){
+                $respJson->success = false;
+                $statusCode = Response::HTTP_BAD_REQUEST;
+                $respJson->messaging = "Peticion mal formada. Faltan parametros.";
+            }
+            else{          
+                $repository = $this->getDoctrine()->getRepository(Predio::class);
+                $repositoryPredComp = $this->getDoctrine()->getRepository(PredioCompetencia::class);
+                $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
+                
+                $competencia = $repositoryComp->find($idCompetencia);
+                $predio = $repository->find($idPredio);
+                if(empty($competencia) || empty($predio)){
+                  $statusCode = Response::HTTP_BAD_REQUEST;
+                  $respJson->messaging = "Competencia o predio no existe";
+                }
+                $predio = $repositoryPredComp->findOneBy(['competencia'=>$idCompetencia,'predio'=>$idPredio]);
+                if($predio == NULL){
+                    $respJson->success = true;
+                    $statusCode = Response::HTTP_OK;
+                    $respJson->messaging = "El predio y/o competencia incorrecta o inexistente";
+                }
+                else{
+                    // eliminamos el dato y refrescamos la DB
+                    $em = $this->getDoctrine()->getManager();
+                    $em->remove($predio);
+                    $em->flush();
+        
+                    $respJson->success = true;
+                    $statusCode = Response::HTTP_OK;
+                    $respJson->messaging = "Eiminacion correcta";
+                }
+            }
+        
+        }
+        $respJson = json_encode($respJson);
+
+        $response = new Response($respJson);
+        $response->headers->set('Content-Type', 'application/json');
+        $response->setStatusCode($statusCode);
+  
+        return $response;
+    }
+
+    
+
+
+     // ######################################################################################
+    // ############################ funciones auxiliares ####################################
+
+    // controlamos que los datos recibidos esten completos
+    private function correctDataCreate($dataRequest){
+        if(!property_exists((object) $dataRequest,'idPredio')){
+            return false;
+        }
+        if(!property_exists((object) $dataRequest,'idCompetencia')){
+            return false;
+        }
+        return true;
+    }
+
     
 }
