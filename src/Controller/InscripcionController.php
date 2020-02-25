@@ -88,6 +88,9 @@ class InscripcionController extends AbstractFOSRestController
                             $nuevainscripcion->setRequisitos($requisitos);
                         }
 
+                        // seteamos el esatdo de la competencia
+                        $competencia->setEstado(Constant::ESTADO_COMP_INSCRIPCION_ABIERTA);
+
                         $em = $this->getDoctrine()->getManager();
                         $em->persist($nuevainscripcion);
                         $em->flush();
