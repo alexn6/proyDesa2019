@@ -152,7 +152,6 @@ class InscripcionController extends AbstractFOSRestController
                         },
                         'ignored_attributes' => ['competencia', '__initializer__', '__cloner__', '__isInitialized__']
                     ]);
-                        var_dump($inscription);
                     $respJson = $inscription;
                     $statusCode = Response::HTTP_OK;    
                 }
