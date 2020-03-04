@@ -120,7 +120,7 @@ class InscripcionController extends AbstractFOSRestController
     }
 
     /**
-     * Devuelve todas los predios de una competencia
+     * Devuelve la inscripcion de una competencia, si cuenta con una
      * @Rest\Get("/inscription-competition"), defaults={"_format"="json"})
      * 
      * @return Response
@@ -138,11 +138,9 @@ class InscripcionController extends AbstractFOSRestController
             $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
             $competencia = $repositoryComp->find($idCompetencia);
         
-            if($competencia == null){
-                $inscription  = NULL;
-                
+            if($competencia == NULL){
                 $statusCode = Response::HTTP_BAD_REQUEST;
-                $respJson->messaging = "No existe competencia.";
+                $respJson->messaging = "La competencia no existe.";
             }else{
                 if($competencia->getInscripcion() != null){
                     $inscription = $competencia->getInscripcion();
@@ -152,28 +150,26 @@ class InscripcionController extends AbstractFOSRestController
                         },
                         'ignored_attributes' => ['competencia', '__initializer__', '__cloner__', '__isInitialized__']
                     ]);
+                    $inscription = json_decode($inscription);
                     $respJson = $inscription;
                     $statusCode = Response::HTTP_OK;    
                 }
                 else {
-                    $inscription  = NULL;
                     $statusCode = Response::HTTP_BAD_REQUEST;
                     $respJson->messaging = "Competencia sin inscripcion.";        
                 }
             }
         }
         else{
-            $inscription  = NULL;
             $statusCode = Response::HTTP_BAD_REQUEST;
             $respJson->messaging = "Peticion mal formada. Faltan parametros.";
         }
         
-        $respJson = json_encode($inscription);
-        $respJson = json_decode($respJson);
+        $respJson = json_encode($respJson);
 
         $response = new Response($respJson);
-        $response->setStatusCode(Response::HTTP_OK);
         $response->headers->set('Content-Type', 'application/json');
+        $response->setStatusCode($statusCode);
     
         return $response;
     }
