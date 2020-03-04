@@ -127,41 +127,50 @@ class InscripcionController extends AbstractFOSRestController
      */
     public function getInscriptionByCompetition(Request $request){
         $repository = $this->getDoctrine()->getRepository(Inscripcion::class);
-        $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
 
         $respJson = (object) null;
 
         $idCompetencia = $request->get('idCompetencia');
+        $inscription  = NULL;
 
         // vemos si recibimos algun parametro
         if(!empty($idCompetencia)){
+            $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
             $competencia = $repositoryComp->find($idCompetencia);
         
             if($competencia == null){
+                $inscription  = NULL;
+                
                 $statusCode = Response::HTTP_BAD_REQUEST;
-                $respJson->messaging = "Peticion mal formada. Faltan parametros.";
+                $respJson->messaging = "No existe competencia.";
+            }else{
+                if($competencia->getInscripcion() != null){
+                    $inscription = $competencia->getInscripcion();
+                    $inscription = $this->get('serializer')->serialize($inscription, 'json', [
+                        'circular_reference_handler' => function ($object) {
+                            return $object->getId();
+                        },
+                        'ignored_attributes' => ['competencia', '__initializer__', '__cloner__', '__isInitialized__']
+                    ]);
+                        var_dump($inscription);
+                    $respJson = $inscription;
+                    $statusCode = Response::HTTP_OK;    
                 }
-            else{
-                $inscription = $competencia->getInscripcion();
-                $inscription = $this->get('serializer')->serialize($inscription, 'json', [
-                    'circular_reference_handler' => function ($object) {
-                        return $object->getId();
-                    },
-                    'ignored_attributes' => ['competencia', '__initializer__', '__cloner__', '__isInitialized__']
-                ]);
-                $inscripciones = array();
-                $respJson = $inscription;
-                $statusCode = Response::HTTP_OK;
+                else {
+                    $inscription  = NULL;
+                    $statusCode = Response::HTTP_BAD_REQUEST;
+                    $respJson->messaging = "Competencia sin inscripcion.";        
+                }
             }
         }
         else{
             $inscription  = NULL;
             $statusCode = Response::HTTP_BAD_REQUEST;
-            $respJson->messaging = "Faltan parametros";
+            $respJson->messaging = "Peticion mal formada. Faltan parametros.";
         }
         
-        $respJson = json_decode($inscription);
-        $respJson = json_encode($respJson);
+        $respJson = json_encode($inscription);
+        $respJson = json_decode($respJson);
 
         $response = new Response($respJson);
         $response->setStatusCode(Response::HTTP_OK);
