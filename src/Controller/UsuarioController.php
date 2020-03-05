@@ -563,16 +563,16 @@ class UsuarioController extends AbstractFOSRestController
             $respJson->messaging = "La competencia no existe";
           }
           else{
-            // TODO: controlar q haya relacion de SEG, PART, ORG o COORG
             // buscamos el usuario
             $relation = $repository->relationUserCompetition($idUsuario, $idCompetencia);
 
             if($relation == NULL){
               $statusCode = Response::HTTP_BAD_REQUEST;
-              $respJson->messaging = "El usuario no mantiene relacion con la competencia.";
+              $respJson->messaging = "El usuario no tiene relacion con la competencia.";
             }
             else{
-              $dataCompetitionOffline = $repositoryComp->dataOffline($idUsuario, $competencia->getNombre());
+              $dataCompetitionOffline = $repositoryComp->dataOffline($idUsuario, $idCompetencia);
+
               $statusCode = Response::HTTP_OK;
               $respJson->messaging = "Pasa el test";
               // VOLVER

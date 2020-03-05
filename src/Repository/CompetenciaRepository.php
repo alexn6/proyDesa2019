@@ -39,7 +39,7 @@ class CompetenciaRepository extends ServiceEntityRepository
     }
 
     // recupera todos los datos de la competencia  como string, agregado el rol
-    public function dataOffline($idUsuario, $nombreCompetencia){
+    public function dataOffline($idUsuario, $idCompetencia){
         $entityManager = $this->getEntityManager();
       
         // $query = $entityManager->createQuery(
@@ -53,103 +53,107 @@ class CompetenciaRepository extends ServiceEntityRepository
         //     ')->setParameter('idCompetencia', $idCompetencia);
             
         // return $query->execute();
-        $competitionsRol = $this->filterCompetitionsRol($idUsuario, $nombreCompetencia, null, null, null, null, null, null);
+        
+        $query = ' SELECT c.id, c.nombre, cat.nombre categoria, org.nombre organizacion, c.genero, c.estado, c.frec_dias, c.ciudad, c.fecha_ini, r.nombre as rol
+            FROM App\Entity\Competencia c
+            INNER JOIN App\Entity\Categoria cat
+            WITH c.categoria = cat.id
+            INNER JOIN App\Entity\TipoOrganizacion org
+            WITH c.organizacion = org.id
+            INNER JOIN App\Entity\UsuarioCompetencia uc
+            WITH c.id = uc.competencia
+            INNER JOIN App\Entity\Rol r
+            WITH uc.rol = r.id
+            AND uc.usuario = :idUsuario
+            AND c.id = :idCompetencia';
 
-        // $query = $entityManager->createQuery(
-        //     '   SELECT c.id, c.nombre, cat.nombre categoria, org.nombre organizacion, c.genero, c.estado, c.frec_dias, c.fecha_ini, r.nombre rol
-        //         FROM App\Entity\Competencia c
-        //         INNER JOIN App\Entity\Categoria cat
-        //         WITH c.categoria = cat.id
-        //         INNER JOIN App\Entity\TipoOrganizacion org
-        //         WITH c.organizacion = org.id
-        //         INNER JOIN App\Entity\UsuarioCompetencia uc
-        //         WITH (c.id = uc.competencia AND c.id = :idCompetencia)
-        //         INNER JOIN App\Entity\Rol r
-        //         WITH uc.rol = r.id
-        //     ')->setParameter('idCompetencia', $idCompetencia);
+        $query = $entityManager->createQuery($query);
+        // le seteamos el parametro
+        $query->setParameter('idUsuario',$idUsuario);
+        $query->setParameter('idCompetencia',$idCompetencia);
 
-        //     //buscar filterCompetitionsByUserFull
-            
-        // return $query->execute();
-        return $competitionsRol;
+        // agrupamos los roles del usuario por cada competencia
+        $competitions = $this->joinRolCompetitions($query->execute());
+
+        return $competitions;
     }
 
-    // filtro de competencias
-    public function filterCompetitions($nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad, $estado){
-        $entityManager = $this->getEntityManager();
-        $qb = $this->getEntityManager()->createQueryBuilder();
-        // partimos de una consulta base para 
-        $stringQueryBase = 'SELECT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.ciudad, c.genero, c.estado
-                            FROM App\Entity\Competencia c
-                            INNER JOIN App\Entity\Categoria categ
-                            WITH c.categoria = categ.id
-                            INNER JOIN App\Entity\TipoOrganizacion organ
-                            WITH c.organizacion = organ.id';
+    // // filtro de competencias
+    // public function filterCompetitions($nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad, $estado){
+    //     $entityManager = $this->getEntityManager();
+    //     $qb = $this->getEntityManager()->createQueryBuilder();
+    //     // partimos de una consulta base para 
+    //     $stringQueryBase = 'SELECT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.ciudad, c.genero, c.estado
+    //                         FROM App\Entity\Competencia c
+    //                         INNER JOIN App\Entity\Categoria categ
+    //                         WITH c.categoria = categ.id
+    //                         INNER JOIN App\Entity\TipoOrganizacion organ
+    //                         WITH c.organizacion = organ.id';
 
-        // ############# primero trabajamos con los join #############
-        // si recibimos parametros agrandamos la consulta
-        if($idCategoria != NULL){
-            // creamos la parte de la consulta con el parametro recibido
-            $stringQueryCategoria = ' AND c.categoria = '.$idCategoria;
-            // juntamos la consulta en una sola
-            $stringQueryBase = $stringQueryBase.$stringQueryCategoria;
-        }
-        // si recibimos parametros agrandamos la consulta
-        if($idDeporte != NULL){
-            // creamos la parte de la consulta con el parametro recibido
-            $stringQueryDeporte = ' AND categ.deporte = '.$idDeporte;
-            // juntamos la consulta en una sola
-            $stringQueryBase = $stringQueryBase.$stringQueryDeporte;
-        }
-        // si recibimos parametros agrandamos la consulta
-        if($idTipoorg != NULL){
-            // creamos la parte de la consulta con el parametro recibido
-            $stringQueryTipoorg = ' AND c.organizacion = '.$idTipoorg;
-            // juntamos la consulta en una sola
-            $stringQueryBase = $stringQueryBase.$stringQueryTipoorg;
-        }
-        // ############# ahora trabajamos con los datos de las columnas #############
-        // si recibimos parametros agrandamos la consulta
-        if($genero != NULL){
-            // creamos la parte de la consulta con el parametro recibido
-            $stringQueryGenero = ' AND c.genero = '.$genero;
-            // juntamos la consulta en una sola
-            $stringQueryBase = $stringQueryBase.$stringQueryGenero;
-        }
-        if($estado != NULL){
-            // creamos la parte de la consulta con el parametro recibido
-            $stringQueryEstado = ' AND c.estado = '.$estado;
-            // juntamos la consulta en una sola
-            $stringQueryBase = $stringQueryBase.$stringQueryEstado;
-        }
+    //     // ############# primero trabajamos con los join #############
+    //     // si recibimos parametros agrandamos la consulta
+    //     if($idCategoria != NULL){
+    //         // creamos la parte de la consulta con el parametro recibido
+    //         $stringQueryCategoria = ' AND c.categoria = '.$idCategoria;
+    //         // juntamos la consulta en una sola
+    //         $stringQueryBase = $stringQueryBase.$stringQueryCategoria;
+    //     }
+    //     // si recibimos parametros agrandamos la consulta
+    //     if($idDeporte != NULL){
+    //         // creamos la parte de la consulta con el parametro recibido
+    //         $stringQueryDeporte = ' AND categ.deporte = '.$idDeporte;
+    //         // juntamos la consulta en una sola
+    //         $stringQueryBase = $stringQueryBase.$stringQueryDeporte;
+    //     }
+    //     // si recibimos parametros agrandamos la consulta
+    //     if($idTipoorg != NULL){
+    //         // creamos la parte de la consulta con el parametro recibido
+    //         $stringQueryTipoorg = ' AND c.organizacion = '.$idTipoorg;
+    //         // juntamos la consulta en una sola
+    //         $stringQueryBase = $stringQueryBase.$stringQueryTipoorg;
+    //     }
+    //     // ############# ahora trabajamos con los datos de las columnas #############
+    //     // si recibimos parametros agrandamos la consulta
+    //     if($genero != NULL){
+    //         // creamos la parte de la consulta con el parametro recibido
+    //         $stringQueryGenero = ' AND c.genero = '.$genero;
+    //         // juntamos la consulta en una sola
+    //         $stringQueryBase = $stringQueryBase.$stringQueryGenero;
+    //     }
+    //     if($estado != NULL){
+    //         // creamos la parte de la consulta con el parametro recibido
+    //         $stringQueryEstado = ' AND c.estado = '.$estado;
+    //         // juntamos la consulta en una sola
+    //         $stringQueryBase = $stringQueryBase.$stringQueryEstado;
+    //     }
 
-        // vemos si recibimos un nombre de competencia como parametro
-        if($nombreCompetencia != NULL){
-            //var_dump($nombreCompetencia);
-            // escapamos los %, no los toma como debe si no hacemos esto
-            // ("u.roles LIKE '%$role%'") => podria ser una mejor solucion pero
-            // deberiamos cambiar la consulta por "" y probar que todo anda como debe
-            $like = $qb->expr()->literal('%'.$nombreCompetencia.'%');
-            $stringQueryNombreComp = ' AND c.nombre LIKE '.$like;
-            // juntamos la consulta en una sola
-            $stringQueryBase = $stringQueryBase.$stringQueryNombreComp;
-        }
+    //     // vemos si recibimos un nombre de competencia como parametro
+    //     if($nombreCompetencia != NULL){
+    //         //var_dump($nombreCompetencia);
+    //         // escapamos los %, no los toma como debe si no hacemos esto
+    //         // ("u.roles LIKE '%$role%'") => podria ser una mejor solucion pero
+    //         // deberiamos cambiar la consulta por "" y probar que todo anda como debe
+    //         $like = $qb->expr()->literal('%'.$nombreCompetencia.'%');
+    //         $stringQueryNombreComp = ' AND c.nombre LIKE '.$like;
+    //         // juntamos la consulta en una sola
+    //         $stringQueryBase = $stringQueryBase.$stringQueryNombreComp;
+    //     }
 
-        // vemos si recibimos un nombre de competencia como parametro
-        if($ciudad != NULL){
-            // escapamos los %, no los toma como debe si no hacemos esto
-            // ("u.roles LIKE '%$role%'") => podria ser una mejor solucion pero
-            // deberiamos cambiar la consulta por "" y probar que todo anda como debe
-            $like = $qb->expr()->literal('%'.$ciudad.'%');
-            $stringQueryCiudad = ' AND c.ciudad LIKE '.$like;
-            // juntamos la consulta en una sola
-            $stringQueryBase = $stringQueryBase.$stringQueryCiudad;
-        }
+    //     // vemos si recibimos un nombre de competencia como parametro
+    //     if($ciudad != NULL){
+    //         // escapamos los %, no los toma como debe si no hacemos esto
+    //         // ("u.roles LIKE '%$role%'") => podria ser una mejor solucion pero
+    //         // deberiamos cambiar la consulta por "" y probar que todo anda como debe
+    //         $like = $qb->expr()->literal('%'.$ciudad.'%');
+    //         $stringQueryCiudad = ' AND c.ciudad LIKE '.$like;
+    //         // juntamos la consulta en una sola
+    //         $stringQueryBase = $stringQueryBase.$stringQueryCiudad;
+    //     }
 
-        $query = $entityManager->createQuery($stringQueryBase);
+    //     $query = $entityManager->createQuery($stringQueryBase);
             
-        return $query->execute();
-    }
+    //     return $query->execute();
+    // }
 
     // Precondicion: idUsuario obligatorio
     // Filtro de competencias x usuario con rol
@@ -328,7 +332,7 @@ class CompetenciaRepository extends ServiceEntityRepository
         $competitionsMin = array();
         // controlamos que existan elementos en el array
         if(count($competitions) == 0){
-            return $competitions;
+            return null;
         }
 
         // tomamos el primer valor y pasamos el rol a un array de roles
@@ -336,6 +340,14 @@ class CompetenciaRepository extends ServiceEntityRepository
         $roles = array();
         // guardamos el primer rol
         array_push($roles, $competitionAux['rol']);
+
+        // si existe sola una competencia con un rol devolvemos la competencia
+        if(count($competitions) == 1){
+            $competitionAux['rol'] = $roles;
+            array_push($competitionsMin, $competitionAux);
+            return $competitionsMin;
+        }
+
         // bandera para guardar el ultimo
         $guardarUltimo = false;
 
@@ -374,7 +386,15 @@ class CompetenciaRepository extends ServiceEntityRepository
             $competitionAux['rol'] = $roles;
             array_push($competitionsMin, $competitionAux);
         }
-
+        else{
+            // esto por si sale del for y no xq cambia el id de la competencia, sino xq es la ultima competencia
+            if(count($roles) > 0){
+                // guardamos los roles como un array
+                $competitionAux['rol'] = $roles;
+                array_push($competitionsMin, $competitionAux);
+            }
+        }
+        
         return $competitionsMin;
     }
 
