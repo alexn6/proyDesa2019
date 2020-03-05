@@ -227,6 +227,7 @@ class CompetenciaRepository extends ServiceEntityRepository
 
         $hayResultados = true;
         $resultQuery = $subQuery->execute();
+        //var_dump(count($resultQuery));
         if(count($resultQuery) == 0){
             $hayResultados = false;
         }
@@ -238,14 +239,14 @@ class CompetenciaRepository extends ServiceEntityRepository
                         WITH c.categoria = categ.id
                         INNER JOIN App\Entity\TipoOrganizacion organ
                         WITH c.organizacion = organ.id
-                        INNER JOIN App\Entity\UsuarioCompetencia uc
-                        WITH c.id = uc.competencia
-                        INNER JOIN App\Entity\Rol r
-                        WITH uc.rol = r.id
                         ';
         
         $array_idCompetencias = array();
         $stringQueryWhere;
+        
+        // le incorporamos los filtros a la query
+        $queryBase = $this->addFilters($queryBase, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad, $estado);
+        
         if($hayResultados){
             // pasamos solo los id de las competencias a un array
             foreach ($resultQuery as &$valor) {
@@ -259,12 +260,9 @@ class CompetenciaRepository extends ServiceEntityRepository
             $queryBase = $queryBase.$stringQueryWhere;
         }
 
-        // le incorporamos los filtros a la query
-        $queryBase = $this->addFilters($queryBase, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad, $estado);
-        
         // agregamos el order by
         $queryBase = $queryBase.' ORDER BY c.id ASC';
-
+        //var_dump($queryBase);
         $query = $entityManager->createQuery($queryBase);
             
         return $query->execute();
