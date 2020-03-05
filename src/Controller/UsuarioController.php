@@ -10,6 +10,7 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\Entity\Usuario;
+use App\Entity\Competencia;
 use App\Entity\Notification;
 
 use App\Utils\VerificationMail;
@@ -494,6 +495,91 @@ class UsuarioController extends AbstractFOSRestController
           $respJson->messaging = "El usuario no existe";
         }
         $statusCode = Response::HTTP_OK;
+      }
+      else{
+        $statusCode = Response::HTTP_BAD_REQUEST;
+        $respJson->messaging = "Solicitud mal formada";
+      }
+      
+    }
+    else{
+      $statusCode = Response::HTTP_BAD_REQUEST;
+      $respJson->messaging = "Solicitud mal formada";
+    }
+
+    
+    $respJson = json_encode($respJson);
+
+    $response = new Response($respJson);
+    $response->headers->set('Content-Type', 'application/json');
+    $response->setStatusCode($statusCode);
+
+    return $response;
+  }
+
+  /**
+   * Recupera todos los datos de determinada competencia de un usuario
+   * para poder trabajar de manera offline
+   * @Rest\Get("/user/off"), defaults={"_format"="json"})
+   * 
+   * @return Response
+   */
+  public function dataUserOffline(Request $request){
+
+    $respJson = (object) null;
+    $statusCode;
+
+    if(!empty($request->getContent())){
+
+      // recuperamos los datos del body y pasamos a un array
+      $dataRequest = json_decode($request->getContent());
+
+      if((isset($dataRequest->idUsuario))&&(isset($dataRequest->idCompetencia))){
+        // recuperamos los datos
+        $idUsuario = $dataRequest->idUsuario;
+        $idCompetencia = $dataRequest->idCompetencia;
+        
+        // buscamos el usuario
+        $repository = $this->getDoctrine()->getRepository(Usuario::class);
+        $usuario = $repository->find($idUsuario);
+
+        if($usuario == NULL){
+          $statusCode = Response::HTTP_BAD_REQUEST;
+          $respJson->messaging = "El usuario no existe";
+          
+          // $em = $this->getDoctrine()->getManager();
+          // $usuario->setToken($new_token);
+          // $em->flush();
+  
+          // $respJson->messaging = "Actualizacion realizada";
+        }
+        else{
+          // buscamos el usuario
+          $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
+          $competencia = $repositoryComp->find($idCompetencia);
+
+          if($competencia == NULL){
+            $statusCode = Response::HTTP_BAD_REQUEST;
+            $respJson->messaging = "La competencia no existe";
+          }
+          else{
+            // TODO: controlar q haya relacion de SEG, PART, ORG o COORG
+            // buscamos el usuario
+            $relation = $repository->relationUserCompetition($idUsuario, $idCompetencia);
+
+            if($relation == NULL){
+              $statusCode = Response::HTTP_BAD_REQUEST;
+              $respJson->messaging = "El usuario no mantiene relacion con la competencia.";
+            }
+            else{
+              $dataCompetitionOffline = $repositoryComp->dataOffline($idUsuario, $competencia->getNombre());
+              $statusCode = Response::HTTP_OK;
+              $respJson->messaging = "Pasa el test";
+              // VOLVER
+              $respJson->competencia = $dataCompetitionOffline;
+            }
+          }
+        }
       }
       else{
         $statusCode = Response::HTTP_BAD_REQUEST;

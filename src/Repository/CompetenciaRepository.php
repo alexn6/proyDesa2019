@@ -38,6 +38,42 @@ class CompetenciaRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    // recupera todos los datos de la competencia  como string, agregado el rol
+    public function dataOffline($idUsuario, $nombreCompetencia){
+        $entityManager = $this->getEntityManager();
+      
+        // $query = $entityManager->createQuery(
+        //     '   SELECT c.id, c.nombre, cat.nombre categoria, org.nombre organizacion, c.genero, c.estado, c.frec_dias, c.fecha_ini
+        //         FROM App\Entity\Competencia c
+        //         INNER JOIN App\Entity\Categoria cat
+        //         WITH c.categoria = cat.id
+        //         INNER JOIN App\Entity\TipoOrganizacion org
+        //         WITH c.organizacion = org.id
+        //         AND c.id = :idCompetencia
+        //     ')->setParameter('idCompetencia', $idCompetencia);
+            
+        // return $query->execute();
+        $competitionsRol = $this->filterCompetitionsRol($idUsuario, $nombreCompetencia, null, null, null, null, null, null);
+
+        // $query = $entityManager->createQuery(
+        //     '   SELECT c.id, c.nombre, cat.nombre categoria, org.nombre organizacion, c.genero, c.estado, c.frec_dias, c.fecha_ini, r.nombre rol
+        //         FROM App\Entity\Competencia c
+        //         INNER JOIN App\Entity\Categoria cat
+        //         WITH c.categoria = cat.id
+        //         INNER JOIN App\Entity\TipoOrganizacion org
+        //         WITH c.organizacion = org.id
+        //         INNER JOIN App\Entity\UsuarioCompetencia uc
+        //         WITH (c.id = uc.competencia AND c.id = :idCompetencia)
+        //         INNER JOIN App\Entity\Rol r
+        //         WITH uc.rol = r.id
+        //     ')->setParameter('idCompetencia', $idCompetencia);
+
+        //     //buscar filterCompetitionsByUserFull
+            
+        // return $query->execute();
+        return $competitionsRol;
+    }
+
     // filtro de competencias
     public function filterCompetitions($nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad, $estado){
         $entityManager = $this->getEntityManager();
@@ -107,67 +143,6 @@ class CompetenciaRepository extends ServiceEntityRepository
             $like = $qb->expr()->literal('%'.$ciudad.'%');
             $stringQueryCiudad = ' AND c.ciudad LIKE '.$like;
             // juntamos la consulta en una sola
-            $stringQueryBase = $stringQueryBase.$stringQueryCiudad;
-        }
-
-        $query = $entityManager->createQuery($stringQueryBase);
-            
-        return $query->execute();
-    }
-
-    // Precondicion: idUsuario obligatorio
-    // Filtro de competencias x usuario con rol
-    public function filterCompetitionsByUser($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad){
-        $entityManager = $this->getEntityManager();
-        $qb = $this->getEntityManager()->createQueryBuilder();
-        // partimos de una consulta base para 
-        $stringQueryBase = 'SELECT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.ciudad, c.genero
-                            FROM App\Entity\Competencia c
-                            INNER JOIN App\Entity\Categoria categ
-                            WITH c.categoria = categ.id
-                            INNER JOIN App\Entity\TipoOrganizacion organ
-                            WITH c.organizacion = organ.id';
-
-        // ############# primero trabajamos con los join #############
-        // si recibimos parametros agrandamos la consulta
-        if($idCategoria != NULL){
-            // creamos la parte de la consulta con el parametro recibido y la juntamos
-            $stringQueryCategoria = ' AND c.categoria = '.$idCategoria;
-            $stringQueryBase = $stringQueryBase.$stringQueryCategoria;
-        }
-        // si recibimos parametros agrandamos la consulta
-        if($idDeporte != NULL){
-            // creamos la parte de la consulta con el parametro recibido y la juntamos
-            $stringQueryDeporte = ' AND categ.deporte = '.$idDeporte;
-            $stringQueryBase = $stringQueryBase.$stringQueryDeporte;
-        }
-        // si recibimos parametros agrandamos la consulta
-        if($idTipoorg != NULL){
-            // creamos la parte de la consulta con el parametro recibido y la juntamos
-            $stringQueryTipoorg = ' AND c.organizacion = '.$idTipoorg;
-            $stringQueryBase = $stringQueryBase.$stringQueryTipoorg;
-        }
-        // ############# ahora trabajamos con los datos de las columnas #############
-        // si recibimos parametros agrandamos la consulta
-        if($genero != NULL){
-            // creamos la parte de la consulta con el parametro recibido y la juntamos
-            $stringQueryGenero = ' AND c.genero = '.$genero;
-            $stringQueryBase = $stringQueryBase.$stringQueryGenero;
-        }
-
-        // vemos si recibimos un nombre de competencia como parametro
-        if($nombreCompetencia != NULL){
-            // escapamos los %, no los toma como debe si no hacemos esto
-            $like = $qb->expr()->literal('%'.$nombreCompetencia.'%');
-            $stringQueryNombreComp = ' AND c.nombre LIKE '.$like;
-            $stringQueryBase = $stringQueryBase.$stringQueryNombreComp;
-        }
-
-        // vemos si recibimos un nombre de competencia como parametro
-        if($ciudad != NULL){
-            // escapamos los %, no los toma como debe si no hacemos esto
-            $like = $qb->expr()->literal('%'.$ciudad.'%');
-            $stringQueryCiudad = ' AND c.ciudad LIKE '.$like;
             $stringQueryBase = $stringQueryBase.$stringQueryCiudad;
         }
 
@@ -299,6 +274,7 @@ class CompetenciaRepository extends ServiceEntityRepository
     // ########################## funciones privadas #######################################
     // incorporamos los filtros a las queries
     private function addFilters($stringQueryBase, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad, $estado){
+        $qb = $this->getEntityManager()->createQueryBuilder();
         if($idCategoria != NULL){
             // creamos la parte de la consulta con el parametro recibido y la juntamos
             $stringQueryCategoria = ' AND c.categoria = '.$idCategoria;
@@ -404,19 +380,10 @@ class CompetenciaRepository extends ServiceEntityRepository
         return $competitionsMin;
     }
 
-    // funcion comparadora de propiedades de un objeto
-    // public function sortArrayWithObjects($array, $property)
-    // {
-    //     usort($array, function ($a, $b) use ($property) {
-    //         return (($a->$property == $b->$property) ? 0 : (($a->$property < $b->$property) ? -1 : 1));
-    //         //[short version] return strcmp($a->$property, $b->$property);
-    //     });
-    //     return $array;
-    // }
 
-    // /**
-    //  * @return Competencia[] Returns an array of Competencia objects
-    //  */
+    /**
+     * @return Competencia[] Returns an array of Competencia objects
+     */
     /*
     public function findByExampleField($value)
     {

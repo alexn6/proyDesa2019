@@ -105,4 +105,29 @@ class UsuarioRepository extends ServiceEntityRepository
       return $query->execute();
   }
 
+  // recuperamos la fila con la relacion de una competencia y usuario
+  public function relationUserCompetition($idUsuario, $idCompetencia)
+  {
+      $entityManager = $this->getEntityManager();
+
+      $query = $entityManager->createQuery(
+          '   SELECT c.nombre
+              FROM App\Entity\UsuarioCompetencia uc
+              INNER JOIN App\Entity\Competencia c
+              WITH uc.competencia = c.id
+              INNER JOIN App\Entity\Rol r
+              WITH uc.rol = r.id
+              AND uc.usuario = :idUsuario
+              AND uc.competencia = :idCompetencia
+              AND (r.nombre = :rol1 OR r.nombre = :rol2 OR r.nombre = :rol3 OR r.nombre = :rol4)
+          ')->setParameter('rol1', Constant::ROL_SEGUIDOR)
+          ->setParameter('rol2', Constant::ROL_COMPETIDOR)
+          ->setParameter('rol3', Constant::ROL_ORGANIZADOR)
+          ->setParameter('rol4', Constant::ROL_COORGANIZADOR)
+          ->setParameter('idUsuario', $idUsuario)
+          ->setParameter('idCompetencia', $idCompetencia);
+
+      return $query->execute();
+  }
+
 }
