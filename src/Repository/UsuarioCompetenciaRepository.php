@@ -180,6 +180,25 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
       return $query->execute();
   }
 
+  // recuperamos los datos de los competidortes de una competencia para su trabajo offline
+  public function competidoresByCompetenciaOffline($idCompetencia)
+  {
+      $entityManager = $this->getEntityManager();
+      $query = $entityManager->createQuery(
+          '   SELECT uc.id, uc.alias, u.nombreUsuario
+              FROM App\Entity\UsuarioCompetencia uc
+              INNER JOIN App\Entity\Rol r
+              WITH uc.rol = r.id
+              INNER JOIN App\Entity\Usuario u
+              WITH uc.usuario = u.id
+              AND r.nombre = :rol
+              AND uc.competencia = :idCompetencia
+          ')->setParameter('rol', Constant::ROL_COMPETIDOR)
+          ->setParameter('idCompetencia', $idCompetencia);    
+
+      return $query->execute();
+  }
+
   // recuperamos los tokenFirebase de los organizadores de una competencia
   public function findOrganizatorsCompetencia($idCompetencia)
   {

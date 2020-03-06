@@ -41,18 +41,6 @@ class CompetenciaRepository extends ServiceEntityRepository
     // recupera todos los datos de la competencia  como string, agregado el rol
     public function dataOffline($idUsuario, $idCompetencia){
         $entityManager = $this->getEntityManager();
-      
-        // $query = $entityManager->createQuery(
-        //     '   SELECT c.id, c.nombre, cat.nombre categoria, org.nombre organizacion, c.genero, c.estado, c.frec_dias, c.fecha_ini
-        //         FROM App\Entity\Competencia c
-        //         INNER JOIN App\Entity\Categoria cat
-        //         WITH c.categoria = cat.id
-        //         INNER JOIN App\Entity\TipoOrganizacion org
-        //         WITH c.organizacion = org.id
-        //         AND c.id = :idCompetencia
-        //     ')->setParameter('idCompetencia', $idCompetencia);
-            
-        // return $query->execute();
         
         $query = ' SELECT c.id, c.nombre, cat.nombre categoria, org.nombre organizacion, c.genero, c.estado, c.frec_dias, c.ciudad, c.fecha_ini, r.nombre as rol
             FROM App\Entity\Competencia c

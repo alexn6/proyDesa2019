@@ -411,6 +411,119 @@ class EncuentroController extends AbstractFOSRestController
       return $response;
     }
 
+    /**
+     * 
+     * @Rest\Post("/confrontations/competition-off")
+     * Devuelve los encuentros de la comptencia para trabajar de manera offline
+     * 
+     * @return Response
+     */
+    public function getConfratationsByCompetitionOffline(Request $request){
+      $idCompetition = $request->get('idCompetencia');
+
+      $respJson = (object) null;
+      $statusCode;
+     
+      // vemos si recibimos algun parametro
+      if(!empty($idCompetition)){
+          // controlamos que exista la competencia
+          $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
+          $competition = $repositoryComp->find($idCompetition);
+
+          if(empty($competition)){
+              $respJson->matches = NULL;
+              $statusCode = Response::HTTP_BAD_REQUEST;
+              $respJson->msg = "La competencia no existe o fue eliminada";
+          }
+          else{
+            $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
+            $grupo = null;
+            $idJornada = null;
+
+            // recuperamos inicialmente los datos del competidor1
+            $encuentros = $repositoryEnc->findEncuentrosComp1ByCompetencia($idCompetition, null, null);
+            $encuentros = $this->get('serializer')->serialize($encuentros, 'json', [
+              'circular_reference_handler' => function ($object) {
+                return $object->getId();
+              },
+              'ignored_attributes' => ['usuarioscompetencias', 'competencia', 'pass', 'token', 'password', 'roles', 'salt', 'username', '__initializer__','__cloner__', '__isInitialized__']
+            ]);
+            // pasamos los datos a un array para poder trabajarlos
+            $encuentros = json_decode($encuentros, true);
+
+            // recuperamos los datos del competidor2
+            $encuentrosComp2 = $repositoryEnc->findEncuentrosComp2ByCompetencia($idCompetition, $idJornada, $grupo);
+            $encuentrosComp2 = $this->get('serializer')->serialize($encuentrosComp2, 'json', [
+              'circular_reference_handler' => function ($object) {
+                return $object->getId();
+              },
+              'ignored_attributes' => ['usuarioscompetencias', 'competencia', 'pass', 'token', 'password', 'roles', 'salt', 'username', '__initializer__','__cloner__', '__isInitialized__']
+            ]);
+            // pasamos los datos a un array para poder trabajarlos
+            $encuentrosComp2 = json_decode($encuentrosComp2, true);
+
+            // creamos un nuevo array con los datos que necesitamos
+            $encuentrosFull = array();
+            // guardamos los encuentros
+            for ($i=0; $i < count($encuentros); $i++) { 
+              array_push($encuentrosFull, $encuentros[$i][0]);
+            }
+            
+            // harcode de los resultados con null
+            for ($i=0; $i < count($encuentrosFull); $i++) {
+              if($encuentrosFull[$i]['rdoComp1'] === null){
+                $encuentrosFull[$i]['rdoComp1'] = -1;
+              }
+              if($encuentrosFull[$i]['rdoComp2'] === null){
+                $encuentrosFull[$i]['rdoComp2'] = -1;
+              }
+            }
+
+            // colocamos los alias de los competidores
+            for ($i=0; $i < count($encuentrosFull); $i++) { 
+              $aliasComp1 = $encuentros[$i]['competidor1'];
+              $aliasComp2 = $encuentrosComp2[$i]['competidor2'];
+              $encuentrosFull[$i]['competidor1'] = $aliasComp1;
+              $encuentrosFull[$i]['competidor2'] = $aliasComp2;
+            }
+
+            // modificamos la jornada y agregams su fase
+            for ($i=0; $i < count($encuentrosFull); $i++) {
+              // le agregamos la jornada y fase
+              $jornada = $encuentrosFull[$i]['jornada'];
+              $encuentrosFull[$i]['jornada'] = $jornada['numero'];
+              $encuentrosFull[$i]['fase'] = $jornada['fase'];
+              $turno = $encuentrosFull[$i]['turno'];
+              //var_dump($turno['horaDesde']);
+              $hDesde= substr($turno['horaDesde'], -14, 5);
+              $hHasta= substr($turno['horaHasta'], -14, 5);
+              $encuentrosFull[$i]['turno'] = $hDesde." - ".$hHasta;
+              $fecha = substr($turno['horaDesde'], 0, -15);
+              if(!$fecha){
+                $fecha = " - ";
+              }
+              $encuentrosFull[$i]['fecha'] = $fecha;
+            }
+
+            $encuentrosFull = $this->get('serializer')->serialize($encuentrosFull, 'json');
+
+            $statusCode = Response::HTTP_OK;
+            $respJson = $encuentrosFull;
+          }
+      }
+      else{
+        $respJson->encuentros = NULL;
+        $respJson->msg = "Solicitud mal formada";
+        $statusCode = Response::HTTP_BAD_REQUEST;
+      }
+
+      $response = new Response($respJson);
+      $response->setStatusCode($statusCode);
+      $response->headers->set('Content-Type', 'application/json');
+
+      return $response;
+    }
+
     // para ignorar atributos dentro de una entidad a la hora de serializar
     //https://symfony.com/doc/current/components/serializer.html#serializing-an-object
 

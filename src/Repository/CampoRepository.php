@@ -78,4 +78,47 @@ class CampoRepository extends ServiceEntityRepository
         
         return $query->execute();   
     }
+
+    // buscamos los campos de la competencia
+    public function findFielsByCompetition($idCompetencia){
+        $entityManager = $this->getEntityManager();
+
+        // recuperamos los id de los predios de la competencia
+        $subQuery = $entityManager->createQuery(
+            ' SELECT DISTINCT p.id
+            FROM App\Entity\PredioCompetencia pc 
+            INNER JOIN App\Entity\Competencia c
+            WITH pc.competencia = c.id
+            INNER JOIN App\Entity\Predio p
+            WITH pc.predio = p.id
+            AND c.id = :idCompetencia
+            ORDER BY p.id ASC
+            ')->setParameter('idCompetencia',$idCompetencia);
+
+        $resultQuery = $subQuery->execute();
+        if(count($resultQuery) == 0){
+            return null;
+        }
+
+        $arrayIdPredios = array();
+        // pasamos solo los id de las competencias a un array
+        foreach ($resultQuery as &$valor) {
+            array_push($arrayIdPredios, $valor['id']);
+        }
+        // los pasamos a string para incorporarlo a la query
+        $arrayIdPredios = implode(", ", $arrayIdPredios);
+        $stringIdPredios = "(".$arrayIdPredios.")";
+        $stringQueryWhere = ' WHERE p.id IN '.$stringIdPredios;
+
+         // buscamos los datos de los campos
+         $queryBase = ' SELECT DISTINCT c.id, c.nombre campo, p.nombre predio
+         FROM App\Entity\Campo c
+         INNER JOIN App\Entity\Predio p
+         WITH c.predio = p.id
+         '.$stringQueryWhere;
+
+        $query = $entityManager->createQuery($queryBase);
+                    
+        return $query->execute();
+    }
 }

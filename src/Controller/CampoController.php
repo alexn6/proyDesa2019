@@ -61,6 +61,44 @@ class CampoController extends AbstractFOSRestController
         return $response;
     }
 
+    // /**
+    //  * Lista de todos los campos de un predio.
+    //  * @Rest\Get("/grounds/competition"), defaults={"_format"="json"})
+    //  * 
+    //  * @return Response
+    //  */
+    // public function getFieldsByCompetition(Request $request){
+  
+    //     $repository = $this->getDoctrine()->getRepository(Campo::class);
+      
+    //     $respJson = (object) null;
+
+    //     $idCompetencia = $request->get('idCompetencia');
+
+    //     if(!empty($idCompetencia)){
+    //         // buscamos los campos de los predios asignados a la competencic
+    //         $field = $repository->findFieldsByGrounds($idPredio,$idCampo);
+    //         $statusCode = Response::HTTP_OK;
+
+    //         $field = $this->get('serializer')->serialize($field, 'json', [
+    //             'circular_reference_handler' => function ($object) {
+    //                 return $object->getId();
+    //             },
+    //             'ignored_attributes' => ['predio']
+    //         ]);
+    //     }
+    //     else{
+    //         $field  = NULL;
+    //         $statusCode = Response::HTTP_BAD_REQUEST;
+    //     }
+
+    //     $response = new Response($field);
+    //     $response->setStatusCode(Response::HTTP_OK);
+    //     $response->headers->set('Content-Type', 'application/json');
+    
+    //     return $response;
+    // }
+
     /**
      * Crea un campo.
      * @Rest\Post("/grounds/field"), defaults={"_format"="json"})

@@ -10,8 +10,11 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\Entity\Usuario;
+use App\Entity\UsuarioCompetencia;
+use App\Entity\Campo;
 use App\Entity\Competencia;
 use App\Entity\Notification;
+use App\Entity\Juez;
 
 use App\Utils\VerificationMail;
 use App\Utils\MailManager;
@@ -546,12 +549,6 @@ class UsuarioController extends AbstractFOSRestController
         if($usuario == NULL){
           $statusCode = Response::HTTP_BAD_REQUEST;
           $respJson->messaging = "El usuario no existe";
-          
-          // $em = $this->getDoctrine()->getManager();
-          // $usuario->setToken($new_token);
-          // $em->flush();
-  
-          // $respJson->messaging = "Actualizacion realizada";
         }
         else{
           // buscamos el usuario
@@ -572,11 +569,60 @@ class UsuarioController extends AbstractFOSRestController
             }
             else{
               $dataCompetitionOffline = $repositoryComp->dataOffline($idUsuario, $idCompetencia);
+              $dataCompetitionOffline = $this->get('serializer')->serialize($dataCompetitionOffline, 'json', [
+                'circular_reference_handler' => function ($object) {
+                  return $object->getId();
+                }]);
+              // pasamos los datos a un array para poder trabajarlos
+              $dataCompetitionOffline = json_decode($dataCompetitionOffline, true);
+
+              // devolvemos solo la fecha de inicio
+              for ($i=0; $i < count($dataCompetitionOffline); $i++) {
+                $compAux = $dataCompetitionOffline[$i];
+                $dataCompetitionOffline[$i]['fecha_ini'] = $fecha = substr($dataCompetitionOffline[$i]['fecha_ini'], 0, -15);
+              }
+
+              $repositoryUserComp = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+              $competitors = $repositoryUserComp->competidoresByCompetenciaOffline($idCompetencia);
+
+              $repositoryField = $this->getDoctrine()->getRepository(Campo::class);
+              $fileds = $repositoryField->findFielsByCompetition($idCompetencia);
+
+              $repositoryJuez = $this->getDoctrine()->getRepository(Juez::class);
+              $judges = $repositoryJuez->findJudgesByCompetetition($idCompetencia);
+              $judges = $this->get('serializer')->serialize($judges, 'json', [
+                'circular_reference_handler' => function ($object) {
+                  return $object->getId();
+                },
+                'ignored_attributes' => ['competencia','__initializer__', '__cloner__', '__isInitialized__']
+                ]);
+              $judges = json_decode($judges);
+
+              $inscription = null;
+              // recuperamos la inscripcion
+              if($competencia->getInscripcion() != null){
+                  $inscription = $competencia->getInscripcion();
+                  $inscription = $this->get('serializer')->serialize($inscription, 'json', [
+                      'circular_reference_handler' => function ($object) {
+                          return $object->getId();
+                      },
+                      'ignored_attributes' => ['competencia', '__initializer__', '__cloner__', '__isInitialized__']
+                  ]);
+                  $inscription = json_decode($inscription);
+              }
+              else {
+                  $statusCode = Response::HTTP_BAD_REQUEST;
+                  $respJson->messaging = "Competencia sin inscripcion.";        
+              }
+              
+              // vamos por los encuentros
+              $respJson->competencia = $dataCompetitionOffline;
+              $respJson->competidores = $competitors;
+              $respJson->fields = $fileds;
+              $respJson->judges = $judges;
+              $respJson->inscription = $inscription;
 
               $statusCode = Response::HTTP_OK;
-              $respJson->messaging = "Pasa el test";
-              // VOLVER
-              $respJson->competencia = $dataCompetitionOffline;
             }
           }
         }
