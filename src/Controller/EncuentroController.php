@@ -140,6 +140,7 @@ class EncuentroController extends AbstractFOSRestController
           else{
             // recuperamos el valor del campo
             if(property_exists((object) $dataRequest,'idCampo')){
+              var_dump("Reconoce el idCampo");
               $repositoryCampo = $this->getDoctrine()->getRepository(Campo::class);
               $campo = $repositoryCampo->find($dataRequest->idCampo);
             }
@@ -149,6 +150,7 @@ class EncuentroController extends AbstractFOSRestController
             }
             // controlamos que el campo este disponible
             if($this->availableField($dataRequest->idEncuentro, $competencia, $campo, $turno)){
+              var_dump("El campo esta disponible");
               if(property_exists((object) $dataRequest,'idTurno')){
                 $encuentro->setTurno($turno);
               }

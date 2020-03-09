@@ -523,7 +523,7 @@ class UsuarioController extends AbstractFOSRestController
   /**
    * Recupera todos los datos de determinada competencia de un usuario
    * para poder trabajar de manera offline
-   * @Rest\Get("/user/off"), defaults={"_format"="json"})
+   * @Rest\Post("/user/off"), defaults={"_format"="json"})
    * 
    * @return Response
    */
@@ -575,12 +575,8 @@ class UsuarioController extends AbstractFOSRestController
                 }]);
               // pasamos los datos a un array para poder trabajarlos
               $dataCompetitionOffline = json_decode($dataCompetitionOffline, true);
-
-              // devolvemos solo la fecha de inicio
-              for ($i=0; $i < count($dataCompetitionOffline); $i++) {
-                $compAux = $dataCompetitionOffline[$i];
-                $dataCompetitionOffline[$i]['fecha_ini'] = $fecha = substr($dataCompetitionOffline[$i]['fecha_ini'], 0, -15);
-              }
+              $dataCompetition = $dataCompetitionOffline[0];
+              $dataCompetition['fecha_ini'] = substr($dataCompetition['fecha_ini'], 0, -15);
 
               $repositoryUserComp = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
               $competitors = $repositoryUserComp->competidoresByCompetenciaOffline($idCompetencia);
@@ -608,7 +604,11 @@ class UsuarioController extends AbstractFOSRestController
                       },
                       'ignored_attributes' => ['competencia', '__initializer__', '__cloner__', '__isInitialized__']
                   ]);
-                  $inscription = json_decode($inscription);
+                  $inscription = json_decode($inscription, true);
+                  // cambiamos las fechas a formato resumido
+                  $inscription['fechaIni'] = substr($inscription['fechaIni'], 0, -15);
+                  $inscription['fechaCierre'] = substr($inscription['fechaCierre'], 0, -15);
+
               }
               else {
                   $statusCode = Response::HTTP_BAD_REQUEST;
@@ -616,7 +616,8 @@ class UsuarioController extends AbstractFOSRestController
               }
               
               // vamos por los encuentros
-              $respJson->competencia = $dataCompetitionOffline;
+              // $respJson->competencia = $dataCompetitionOffline;
+              $respJson->competencia = $dataCompetition;
               $respJson->competidores = $competitors;
               $respJson->fields = $fileds;
               $respJson->judges = $judges;
