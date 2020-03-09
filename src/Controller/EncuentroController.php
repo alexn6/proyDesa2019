@@ -415,7 +415,7 @@ class EncuentroController extends AbstractFOSRestController
 
     /**
      * 
-     * @Rest\Post("/confrontations/competition-off")
+     * @Rest\Get("/confrontations/competition-off")
      * Devuelve los encuentros de la comptencia para trabajar de manera offline
      * 
      * @return Response
@@ -505,6 +505,8 @@ class EncuentroController extends AbstractFOSRestController
                 $fecha = " - ";
               }
               $encuentrosFull[$i]['fecha'] = $fecha;
+              // le agregamos el id de la competencia a cada encuentro
+              $encuentrosFull[$i]['idCompetencia'] = $idCompetition;
             }
 
             $encuentrosFull = $this->get('serializer')->serialize($encuentrosFull, 'json');
