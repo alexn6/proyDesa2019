@@ -495,6 +495,13 @@ class EncuentroController extends AbstractFOSRestController
               $jornada = $encuentrosFull[$i]['jornada'];
               $encuentrosFull[$i]['jornada'] = $jornada['numero'];
               $encuentrosFull[$i]['fase'] = $jornada['fase'];
+              // le agregamos el id del juez
+              $juez = $encuentrosFull[$i]['juez'];
+              $encuentrosFull[$i]['juez'] = $juez['id'];
+              // le agregamos el id del campo
+              $campo = $encuentrosFull[$i]['campo'];
+              $encuentrosFull[$i]['campo'] = $campo['id'];
+              
               $turno = $encuentrosFull[$i]['turno'];
               //var_dump($turno['horaDesde']);
               $hDesde= substr($turno['horaDesde'], -14, 5);
