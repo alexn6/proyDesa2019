@@ -273,14 +273,16 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
             // buscamos los datos correspodientes a los id recibidos
             $repositoryUser=$this->getDoctrine()->getRepository(Usuario::class);
             $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
+            $repositoryRol=$this->getDoctrine()->getRepository(Rol::class);
+            $rolSolicitante = $repositoryRol->findOneBy(['nombre' => Constant::ROL_SOLICITANTE]);
+
             $user = $repositoryUser->find($idUser);
             $competition = $repositoryComp->find($idCompetition);
         
             // vamos a buscar el elemento
             $repository=$this->getDoctrine()->getRepository(UsuarioCompetencia::class);
 
-            $solicitante = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => "SOLICITANTE"]);
-            $seguidorSolic = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => "SEG-SOLIC"]);
+            $solicitante = $repository->findOneBy(['usuario' => $user, 'competencia' => $competition, 'rol' => $rolSolicitante]);
 
             // persistimos el nuevo dato
             $em = $this->getDoctrine()->getManager();
@@ -290,17 +292,17 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
             // borramos el solicitante
             if($solicitante != NULL){
                 $em->remove($solicitante);
-            }
-            // o borramos el seguidor-solicitante
-            if($seguidorSolic != NULL){
-                $em->remove($seguidorSolic);
-            }
-            $em->flush();
-            $statusCode = Response::HTTP_OK;
-            $respJson->messaging = "Borrado con exito";
-            $msg = "Su solicitud de inscripcion fue rechazada";
-            // enviamos la notificacion al usuario
-            $this->notifySolInscription($user->getToken(), $competition->getNombre(), $msg);
+                // o borramos el seguidor-solicitante
+                $em->flush();
+                $statusCode = Response::HTTP_OK;
+                $respJson->messaging = "Borrado con exito";
+                $msg = "Su solicitud de inscripcion fue rechazada";
+                // enviamos la notificacion al usuario
+                $this->notifySolInscription($user->getToken(), $competition->getNombre(), $msg);
+              } else{
+                $statusCode = Response::HTTP_BAD_REQUEST;
+                $respJson->messaging = "No existe usuario";
+              }
           }
           else{
             $statusCode = Response::HTTP_BAD_REQUEST;
