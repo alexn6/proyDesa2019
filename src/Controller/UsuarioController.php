@@ -583,6 +583,20 @@ class UsuarioController extends AbstractFOSRestController
 
               $repositoryField = $this->getDoctrine()->getRepository(Campo::class);
               $fileds = $repositoryField->findFielsByCompetition($idCompetencia);
+              $fileds = $this->get('serializer')->serialize($fileds, 'json', [
+                'circular_reference_handler' => function ($object) {
+                  return $object->getId();
+                },
+                'ignored_attributes' => ['competencia','__initializer__', '__cloner__', '__isInitialized__']
+                ]);
+
+              $fileds = json_decode($fileds, true);
+              // le incorporamos el id de la competencia
+              if($fileds != null){
+                for ($i=0; $i < count($fileds); $i++) {
+                  $fileds[$i]["idCompetencia"] = $idCompetencia;
+                }
+              }
 
               $repositoryJuez = $this->getDoctrine()->getRepository(Juez::class);
               $judges = $repositoryJuez->findJudgesByCompetetition($idCompetencia);
@@ -592,7 +606,14 @@ class UsuarioController extends AbstractFOSRestController
                 },
                 'ignored_attributes' => ['competencia','__initializer__', '__cloner__', '__isInitialized__']
                 ]);
-              $judges = json_decode($judges);
+
+              $judges = json_decode($judges, true);
+              // le incorporamos el id de la competencia
+              if($judges != null){
+                for ($i=0; $i < count($judges); $i++) {
+                  $judges[$i]["idCompetencia"] = $idCompetencia;
+                }
+              }
 
               $inscription = null;
               // recuperamos la inscripcion
@@ -608,7 +629,7 @@ class UsuarioController extends AbstractFOSRestController
                   // cambiamos las fechas a formato resumido
                   $inscription['fechaIni'] = substr($inscription['fechaIni'], 0, -15);
                   $inscription['fechaCierre'] = substr($inscription['fechaCierre'], 0, -15);
-
+                  $inscription['idCompetencia'] = $idCompetencia;
               }
               else {
                   $statusCode = Response::HTTP_BAD_REQUEST;
