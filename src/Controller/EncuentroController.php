@@ -251,6 +251,60 @@ class EncuentroController extends AbstractFOSRestController
   }
 
   /**
+   * Editamos los datos de los Encuentros
+  * @Rest\Put("/confrontation-off")
+  */
+  public function editResultsOff(Request $request)
+  {
+    $respJson = (object) null;
+    $statusCode;
+
+    // vemos si existe un body
+    if(!empty($request->getContent())){
+      // recuperamos los datos del body y pasamos a un array
+      $dataRequest = json_decode($request->getContent());
+      
+      if(!property_exists((object) $dataRequest,'encuentros')){
+        $respJson->msg = "No hay encuentros por actualizar.";
+        $statusCode = Response::HTTP_BAD_REQUEST;
+      }
+      else{
+        $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
+        $encuentros = $dataRequest->encuentros;
+        // actualizamos todos los encuentros
+        for ($i=0; $i < count($encuentros); $i++) { 
+          $encuentroRequest = $encuentros[$i];
+          $idEncuentro = $encuentroRequest->idEncuentro;
+          
+          $encuentroDb = $repositoryEnc->findOneBy(['id'=> $idEncuentro]);
+
+          $em = $this->getDoctrine()->getManager();
+          if($encuentroDb != NULL){
+            $encuentroDb->setRdoComp1($encuentroRequest->rdo_comp1);
+            $encuentroDb->setRdoComp2($encuentroRequest->rdo_comp2);
+          }
+          $em->flush();
+        }
+
+        $respJson->msg = "Encuentros actualizados.";
+        $statusCode = Response::HTTP_OK;
+      }
+    }
+    else{
+      $respJson->msg = "Peticion mal formada";
+      $statusCode = Response::HTTP_BAD_REQUEST;
+    }
+    
+    $respJson = json_encode($respJson);
+
+    $response = new Response($respJson);
+    $response->headers->set('Content-Type', 'application/json');
+    $response->setStatusCode($statusCode);
+    
+    return $response;
+  }
+
+  /**
      * 
      * @Rest\Get("/confrontations")
      * Por nombre de competencia
