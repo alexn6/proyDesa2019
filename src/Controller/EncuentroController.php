@@ -263,6 +263,7 @@ class EncuentroController extends AbstractFOSRestController
     if(!empty($request->getContent())){
       // recuperamos los datos del body y pasamos a un array
       $dataRequest = json_decode($request->getContent());
+      // $dataRequest = $request->getContent();
       
       if(!property_exists((object) $dataRequest,'encuentros')){
         $respJson->msg = "No hay encuentros por actualizar.";
@@ -271,6 +272,9 @@ class EncuentroController extends AbstractFOSRestController
       else{
         $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
         $encuentros = $dataRequest->encuentros;
+         // pasamos lo recibido a un array
+        $encuentros = json_decode($encuentros);
+
         // actualizamos todos los encuentros
         for ($i=0; $i < count($encuentros); $i++) { 
           $encuentroRequest = $encuentros[$i];
