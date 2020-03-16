@@ -185,7 +185,7 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
   {
       $entityManager = $this->getEntityManager();
       $query = $entityManager->createQuery(
-          '   SELECT uc.id, uc.alias, u.nombreUsuario, c.id idCompetencia
+          '   SELECT uc.id, uc.alias, u.nombreUsuario, u.nombre, u.apellido, u.correo, c.id idCompetencia
               FROM App\Entity\UsuarioCompetencia uc
               INNER JOIN App\Entity\Competencia c
               WITH uc.competencia = c.id
