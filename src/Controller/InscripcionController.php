@@ -14,6 +14,7 @@ use App\Entity\Inscripcion;
 use App\Entity\Competencia;
 
 use App\Utils\Constant;
+use App\Utils\ControlDate;
 
  /**
  * Predio controller
@@ -74,7 +75,7 @@ class InscripcionController extends AbstractFOSRestController
                 else{
                     $fechaInicio = DateTime::createFromFormat(Constant::FORMAT_DATE, $fechaInicio);
                     $fechaCierre = DateTime::createFromFormat(Constant::FORMAT_DATE, $fechaCierre);
-                    // TODO: aca iria el control de las fechas, q u
+                    // control de fechas
                     if($this->dateCorrect($fechaInicio, $fechaCierre)){
                         // creamos la inscripcion
                         $nuevainscripcion = new Inscripcion();
@@ -188,41 +189,10 @@ class InscripcionController extends AbstractFOSRestController
     // verifica que la fecha de cierre sea mayor q la de inicio y q ambas sean mayor a la actual
     private function dateCorrect($fechaInicio, $fechaCierre){
         // verificamos que ambas fechas sean posteriores al dia de la fecha
-        if($this->datePostCurrent($fechaInicio) && $this->datePostCurrent($fechaCierre)){
-            // controlamos que la feche de cierre sea al menos un dia depues de la fecha de inicio
-            return $this->diffDateCorrect($fechaCierre, $fechaInicio, 1);
+        if(ControlDate::getInstance()->datePostCurrent($fechaInicio) && ControlDate::getInstance()->datePostCurrent($fechaCierre)){
+           return ControlDate::getInstance()->diffDateCorrect($fechaCierre, $fechaInicio, 1);
         }
-        // $this->datePostCurrent($fechaInicio);
-    }
-
-    // verifica q se asegure una cant minima de dias entre las fechas
-    private function diffDateCorrect($f1, $f2, $n){
-        $diff = date_diff($f2, $f1);
-        $array_diff = str_split($diff->format("%R%a"));
-        if($array_diff[0] == '+'){
-            if($array_diff[1] >= $n){
-                // var_dump(true);
-                return true;
-            }
-        }
-        // var_dump(false);
         return false;
     }
 
-    // verifica q se asegure una cant minima de dias entre las fechas
-    private function datePostCurrent($f1){
-        $now = new DateTime();  // fecha actual
-        $diff = date_diff($now, $f1);
-        if($f1->format('Y-m-d') == $now->format('Y-m-d')){
-            // var_dump(true);
-            return true;
-        }
-        $array_diff = str_split($diff->format("%R%a"));
-        if($array_diff[0] == '+'){
-            // var_dump(true);
-            return true;
-        }
-        // var_dump(false);
-        return false;
-    }
 }
