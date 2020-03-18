@@ -104,7 +104,7 @@ class UpdateDataDbByDate extends Command
             // actualizamos el estado de la competencia
             $this->changeStatusCompetition($competencia, Constant::ESTADO_COMP_INSCRIPCION_ABIERTA);
             // mandamos la notificacion al topico
-            $this->sendNotificationInitInscription($competencia, $output);
+            $this->sendNotificationInitInscription($competencia);
             $this->publishNewCloud($competencia);
         }
     }
@@ -117,20 +117,17 @@ class UpdateDataDbByDate extends Command
     }
 
     // Mandamos la notificacion del cambio de estado de la competencia
-    private function sendNotificationInitInscription($competencia, $output){
-        $resumenNoticia = "La inscripcion de la competencia esta abierta.";
+    private function sendNotificationInitInscription($competencia){
         $nameComp = str_replace(' ', '', $competencia->getNombre());
-
         $topicFollowers = $nameComp. '-' .Constant::ROL_SEGUIDOR;
-        $topicCompetitors = $nameComp. '-' .Constant::ROL_COMPETIDOR;
 
         $title = $competencia->getNombre();
+        $resumenNoticia = "La inscripcion de la competencia esta abierta.";
         
         $notification = Notification::create($title, $resumenNoticia);
 
-        $output->writeln('Se manda la notificacion por la inscripcion: '.$competencia->getNombre());
-
         // solo a seguidores xq como no deberia contener competidores la competencia en este punto
+        // tampoco se deberia a solicitantes xq deberia estar abierta ya la inscripcion
         NotificationManager::getInstance()->notificationToTopic($topicFollowers, $notification);
     }
 
