@@ -20,8 +20,10 @@ use App\Entity\Competencia;
 use App\Utils\ControlDate;
 use App\Utils\Constant;
 
+use Google\Cloud\Core\Timestamp;
 use Kreait\Firebase\Messaging\Notification;
 use App\Utils\NotificationManager;
+use App\Utils\DbClodFirestoreManager;
 
 class UpdateDataDbByDate extends Command
 {
@@ -103,6 +105,7 @@ class UpdateDataDbByDate extends Command
             $this->changeStatusCompetition($competencia, Constant::ESTADO_COMP_INSCRIPCION_ABIERTA);
             // mandamos la notificacion al topico
             $this->sendNotificationInitInscription($competencia);
+            $this->publishNewCloud($competencia);
         }
     }
 
@@ -125,7 +128,30 @@ class UpdateDataDbByDate extends Command
         
         $notification = Notification::create($title, $resumenNoticia);
 
+        // solo a seguidores xq como no deberia contener competidores la competencia en este punto
         NotificationManager::getInstance()->notificationToTopic($topicFollowers, $notification);
-        NotificationManager::getInstance()->notificationToTopic($topicCompetitors, $notification);
+    }
+
+    // guardamos la noticia en la db nube de mi aplicacion
+    private function publishNewCloud($competencia){
+        $title = $competencia->getNombre();
+        $resume = "Apertura de inscripcion";
+        $descripcion = "El dia de hoy se abre la inscripcion de la competencia";
+        $pathCollection = 'dbproyectotorneos/'.$competencia->getNombre().'/news';
+        // $pathCollection = 'news-test/comp-test/news';
+        $cantNews = DbClodFirestoreManager::getInstance()->sizeCollection($pathCollection);
+        $documentId = $cantNews + 1;
+        if($cantNews >= Constant::CANT_MAX_NOTICIAS_CLOUD){
+            // borramos la noticia mas antigua y guardamos la nueva
+        }
+        // creamos los datos de la noticia
+        $data = ['title' => $title, 
+                    'resume' => $resume, 
+                    'descripcion' => $descripcion,
+                    'uptime' => new Timestamp(new DateTime()),
+                    'publisher' => "Automatico por sistema"
+                ];
+
+        DbClodFirestoreManager::getInstance()->insertDocument($pathCollection, $data, $documentId);
     }
 }
