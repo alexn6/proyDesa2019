@@ -20,6 +20,9 @@ use App\Entity\Competencia;
 use App\Utils\ControlDate;
 use App\Utils\Constant;
 
+use Kreait\Firebase\Messaging\Notification;
+use App\Utils\NotificationManager;
+
 class UpdateDataDbByDate extends Command
 {
     // the name of the command (the part after "bin/console")
@@ -48,6 +51,7 @@ class UpdateDataDbByDate extends Command
         return 0;
     }
 
+    // actualiza el estado de las competencias en base a su inscripcion
     private function updateInscriptions(OutputInterface $output){
         $repository = $this->em->getRepository(Inscripcion::class);
 
@@ -69,35 +73,59 @@ class UpdateDataDbByDate extends Command
 
         $fechaActual = new DateTime();
         // pasamos el dato de la a un formato mas simple
-        for ($i=0; $i < count($inscripciones); $i++) {
-            $timestamp = $inscripciones[$i]['fechaIni']['timestamp'];
-            $fechaInicio = new DateTime();
-            $fechaInicio->setTimestamp($timestamp);
-
-            $isToday = ControlDate::getInstance()->isToday($fechaInicio);
-            // IMPORTANTE: cuando es false no se imprime valor en la pantalla de la consola
-            if($isToday){
-                $idInscripcion = $inscripciones[$i]['id'];
-                // actualizamos el estado de la competencia
-                $this->changeStatusCompetition($idInscripcion, Constant::ESTADO_COMP_INSCRIPCION_ABIERTA);
-                // mandamos la notificacion al topico
-            }
-
-            $output->writeln($isToday);
+        for ($i=0; $i < count($inscripciones); $i++){
+            $this->controlInitInscription($inscripciones[$i]);
         }
 
         $output->writeln('Cant de inscripciones: '.count($inscripciones));
     }
 
+
+    // ##################################################################
+    // #################### funciones auxiliares ####################
+
+    // controla si es el dia de apertura de la inscripcion
+    private function controlInitInscription($dataInscripction){
+        $timestamp = $dataInscripction['fechaIni']['timestamp'];
+        $fechaInicio = new DateTime();
+        $fechaInicio->setTimestamp($timestamp);
+
+        $isTodayOpen = ControlDate::getInstance()->isToday($fechaInicio);
+        // IMPORTANTE: cuando es false no se imprime valor en la pantalla de la consola
+        if($isTodayOpen){
+            $idInscription = $dataInscripction['id'];
+            $repository = $this->em->getRepository(Inscripcion::class);
+            $inscription = $repository->find($idInscription);
+            // buscamos la competencia para actualizar su estado
+            $repositoryComp = $this->em->getRepository(Competencia::class);
+            $competencia = $repositoryComp->findOneBy(['inscripcion' => $inscription]);
+            // actualizamos el estado de la competencia
+            $this->changeStatusCompetition($competencia, Constant::ESTADO_COMP_INSCRIPCION_ABIERTA);
+            // mandamos la notificacion al topico
+            $this->sendNotificationInitInscription($competencia);
+        }
+    }
+
     // cambia el esatdo de la competencia
-    private function changeStatusCompetition($idInscription, $newStatus){
-        $repository = $this->em->getRepository(Inscripcion::class);
-        $inscription = $repository->find($idInscription);
-        // buscamos la competencia y actualizamos su estado
-        $repository = $this->em->getRepository(Competencia::class);
-        $competencia = $repository->findOneBy(['inscripcion' => $inscription]);
+    private function changeStatusCompetition($competencia, $newStatus){
         $competencia->setEstado($newStatus);
 
         $this->em->flush();        
+    }
+
+    // Mandamos la notificacion del cambio de estado de la competencia
+    private function sendNotificationInitInscription($competencia){
+        $resumenNoticia = "La inscripcion de la competencia esta abierta.";
+        $nameComp = str_replace(' ', '', $competencia->getNombre());
+
+        $topicFollowers = $nameComp. '-' .Constant::ROL_SEGUIDOR;
+        $topicCompetitors = $nameComp. '-' .Constant::ROL_COMPETIDOR;
+
+        $title = $competencia->getNombre();
+        
+        $notification = Notification::create($title, $resumenNoticia);
+
+        NotificationManager::getInstance()->notificationToTopic($topicFollowers, $notification);
+        NotificationManager::getInstance()->notificationToTopic($topicCompetitors, $notification);
     }
 }
