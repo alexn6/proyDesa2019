@@ -76,7 +76,7 @@ class UpdateDataDbByDate extends Command
         $fechaActual = new DateTime();
         // pasamos el dato de la a un formato mas simple
         for ($i=0; $i < count($inscripciones); $i++){
-            $this->controlInitInscription($inscripciones[$i]);
+            $this->controlInitInscription($inscripciones[$i], $output);
         }
 
         $output->writeln('Cant de inscripciones: '.count($inscripciones));
@@ -87,7 +87,7 @@ class UpdateDataDbByDate extends Command
     // #################### funciones auxiliares ####################
 
     // controla si es el dia de apertura de la inscripcion
-    private function controlInitInscription($dataInscripction){
+    private function controlInitInscription($dataInscripction, $output){
         $timestamp = $dataInscripction['fechaIni']['timestamp'];
         $fechaInicio = new DateTime();
         $fechaInicio->setTimestamp($timestamp);
@@ -104,7 +104,7 @@ class UpdateDataDbByDate extends Command
             // actualizamos el estado de la competencia
             $this->changeStatusCompetition($competencia, Constant::ESTADO_COMP_INSCRIPCION_ABIERTA);
             // mandamos la notificacion al topico
-            $this->sendNotificationInitInscription($competencia);
+            $this->sendNotificationInitInscription($competencia, $output);
             $this->publishNewCloud($competencia);
         }
     }
@@ -117,7 +117,7 @@ class UpdateDataDbByDate extends Command
     }
 
     // Mandamos la notificacion del cambio de estado de la competencia
-    private function sendNotificationInitInscription($competencia){
+    private function sendNotificationInitInscription($competencia, $output){
         $resumenNoticia = "La inscripcion de la competencia esta abierta.";
         $nameComp = str_replace(' ', '', $competencia->getNombre());
 
@@ -127,6 +127,8 @@ class UpdateDataDbByDate extends Command
         $title = $competencia->getNombre();
         
         $notification = Notification::create($title, $resumenNoticia);
+
+        $output->writeln('Se manda la notificacion por la inscripcion: '.$competencia->getNombre());
 
         // solo a seguidores xq como no deberia contener competidores la competencia en este punto
         NotificationManager::getInstance()->notificationToTopic($topicFollowers, $notification);

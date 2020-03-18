@@ -148,7 +148,7 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
                     }
               }else{
                 $statusCode = Response::HTTP_BAD_REQUEST;
-                    $respJson->messaging = "Alias registrado";
+                $respJson->messaging = "Alias registrado";
               }
             }
             else{

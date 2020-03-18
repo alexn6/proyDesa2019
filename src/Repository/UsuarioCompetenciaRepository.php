@@ -89,7 +89,7 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
 
       return $query->execute();
   }
-   // recuperamos los usuarios solicitantes de una competencia
+   // controlamos que el alias no se encuetre usado por otro usuario en la competencia
    public function comprobarAlias($idCompetencia, $alias)
    {
        $entityManager = $this->getEntityManager();
@@ -99,8 +99,8 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
              INNER JOIN App\Entity\Usuario u
              WITH uc.usuario = u.id
              WHERE uc.competencia = :idCompetencia
-             AND (uc.alias LIKE :alias)
-         ')->setParameter('alias', '%'.$alias.'%')
+             AND uc.alias = :alias
+         ')->setParameter('alias', $alias)
          ->setParameter('idCompetencia', $idCompetencia);
  
        return $query->execute();
