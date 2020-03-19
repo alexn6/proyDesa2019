@@ -426,6 +426,11 @@ class EncuentroController extends AbstractFOSRestController
               if($encuentros[$i]['rdoComp2'] === null){
                 $encuentros[$i]['rdoComp2'] = -1;
               }
+              // si hy turno
+              if($encuentros[$i]['turno'] !== null){
+                $encuentros[$i]['turno']['horaDesde'] = substr($encuentros[$i]['turno']['horaDesde'], -14, 5);
+                $encuentros[$i]['turno']['horaHasta'] = substr($encuentros[$i]['turno']['horaHasta'], -14, 5);
+              }
             }
 
             $encuentros = json_encode($encuentros);
@@ -536,7 +541,6 @@ class EncuentroController extends AbstractFOSRestController
               $encuentros[$i]['campo'] = $campo['id'];
               
               $turno = $encuentros[$i]['turno'];
-              //var_dump($turno['horaDesde']);
               $hDesde= substr($turno['horaDesde'], -14, 5);
               $hHasta= substr($turno['horaHasta'], -14, 5);
               $encuentros[$i]['turno'] = $hDesde." - ".$hHasta;
