@@ -460,6 +460,8 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         // reemplazamos el rol (string) por un array de roles
         foreach ($respJson as &$valor) {
           $valor['rol'] = array($valor['rol']);
+          $newType = $this->getPhase($valor['id'], $valor['tipo_organizacion']);
+          $valor['tipo_organizacion'] = $newType;
         }
 
         $respJson = json_encode($respJson);
@@ -531,6 +533,8 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         // reemplazamos el rol (string) por un array de roles
         foreach ($respJson as &$valor) {
           $valor['rol'] = array($valor['rol']);
+          $newType = $this->getPhase($valor['id'], $valor['tipo_organizacion']);
+          $valor['tipo_organizacion'] = $newType;
         }
 
         $respJson = json_encode($respJson);
@@ -569,6 +573,8 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         // reemplazamos el rol (string) por un array de roles
         foreach ($respJson as &$valor) {
           $valor['rol'] = array($valor['rol']);
+          $newType = $this->getPhase($valor['id'], $valor['tipo_organizacion']);
+          $valor['tipo_organizacion'] = $newType;
         }
 
         $respJson = json_encode($respJson);
@@ -902,10 +908,6 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         $competition = $repositoryComp->find($idCompetition);
 
         // susbcribimos en el caso de que sean seguidores o competidores
-        // if(($nameRol == Constant::ROL_SEGUIDOR) || ($nameRol == Constant::ROL_COMPETIDOR)){
-        //   // subscribimos al usuario al topico correspondiente
-        //   $this->subcribeUserToTopic($user->getToken(), $competition, $rol);
-        // }
         if($nameRol == Constant::ROL_SEGUIDOR){
           if($user->getNotification()->getSeguidor()){
             // subscribimos al usuario al topico correspondiente
@@ -948,60 +950,28 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
       $notification = Notification::create($title, $msg);
 
       NotificationManager::getInstance()->notificationSpecificDevices($tokenUser, $notification);
-  }
+    }
 
-    // notifica al usuario que su solicitud de incripcion a la competencia fue rechazada
-    // private function notifyInvitationCoorg($tokenUser, $nameCompetition, $msg){
-    //   $title = "Invitacion a CO-ORGANIZADOR";
-
-    //   $servNotification = new NotificationService();
-    //   $servNotification->sendSimpleNotificationFCM($title, $tokenUser, $msg);
-    // }
-
-    // notifica al usuario que su solicitud de incripcion a la competencia fue rechazada
-    // private function notifyResolutionInvitationCoorg($tokenUser, $nameCompetition, $msg){
-    //   $title = "Resolucion de invitacion organizadores.";
-    //   var_dump($tokenUser);
-    //   // var_dump($nameCompetition);
-    //   // var_dump($msg);
-    //   $servNotification = new NotificationService();
-    //   $servNotification->sendSimpleNotificationFCM($title, $tokenUser, $msg);
-    // }
-
-    // notifica al usuario que su solicitud de incripcion a la competencia fue rechazada
-    // private function notifyInscriptionToOrganizators($arrayTokens, $nameCompetition, $nameUser){
-    //     $title = "Inscripcion: ".$nameCompetition;
-    //     $msg = "El usuario ".$nameUser." quiere formar parte de tu competencia";
-
-    //     $servNotification = new NotificationService();
-    //     $servNotification->sendMultipleNotificationFCM($title, $arrayTokens, $msg);
-    // }
     private function notifyInscriptionToOrganizators($arrayTokens, $nameCompetition, $nameUser){
       $title = "Inscripcion: ".$nameCompetition;
       $body = "El usuario ".$nameUser." quiere formar parte de tu competencia";
 
       $tokenDevices = array();
-
       foreach ($arrayTokens as &$valor) {
         array_push($tokenDevices, $valor['token']);
       }
 
       $notification = Notification::create($title, $body);
 
-      // var_dump($arrayTokens);
-      // var_dump($tokenDevices);
-
       if(count($tokenDevices) > 0){
         NotificationManager::getInstance()->notificationMultipleDevices($tokenDevices, $notification);
       }
-  }
+    }
 
     // subscribimos un usuario al topico correspondiente a su rol de una competencia
     private function subcribeUserToTopic($token, $competition, $rol){
       $nameCompFiltered = str_replace(' ', '', $competition->getNombre());
       $topic = $nameCompFiltered. '-' .$rol->getNombre();
-      // var_dump("token: ".$token);
-      // var_dump("topico: ".$topic);
       NotificationManager::getInstance()->subscribeTopic($topic, $token);
     }
 
@@ -1009,9 +979,43 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
     private function unsubcribeUserToTopic($token, $competition, $rol){
       $nameCompFiltered = str_replace(' ', '', $competition->getNombre());
       $topic = $nameCompFiltered. '-' .$rol->getNombre();
-      // var_dump("token: ".$token);
-      // var_dump("topico: ".$topic);
       NotificationManager::getInstance()->unsubscribeTopic($topic, $token);
     }
 
+    // Devuelve el tipo de organizacion y la fase, si es una eliminatoria
+    private function getPhase($idCompetition, $typeOrg){
+      if(strpos($typeOrg, 'Eliminatorias') !== false){
+        // vamos a buscar la fase en la que se encuentra la competencia
+        $repository = $this->getDoctrine()->getRepository(Competencia::class);
+        $competitionAux = $repository->find($idCompetition);
+        $fase = $competitionAux->getFase();
+        $faseCompetition;
+
+        if($fase == 1){
+          $faseCompetition = "Final";
+        }
+        if($fase == 2){
+          $faseCompetition = "Semifinal";
+        }
+        if($fase == 3){
+          $faseCompetition = "4º Final";
+        }
+        if($fase == 4){
+          $faseCompetition = "8º Final";
+        }
+        if($fase == 5){
+          $faseCompetition = "16º Final";
+        }
+        if($fase == 6){
+          $faseCompetition = "32º Final";
+        }
+        if($fase == 7){
+          $faseCompetition = "64º Final";
+        }
+        
+        return $typeOrg." - ".$faseCompetition;
+      }
+      
+      return $typeOrg;
+    }
 }
