@@ -64,8 +64,12 @@ class Constant{
     // ############################# ESTADO_COMPETENCIA ############################
 
     const ESTADO_COMP_SIN_INSCRIPCION = 'COMPETENCIA_SIN_INSCRIPCION';
+    const ESTADO_COMP_CON_INSCRIPCION = 'COMPETENCIA_CON_INSCRIPCION';
     const ESTADO_COMP_INSCRIPCION_ABIERTA = 'COMPETENCIA_INSCRIPCION_ABIERTA';
+    const COMPETENCIA_INSCRIPCION_CERRADA = 'COMPETENCIA_INSCRIPCION_CERRADA';
     const ESTADO_COMP_INICIADA = 'COMPETENCIA_INICIADA';
+    const ESTADO_COMP_PAUSADA = 'COMPETENCIA_PAUSADA';
+    const ESTADO_COMP_SUSPENDIDA = 'COMPETENCIA_SUSPENDIDA';
     const ESTADO_COMP_FINALIZADA = 'COMPETENCIA_FINALIZADA';
 
     // #############################################################################
@@ -96,8 +100,6 @@ class Constant{
     const SWFMAILER_SERVER_SMTP = 'smtp.gmail.com';
     const SWFMAILER_SERVER_SMTP_PORT = 587;
     const SWFMAILER_SERVER_SMTP_SECURE = 'tls';
-    // const SWFMAILER_SERVER_SMTP_USER = 'alex6tc90@gmail.com';
-    // const SWFMAILER_SERVER_SMTP_USER_PASS = 'G1m2a3i4l';
     const SWFMAILER_SERVER_SMTP_USER = 'torneosycompetenciasapp@gmail.com';
     const SWFMAILER_SERVER_SMTP_USER_PASS = 'desarrollo2020';
 

@@ -262,7 +262,7 @@ class GeneradorEncuentroController extends AbstractFOSRestController
     /**
      * 
      * @Rest\Get("/matches")
-     * Por nombre de competencia
+     * Genera los encuentros de una competencia, si cuenta on los competidores suficiente
      * 
      * @return Response
      */
@@ -286,7 +286,6 @@ class GeneradorEncuentroController extends AbstractFOSRestController
                 $repositoryUsComp = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
                 $idCompetencia = $competition->getId();
                 // recuperamos los usuario_competencia de una competencia
-                // $participantes = $repositoryUsComp->findNameCompetidoresByCompetencia($idCompetencia);
                 $participantes = $repositoryUsComp->findAliasCompetidoresByCompetencia($idCompetencia);
                 $comprobar = $repositoryEnc->findOneBy(['competencia' => $competition]);
 
@@ -304,7 +303,6 @@ class GeneradorEncuentroController extends AbstractFOSRestController
                         // recuperamos la lista de los nombres de los participantes
                         $nombre_participantes = array();
                         foreach ($participantes as &$valor) {
-                            // array_push($nombre_participantes, $valor['nombreUsuario']);
                             array_push($nombre_participantes, $valor['alias']);
                         }
 
@@ -318,10 +316,11 @@ class GeneradorEncuentroController extends AbstractFOSRestController
                             $matchesCompetition = $generatorMatches->createMatches($nombre_participantes, $codigo_tipo, $competition->getCantGrupos());
                         }
                         else{
-                            // var_dump($competition);
                             $matchesCompetition = $generatorMatches->createMatches($nombre_participantes, $codigo_tipo, null);
                         }
-        
+                        // actualizamos el estado de la competencia
+                        
+                        
                         // vamos a persistir los datos de los encuentros generados
                         $this->forward('App\Controller\EncuentroController::saveFixture', [
                             'matches'  => $matchesCompetition,
