@@ -32,7 +32,7 @@ class Inscripcion
     private $monto;
     
     /**
-     * @ORM\Column(type="string", length=127, nullable=true)
+     * @ORM\Column(type="string", length=700, nullable=true)
      */
     private $requisitos;
 

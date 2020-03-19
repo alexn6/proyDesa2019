@@ -9,23 +9,23 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpClient\HttpClient;    // para incorporar servicios rest
 
-use App\Entity\Predio;
-use App\Entity\PredioCompetencia;
+use App\Entity\Juez;
+use App\Entity\JuezCompetencia;
 use App\Entity\Competencia;
 
  /**
  * Predio controller
  * @Route("/api",name="api_")
  */
-class PredioCompetenciaController extends AbstractFOSRestController
+class JuezCompetenciaController extends AbstractFOSRestController
 {
     /**
-     * Devuelve todas los predios de una competencia
-     * @Rest\Get("/grounds/competition"), defaults={"_format"="json"})
+     * Devuelve todos los jueces de una competencia
+     * @Rest\Get("/referees/competition"), defaults={"_format"="json"})
      * 
      * @return Response
      */
-    public function getGroundsByCompetition(Request $request){      
+    public function getRefereesByCompetition(Request $request){      
         $respJson = (object) null;
         $statusCode;
         $grounds = null;
@@ -34,7 +34,7 @@ class PredioCompetenciaController extends AbstractFOSRestController
 
         // vemos si recibimos algun parametro
         if(!empty($idCompetencia)){
-            $repository = $this->getDoctrine()->getRepository(PredioCompetencia::class);
+            $repository = $this->getDoctrine()->getRepository(JuezCompetencia::class);
             $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
 
             $competencia = $repositoryComp->find($idCompetencia);
@@ -45,7 +45,7 @@ class PredioCompetenciaController extends AbstractFOSRestController
             }
             else{
                 // buscamos los predios de la competencia
-                $grounds = $repository->groundsByCompetetition($idCompetencia);
+                $grounds = $repository->refereesByCompetetition($idCompetencia);
                 $respJson = $grounds;
                 $statusCode = Response::HTTP_OK;
             }
@@ -66,12 +66,12 @@ class PredioCompetenciaController extends AbstractFOSRestController
     }
 
     /**
-     * Asigna un predio a una competencia.
-     * @Rest\Post("/set-ground"), defaults={"_format"="json"})
+     * Crea un predio.
+     * @Rest\Post("/referee/set-competition"), defaults={"_format"="json"})
      * 
      * @return Response
      */
-    public function asignGroundCompetition(Request $request){
+    public function asignJudgeCompetition(Request $request){
 
         $respJson = (object) null;
         $statusCode;
@@ -79,47 +79,47 @@ class PredioCompetenciaController extends AbstractFOSRestController
         // vemos si existe un body
         if(!empty($request->getContent())){
   
-          $repository = $this->getDoctrine()->getRepository(Predio::class);
-          $repositoryPredComp = $this->getDoctrine()->getRepository(PredioCompetencia::class);
+          $repository = $this->getDoctrine()->getRepository(Juez::class);
+          $repositoryJuezComp = $this->getDoctrine()->getRepository(JuezCompetencia::class);
           $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
 
-    
           // recuperamos los datos del body y pasamos a un array
-          $dataPredioRequest = json_decode($request->getContent());
+          $dataRequest = json_decode($request->getContent());
           
-          if(!$this->correctDataCreate($dataPredioRequest)){
+          if(!$this->correctDataCreate($dataRequest)){
             $statusCode = Response::HTTP_BAD_REQUEST;
             $respJson->messaging = "Peticion mal formada. Faltan parametros o cuentan con nombres erroneos.";
           }
           else{
               // recuperamos los datos del body
-              $idPredio = $dataPredioRequest->idPredio;
-              $idCompetencia = $dataPredioRequest->idCompetencia;
+              $idJuez = $dataRequest->idJuez;
+              $idCompetencia = $dataRequest->idCompetencia;
                 
-              // controlamos que la competencia y el predio existan
+              // controlamos que la competencia y el juez exista
               $competencia = $repositoryComp->find($idCompetencia);
-              $predio = $repository->find($idPredio);
-              if(empty($competencia) || empty($predio)){
+              $juez = $repository->find($idJuez);
+
+              if(empty($competencia) || empty($juez)){
                 $statusCode = Response::HTTP_BAD_REQUEST;
-                $respJson->messaging = "Competencia o predio inexistentes";
+                $respJson->messaging = "Competencia o juez inexistente";
               }
               else{
-                if($repositoryPredComp->findOneBy(['predio' => $predio, 'competencia'=> $competencia])){
+                if($repositoryJuezComp->findOneBy(['juez' => $juez, 'competencia'=> $competencia])){
                     $statusCode = Response::HTTP_BAD_REQUEST;
-                    $respJson->messaging = "Predio ya asignado a competencia";
+                    $respJson->messaging = "Juez ya asignado a la competencia";
                 }
                 else{
-                    // asignamos el predio a la competencia
-                    $newPredio = new PredioCompetencia();
-                    $newPredio->setPredio($predio);
-                    $newPredio->setCompetencia($competencia);
-                    
-                    $em = $this->getDoctrine()->getManager();
-                    $em->persist($newPredio);
-                    $em->flush();
-            
-                    $statusCode = Response::HTTP_CREATED;
-                    $respJson->messaging = "Asignacion exitosa";
+                        // asignamos el juez a la competencia
+                        $newJuezComp = new JuezCompetencia();
+                        $newJuezComp->setJuez($juez);
+                        $newJuezComp->setCompetencia($competencia);
+                        
+                        $em = $this->getDoctrine()->getManager();
+                        $em->persist($newJuezComp);
+                        $em->flush();
+                
+                        $statusCode = Response::HTTP_CREATED;
+                        $respJson->messaging = "Asignacion exitosa";
                 }
               }
             }
@@ -140,56 +140,54 @@ class PredioCompetenciaController extends AbstractFOSRestController
 
 
     /**
-     * Elimina un predio
-     * @Rest\Delete("/del-groundCompetition"), defaults={"_format"="json"})
+     * Elimina un juez de la competencia
+     * @Rest\Delete("/referee/del-competition"), defaults={"_format"="json"})
      * 
      * @return Response
      */
-    public function delete(Request $request){
+    public function deleteJudgeCompetition(Request $request){
 
         $respJson = (object) null;
         $statusCode;
 
         $idCompetencia = $request->get('idCompetencia');
-        $idPredio = $request->get('idPredio');
+        $idJuez = $request->get('idJuez');
       
         // vemos si recibimos el id de un predio para eliminarlo
         if(empty($idCompetencia)){
-                $respJson->success = false;
                 $statusCode = Response::HTTP_BAD_REQUEST;
-                $respJson->messaging = "Peticion mal formada.";
+                $respJson->messaging = "Peticion mal formada. Falta idCompetencia";
         }else{
-            if(empty($idPredio)){
-                $respJson->success = false;
+            if(empty($idJuez)){
                 $statusCode = Response::HTTP_BAD_REQUEST;
-                $respJson->messaging = "Peticion mal formada. Faltan parametros.";
+                $respJson->messaging = "Peticion mal formada. Falta idJuez.";
             }
             else{          
-                $repository = $this->getDoctrine()->getRepository(Predio::class);
-                $repositoryPredComp = $this->getDoctrine()->getRepository(PredioCompetencia::class);
+                $repository = $this->getDoctrine()->getRepository(Juez::class);
+                $repositoryJuezComp = $this->getDoctrine()->getRepository(JuezCompetencia::class);
                 $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
                 
                 $competencia = $repositoryComp->find($idCompetencia);
-                $predio = $repository->find($idPredio);
-                if(empty($competencia) || empty($predio)){
+                $juez = $repository->find($idJuez);
+                if(empty($competencia) || empty($juez)){
                   $statusCode = Response::HTTP_BAD_REQUEST;
-                  $respJson->messaging = "Competencia o predio no existe";
-                }
-                $predio = $repositoryPredComp->findOneBy(['competencia'=>$idCompetencia,'predio'=>$idPredio]);
-                if($predio == NULL){
-                    $respJson->success = true;
-                    $statusCode = Response::HTTP_OK;
-                    $respJson->messaging = "El predio y/o competencia incorrecta o inexistente";
+                  $respJson->messaging = "Competencia o juez inexistente.";
                 }
                 else{
-                    // eliminamos el dato y refrescamos la DB
-                    $em = $this->getDoctrine()->getManager();
-                    $em->remove($predio);
-                    $em->flush();
-        
-                    $respJson->success = true;
-                    $statusCode = Response::HTTP_OK;
-                    $respJson->messaging = "Eiminacion correcta";
+                    $juezcomp = $repositoryJuezComp->findOneBy(['competencia'=>$competencia,'juez'=>$juez]);
+                    if($juezcomp == null){
+                        $statusCode = Response::HTTP_OK;
+                        $respJson->messaging = "El juez y la competencia recibidos no estan vinculados.";
+                    }
+                    else{
+                        // eliminamos el dato y refrescamos la DB
+                        $em = $this->getDoctrine()->getManager();
+                        $em->remove($juezcomp);
+                        $em->flush();
+            
+                        $statusCode = Response::HTTP_OK;
+                        $respJson->messaging = "El juez fue desligado de la competencia.";
+                    }
                 }
             }
         
@@ -211,7 +209,7 @@ class PredioCompetenciaController extends AbstractFOSRestController
 
     // controlamos que los datos recibidos esten completos
     private function correctDataCreate($dataRequest){
-        if(!property_exists((object) $dataRequest,'idPredio')){
+        if(!property_exists((object) $dataRequest,'idJuez')){
             return false;
         }
         if(!property_exists((object) $dataRequest,'idCompetencia')){

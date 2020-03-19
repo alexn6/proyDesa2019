@@ -21,12 +21,6 @@ class Juez
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Competencia")
-     * @ORM\JoinColumn(name="competencia_id", referencedColumnName="id")
-     */
-    private $competencia;
-
-    /**
      * @ORM\Column(type="string", length=50, nullable=false)
      */
     private $nombre;
@@ -37,9 +31,19 @@ class Juez
     private $apellido;
     
     /**
-     * @ORM\Column(type="integer", nullable=false)
+     * @ORM\Column(type="integer", nullable=false, unique=true)
      */
     private $dni;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\JuezCompetencia", mappedBy="juez")
+     */
+    private $juezcompetencia;
+
+    public function __construct()
+    {
+        $this->juezcompetencia = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -82,15 +86,35 @@ class Juez
         return $this;
     }
 
-    public function getCompetencia(): ?Competencia
+    /**
+     * @return Collection|JuezCompetencia[]
+     */
+    public function getJuezcompetencia(): Collection
     {
-        return $this->competencia;
+        return $this->juezcompetencia;
     }
 
-    public function setCompetencia(?Competencia $competencia): self
+    public function addJuezcompetencium(JuezCompetencia $juezcompetencium): self
     {
-        $this->competencia = $competencia;
+        if (!$this->juezcompetencia->contains($juezcompetencium)) {
+            $this->juezcompetencia[] = $juezcompetencium;
+            $juezcompetencium->setJuez($this);
+        }
 
         return $this;
     }
+
+    public function removeJuezcompetencium(JuezCompetencia $juezcompetencium): self
+    {
+        if ($this->juezcompetencia->contains($juezcompetencium)) {
+            $this->juezcompetencia->removeElement($juezcompetencium);
+            // set the owning side to null (unless already changed)
+            if ($juezcompetencium->getJuez() === $this) {
+                $juezcompetencium->setJuez(null);
+            }
+        }
+
+        return $this;
+    }
+
 }
