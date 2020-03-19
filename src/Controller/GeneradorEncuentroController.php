@@ -10,6 +10,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 use App\Utils\GeneratorEncuentro;
 use App\Utils\CreatorEncuentros;
+use App\Utils\Constant;
 use App\Entity\Competencia;
 use App\Entity\UsuarioCompetencia;
 use App\Entity\TipoOrganizacion;
@@ -319,7 +320,9 @@ class GeneradorEncuentroController extends AbstractFOSRestController
                             $matchesCompetition = $generatorMatches->createMatches($nombre_participantes, $codigo_tipo, null);
                         }
                         // actualizamos el estado de la competencia
-                        
+                        if($competition->getEstado() != Constant::COMPETENCIA_INSCRIPCION_CERRADA){
+                            $competition->setEstado(Constant::COMPETENCIA_INSCRIPCION_CERRADA); 
+                        }
                         
                         // vamos a persistir los datos de los encuentros generados
                         $this->forward('App\Controller\EncuentroController::saveFixture', [
