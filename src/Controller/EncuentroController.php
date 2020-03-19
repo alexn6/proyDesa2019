@@ -357,7 +357,7 @@ class EncuentroController extends AbstractFOSRestController
     /**
      * 
      * @Rest\Post("/confrontations/competition")
-     * Por nombre de competencia
+     * Recupera los encuentros de la competencia por fecha y grupo
      * 
      * @return Response
      */
@@ -382,22 +382,18 @@ class EncuentroController extends AbstractFOSRestController
             $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
             $fase = null;
             $grupo = null;
-            $idJornada = null;
+            $jornada = null;
             // vemos si existe un body
             if(!empty($request->getContent())){
-                //var_dump("body vacio");
                 // recuperamos los datos del body y pasamos a un array
                 $dataConfrontationRequest = json_decode($request->getContent());
 
                 $hayFase = property_exists((object) $dataConfrontationRequest,'fase');
                 if($hayFase){
                   $fase = $dataConfrontationRequest->fase;
-                  // ################################ NO BORRAR #################################
                   // buscamos el id correspondiente a la fase
                   $repositoryJornada = $this->getDoctrine()->getRepository(Jornada::class);
-                  $idJornada = $repositoryJornada->findOneBy(['competencia'=> $competition, 'numero'=> $fase])->getId();
-                  //$idJornada = $repositoryJornada->findOneBy(['competencia'=> $competition, 'numero'=> $fase, 'fase'=> $competition->getFaseActual()])->getId();
-                  //  
+                  $jornada = $repositoryJornada->findOneBy(['competencia'=> $competition, 'numero'=> $fase])->getId();
                 }
                 $hayGrupo = property_exists((object) $dataConfrontationRequest,'grupo');
                 if($hayGrupo){
@@ -406,56 +402,36 @@ class EncuentroController extends AbstractFOSRestController
             }
 
             // recuperamos inicialmente los datos del competidor1
-            $encuentros = $repositoryEnc->findEncuentrosComp1ByCompetencia($idCompetition, $idJornada, $grupo);
+            $encuentros = $repositoryEnc->findEncuentrosByCompetenciaJornadaGrupo($idCompetition, $jornada, $grupo);
             $encuentros = $this->get('serializer')->serialize($encuentros, 'json', [
               'circular_reference_handler' => function ($object) {
                 return $object->getId();
               },
-              'ignored_attributes' => ['usuarioscompetencias', 'grupo', 'competencia', 'pass', 'token', 'password', 'roles', 'salt', 'username', 'jornada', '__initializer__','__cloner__', '__isInitialized__']
+              'ignored_attributes' => ['competencia', 'roles', '__initializer__','__cloner__', '__isInitialized__']
             ]);
             // pasamos los datos a un array para poder trabajarlos
             $encuentros = json_decode($encuentros, true);
-
-            // recuperamos los datos del competidor2
-            $encuentrosComp2 = $repositoryEnc->findEncuentrosComp2ByCompetencia($idCompetition, $idJornada, $grupo);
-            $encuentrosComp2 = $this->get('serializer')->serialize($encuentrosComp2, 'json', [
-              'circular_reference_handler' => function ($object) {
-                return $object->getId();
-              },
-              'ignored_attributes' => ['usuarioscompetencias', 'grupo', 'competencia', 'pass', 'token', 'password', 'roles', 'salt', 'username', 'jornada', '__initializer__','__cloner__', '__isInitialized__']
-            ]);
-            // pasamos los datos a un array para poder trabajarlos
-            $encuentrosComp2 = json_decode($encuentrosComp2, true);
-
-            // creamos un nuevo array con los datos que necesitamos
-            $encuentrosFull = array();
-            // guardamos los encuentros
-            for ($i=0; $i < count($encuentros); $i++) { 
-              array_push($encuentrosFull, $encuentros[$i][0]);
-            }
             
+            // mostramos solo el alias de los competidores
+            for ($i=0; $i < count($encuentros); $i++) {
+                $encuentros[$i]['competidor1'] = $encuentros[$i]['competidor1']['alias'];
+                $encuentros[$i]['competidor2'] = $encuentros[$i]['competidor2']['alias'];
+            }
+
             // harcode de los resultados con null
-            for ($i=0; $i < count($encuentrosFull); $i++) {
-              if($encuentrosFull[$i]['rdoComp1'] === null){
-                $encuentrosFull[$i]['rdoComp1'] = -1;
+            for ($i=0; $i < count($encuentros); $i++) {
+              if($encuentros[$i]['rdoComp1'] === null){
+                $encuentros[$i]['rdoComp1'] = -1;
               }
-              if($encuentrosFull[$i]['rdoComp2'] === null){
-                $encuentrosFull[$i]['rdoComp2'] = -1;
+              if($encuentros[$i]['rdoComp2'] === null){
+                $encuentros[$i]['rdoComp2'] = -1;
               }
             }
 
-            // colocamos los alias de los competidores
-            for ($i=0; $i < count($encuentrosFull); $i++) { 
-              $aliasComp1 = $encuentros[$i]['competidor1'];
-              $aliasComp2 = $encuentrosComp2[$i]['competidor2'];
-              $encuentrosFull[$i]['competidor1'] = $aliasComp1;
-              $encuentrosFull[$i]['competidor2'] = $aliasComp2;
-            }
-
-            $encuentrosFull = $this->get('serializer')->serialize($encuentrosFull, 'json');
+            $encuentros = json_encode($encuentros);
 
             $statusCode = Response::HTTP_OK;
-            $respJson = $encuentrosFull;
+            $respJson = $encuentros;
           }
       }
       else{
@@ -478,6 +454,7 @@ class EncuentroController extends AbstractFOSRestController
      * 
      * @return Response
      */
+
     public function getConfratationsByCompetitionOffline(Request $request){
       $idCompetition = $request->get('idCompetencia');
 
@@ -497,87 +474,84 @@ class EncuentroController extends AbstractFOSRestController
           }
           else{
             $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
+            $fase = null;
             $grupo = null;
-            $idJornada = null;
+            $jornada = null;
+            // vemos si existe un body
+            if(!empty($request->getContent())){
+                // recuperamos los datos del body y pasamos a un array
+                $dataConfrontationRequest = json_decode($request->getContent());
+
+                $hayFase = property_exists((object) $dataConfrontationRequest,'fase');
+                if($hayFase){
+                  $fase = $dataConfrontationRequest->fase;
+                  // buscamos el id correspondiente a la fase
+                  $repositoryJornada = $this->getDoctrine()->getRepository(Jornada::class);
+                  $jornada = $repositoryJornada->findOneBy(['competencia'=> $competition, 'numero'=> $fase])->getId();
+                }
+                $hayGrupo = property_exists((object) $dataConfrontationRequest,'grupo');
+                if($hayGrupo){
+                  $grupo = $dataConfrontationRequest->grupo;
+                }
+            }
 
             // recuperamos inicialmente los datos del competidor1
-            $encuentros = $repositoryEnc->findEncuentrosComp1ByCompetencia($idCompetition, null, null);
+            $encuentros = $repositoryEnc->findEncuentrosByCompetenciaJornadaGrupo($idCompetition, $jornada, $grupo);
             $encuentros = $this->get('serializer')->serialize($encuentros, 'json', [
               'circular_reference_handler' => function ($object) {
                 return $object->getId();
               },
-              'ignored_attributes' => ['usuarioscompetencias', 'competencia', 'pass', 'token', 'password', 'roles', 'salt', 'username', '__initializer__','__cloner__', '__isInitialized__']
+              'ignored_attributes' => ['competencia', 'roles', '__initializer__','__cloner__', '__isInitialized__']
             ]);
             // pasamos los datos a un array para poder trabajarlos
             $encuentros = json_decode($encuentros, true);
-
-            // recuperamos los datos del competidor2
-            $encuentrosComp2 = $repositoryEnc->findEncuentrosComp2ByCompetencia($idCompetition, $idJornada, $grupo);
-            $encuentrosComp2 = $this->get('serializer')->serialize($encuentrosComp2, 'json', [
-              'circular_reference_handler' => function ($object) {
-                return $object->getId();
-              },
-              'ignored_attributes' => ['usuarioscompetencias', 'competencia', 'pass', 'token', 'password', 'roles', 'salt', 'username', '__initializer__','__cloner__', '__isInitialized__']
-            ]);
-            // pasamos los datos a un array para poder trabajarlos
-            $encuentrosComp2 = json_decode($encuentrosComp2, true);
-
-            // creamos un nuevo array con los datos que necesitamos
-            $encuentrosFull = array();
-            // guardamos los encuentros
-            for ($i=0; $i < count($encuentros); $i++) { 
-              array_push($encuentrosFull, $encuentros[$i][0]);
-            }
             
-            // harcode de los resultados con null
-            for ($i=0; $i < count($encuentrosFull); $i++) {
-              if($encuentrosFull[$i]['rdoComp1'] === null){
-                $encuentrosFull[$i]['rdoComp1'] = -1;
-              }
-              if($encuentrosFull[$i]['rdoComp2'] === null){
-                $encuentrosFull[$i]['rdoComp2'] = -1;
-              }
+            // mostramos solo el alias de los competidores
+            for ($i=0; $i < count($encuentros); $i++) {
+                $encuentros[$i]['competidor1'] = $encuentros[$i]['competidor1']['alias'];
+                $encuentros[$i]['competidor2'] = $encuentros[$i]['competidor2']['alias'];
             }
 
-            // colocamos los alias de los competidores
-            for ($i=0; $i < count($encuentrosFull); $i++) { 
-              $aliasComp1 = $encuentros[$i]['competidor1'];
-              $aliasComp2 = $encuentrosComp2[$i]['competidor2'];
-              $encuentrosFull[$i]['competidor1'] = $aliasComp1;
-              $encuentrosFull[$i]['competidor2'] = $aliasComp2;
+            // harcode de los resultados con null
+            for ($i=0; $i < count($encuentros); $i++) {
+              if($encuentros[$i]['rdoComp1'] === null){
+                $encuentros[$i]['rdoComp1'] = -1;
+              }
+              if($encuentros[$i]['rdoComp2'] === null){
+                $encuentros[$i]['rdoComp2'] = -1;
+              }
             }
 
             // modificamos la jornada y agregams su fase
-            for ($i=0; $i < count($encuentrosFull); $i++) {
+            for ($i=0; $i < count($encuentros); $i++) {
               // le agregamos la jornada y fase
-              $jornada = $encuentrosFull[$i]['jornada'];
-              $encuentrosFull[$i]['jornada'] = $jornada['numero'];
-              $encuentrosFull[$i]['fase'] = $jornada['fase'];
+              $jornada = $encuentros[$i]['jornada'];
+              $encuentros[$i]['jornada'] = $jornada['numero'];
+              $encuentros[$i]['fase'] = $jornada['fase'];
               // le agregamos el id del juez
-              $juez = $encuentrosFull[$i]['juez'];
-              $encuentrosFull[$i]['juez'] = $juez['id'];
+              $juez = $encuentros[$i]['juez'];
+              $encuentros[$i]['juez'] = $juez['id'];
               // le agregamos el id del campo
-              $campo = $encuentrosFull[$i]['campo'];
-              $encuentrosFull[$i]['campo'] = $campo['id'];
+              $campo = $encuentros[$i]['campo'];
+              $encuentros[$i]['campo'] = $campo['id'];
               
-              $turno = $encuentrosFull[$i]['turno'];
+              $turno = $encuentros[$i]['turno'];
               //var_dump($turno['horaDesde']);
               $hDesde= substr($turno['horaDesde'], -14, 5);
               $hHasta= substr($turno['horaHasta'], -14, 5);
-              $encuentrosFull[$i]['turno'] = $hDesde." - ".$hHasta;
+              $encuentros[$i]['turno'] = $hDesde." - ".$hHasta;
               $fecha = substr($turno['horaDesde'], 0, -15);
               if(!$fecha){
                 $fecha = " - ";
               }
-              $encuentrosFull[$i]['fecha'] = $fecha;
+              $encuentros[$i]['fecha'] = $fecha;
               // le agregamos el id de la competencia a cada encuentro
-              $encuentrosFull[$i]['idCompetencia'] = $idCompetition;
+              $encuentros[$i]['idCompetencia'] = $idCompetition;
             }
-
-            $encuentrosFull = $this->get('serializer')->serialize($encuentrosFull, 'json');
+            $encuentros = json_encode($encuentros);
 
             $statusCode = Response::HTTP_OK;
-            $respJson = $encuentrosFull;
+            $respJson = $encuentros;
           }
       }
       else{

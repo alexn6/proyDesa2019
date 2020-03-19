@@ -3,7 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\Encuentro;
+use App\Entity\Jornada;
 use App\Entity\Competencia;
+use App\Entity\UsuarioCompetencia;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
@@ -113,70 +115,21 @@ class EncuentroRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    // recuperamos los encuentros del competidor1 segun fecha y fase
-    public function findEncuentrosComp1ByCompetencia($idCompetencia, $fase, $grupo)
+    // recuperamos los encuentros de una competencia por jornada y grupo
+    public function findEncuentrosByCompetenciaJornadaGrupo($idCompetencia, $fase, $grupo)
     {
         $entityManager = $this->getEntityManager();
 
-        // recuperamos el string de la query armado
-        $stringQuery = $this->getStringQueryConfrontationsByCompetitorsFull($this::COMPETIDOR1, $fase, $grupo);
-        
-        $query = $entityManager->createQuery($stringQuery);
-        // seteamos la competencia
-        $query->setParameter('idCompetencia', $idCompetencia);
-                    
-        return $query->execute();
-    }
-
-    // recuperamos los encuentros del competidor2 segun fecha y fase
-    public function findEncuentrosComp2ByCompetencia($idCompetencia, $fase, $grupo)
-    {
-        $entityManager = $this->getEntityManager();
-
-        // recuperamos el string de la query armado
-        $stringQuery = $this->getStringQueryConfrontationsByCompetitorsFull($this::COMPETIDOR2, $fase, $grupo);
-        
-        $query = $entityManager->createQuery($stringQuery);
-        // seteamos la competencia
-        $query->setParameter('idCompetencia', $idCompetencia);
-                    
-        return $query->execute();
-    }
-
-    // ##################################################################################
-    // ############################## funciones auxiliares ##############################
-
-    // crea la consulta de encuentros por competencia, fase y grupo de los competidores
-    private function getStringQueryConfrontationsByCompetitorsFull($competidor, $fase, $grupo){
-        $stringQuery;
-        // creamos el select de la consulta
-        if($competidor == $this::COMPETIDOR1){
-            $stringQuery = ' SELECT DISTINCT e, uc.alias competidor1';
-        }
-        if($competidor == $this::COMPETIDOR2){
-            $stringQuery = ' SELECT DISTINCT e, uc.alias competidor2';
-        }
-        // le adjuntamos la parte generica/unica de la consulta
-        $stringQuery = $stringQuery.' FROM App\Entity\Encuentro e
-                            INNER JOIN App\Entity\UsuarioCompetencia uc
-                            WITH e.competencia = uc.competencia
+        $stringQuery = ' SELECT DISTINCT e
+                            FROM App\Entity\Encuentro e
+                            INNER JOIN App\Entity\Competencia c
+                            WITH e.competencia = c.id
                             WHERE e.competencia = :idCompetencia
-                            AND uc.competencia = :idCompetencia
                         ';
-
-        $stringQueryCompetidor;
-        // seteamos el competidor
-        if($competidor == $this::COMPETIDOR1){
-            $stringQueryCompetidor = ' AND e.competidor1 = uc.id';
-        }
-        if($competidor == $this::COMPETIDOR2){
-            $stringQueryCompetidor = ' AND e.competidor2 = uc.id';
-        }
-        $stringQuery = $stringQuery.$stringQueryCompetidor;
-
         // si recibimos parametros agrandamos la consulta
         if($fase != NULL){
             // creamos la parte de la consulta con el parametro recibido y la juntamos
+            // TODO: agregar tabla JORNADA y buscar por su numero
             $stringQueryFase = ' AND e.jornada = '.$fase;
             $stringQuery = $stringQuery.$stringQueryFase;
         }
@@ -187,7 +140,12 @@ class EncuentroRepository extends ServiceEntityRepository
             $stringQuery = $stringQuery.$stringQueryGrupo;
         }
 
-        // var_dump($stringQuery);
-        return $stringQuery;
+
+        $query = $entityManager->createQuery($stringQuery);
+        // seteamos la competencia
+        $query->setParameter('idCompetencia', $idCompetencia);
+                    
+        return $query->execute();
     }
+
 }
