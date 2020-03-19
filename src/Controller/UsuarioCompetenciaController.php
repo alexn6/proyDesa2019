@@ -323,83 +323,6 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         return $response;
     }
 
-  //   /**
-  //    * Se encarga de procesar la resolucion de la invitacion a Co-organizador
-  //    * Pre: los usuarios y competencia recibidos existen
-  //    * @Rest\Post("/resol-invitation-coorg"), defaults={"_format"="json"})
-  //    * 
-  //    * @return Response
-  //    */
-  //   public function resolInvitationCoorganizator(Request $request){
-  //     $respJson = (object) null;
-  //     $statusCode;
-
-  //     // controlamos que se haya recibido algo en el body
-  //     if(!empty($request->getContent())){
-  //       // recuperamos los datos del body y pasamos a un array
-  //       $dataRequest = json_decode($request->getContent());
-
-  //       // vemos si existen los datos necesarios
-  //       if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->idCompetencia))&&(!empty($dataRequest->resolucion))){
-  //         $idUser = $dataRequest->idUsuario;
-  //         $idCompetition = $dataRequest->idCompetencia;
-  //         $resolucion = $dataRequest->resolucion;
-
-  //         // buscamos los datos correspodientes a los id recibidos
-  //         $repositoryUser=$this->getDoctrine()->getRepository(Usuario::class);
-  //         $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
-  //         $user = $repositoryUser->find($idUser);
-  //         $competition = $repositoryComp->find($idCompetition);
-
-  //         $msgResolutionInvitation;
-
-  //         // vemos si se acepta la solicitud
-  //         if($resolucion === "aceptada"){
-  //           $msgResolutionInvitation = "El usuario <".$user->getNombreUsuario()."> ha aceptado formar parte de la competencia";
-  //           // creamos la nueva fila
-  //           $newUser = new UsuarioCompetencia();
-  //           $newUser->setUsuario($user);
-  //           $newUser->setCompetencia($competition);
-  //           $repositoryRol=$this->getDoctrine()->getRepository(Rol::class);
-  //           $rolCoorg = $repositoryRol->findOneBy(['nombre' => Constant::ROL_COORGANIZADOR]);
-  //           $newUser->setRol($rolCoorg);
-  //           //var_dump($newUser);
-  //           // persistimos el nuevo dato
-  //           $em = $this->getDoctrine()->getManager();
-  //           $em->persist($newUser);
-  //           $em->flush();
-  //         }
-  //         else{
-  //           $msgResolutionInvitation = "El usuario <".$user->getNombreUsuario()."> rechazo la invitacion a formar parte de la competencia";
-  //         }
-
-  //         $statusCode = Response::HTTP_OK;
-  //         $respJson->messaging = "Invitacion a co-organizador resuelta.";
-  //         // enviamos la notificacion al organizador
-  //         // recuperamos el token del organizador
-  //         $repositoryUserComp=$this->getDoctrine()->getRepository(UsuarioCompetencia::class);
-  //         $tokenOrganizator = $repositoryUserComp->findOrganizatorCompetencia($idCompetition);
-  //         $this->notifyResolutionInvitationCoorg($tokenOrganizator[0]['token'], $competition->getNombre(), $msgResolutionInvitation);
-  //       }
-  //       else{
-  //         $statusCode = Response::HTTP_BAD_REQUEST;
-  //         $respJson->messaging = "Solicitud mal formada";
-  //         }
-  //     }
-  //     else{
-  //         $statusCode = Response::HTTP_BAD_REQUEST;
-  //         $respJson->messaging = "Solicitud mal formada";
-  //     }
-
-  //     $respJson = json_encode($respJson);
-
-  //     $response = new Response($respJson);
-  //     $response->headers->set('Content-Type', 'application/json');
-  //     $response->setStatusCode($statusCode);
-
-  //     return $response;
-  // }
-
     /**
      * Devuelve todas las competencias de un usuario
      * @Rest\Get("/competitionsuser"), defaults={"_format"="json"})
@@ -455,13 +378,11 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
             $statusCode = Response::HTTP_BAD_REQUEST;
         }
 
-        // var_dump($respJson);
-
-        // reemplazamos el rol (string) por un array de roles
-        foreach ($respJson as &$valor) {
-          $valor['rol'] = array($valor['rol']);
-          $newType = $this->getPhase($valor['id'], $valor['tipo_organizacion']);
-          $valor['tipo_organizacion'] = $newType;
+        // reemplazamos el rol (string) por un array de roles y agregamos la fase en caso de q sea eliminatoria
+        foreach ($respJson as &$competition) {
+          $competition['rol'] = array($competition['rol']);
+          $newType = $this->getPhase($competition['id'], $competition['tipo_organizacion']);
+          $competition['tipo_organizacion'] = $newType;
         }
 
         $respJson = json_encode($respJson);
@@ -531,10 +452,10 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         }
 
         // reemplazamos el rol (string) por un array de roles
-        foreach ($respJson as &$valor) {
-          $valor['rol'] = array($valor['rol']);
-          $newType = $this->getPhase($valor['id'], $valor['tipo_organizacion']);
-          $valor['tipo_organizacion'] = $newType;
+        foreach ($respJson as &$competition) {
+          $competition['rol'] = array($competition['rol']);
+          $newType = $this->getPhase($competition['id'], $competition['tipo_organizacion']);
+          $competition['tipo_organizacion'] = $newType;
         }
 
         $respJson = json_encode($respJson);
@@ -571,16 +492,13 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         }
 
         // reemplazamos el rol (string) por un array de roles
-        foreach ($respJson as &$valor) {
-          $valor['rol'] = array($valor['rol']);
-          $newType = $this->getPhase($valor['id'], $valor['tipo_organizacion']);
-          $valor['tipo_organizacion'] = $newType;
+        foreach ($respJson as &$competition) {
+          $competition['rol'] = array($competition['rol']);
+          $newType = $this->getPhase($competition['id'], $competition['tipo_organizacion']);
+          $competition['tipo_organizacion'] = $newType;
         }
 
         $respJson = json_encode($respJson);
-
-        // var_dump($respJson);
-
         $response = new Response($respJson);
         $response->setStatusCode($statusCode);
         $response->headers->set('Content-Type', 'application/json');

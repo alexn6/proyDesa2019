@@ -419,64 +419,6 @@ class CompetenciaController extends AbstractFOSRestController
       return $response;
   }
 
-  //   // filtros para buscar competencias
-  //   /**
-  //    * 
-  //    * @Rest\Get("/competitions/filter")
-  //    * 
-  //    * @return Response
-  //    */
-  //   public function filterCompetitions(Request $request)
-  //   {
-  //     // ver este ejemplo => 'SELECT u FROM ForumUser u WHERE (u.username = :name OR u.username = :name2) AND u.id = :id'
-  //     $repository=$this->getDoctrine()->getRepository(Competencia::class);
-
-  //     $respJson = (object) null;
-
-  //     // recuperamos los parametros recibidos
-  //     $idCategoria = $request->get('categoria');
-  //     $idTipoOrg = $request->get('tipo_organizacion');
-  //     $genero = $request->get('genero');
-  //     $idDeporte = $request->get('deporte');
-  //     $nombreCompetencia = $request->get('competencia');
-  //     $ciudad = $request->get('ciudad');
-  //     $estado = $request->get('estado');
-      
-  //     // en el caso de no recibir datos le asginamos un null para mantener
-  //     // la cantidad de parametros de la consulta
-  //     if(empty($idCategoria)){
-  //       $idCategoria = null;
-  //     }
-  //     if(empty($idTipoOrg)){
-  //       $idTipoOrg = null;
-  //     }
-  //     if(empty($idDeporte)){
-  //       $idDeporte = null;
-  //     }
-  //     if(empty($genero)){
-  //       $genero = null;
-  //     }
-  //     if(empty($nombreCompetencia)){
-  //       $nombreCompetencia = null;
-  //     }
-  //     if(empty($ciudad)){
-  //       $ciudad = null;
-  //     }
-  //     if(empty($estado)){
-  //       $estado = null;
-  //     }
-      
-  //     $respJson = $repository->filterCompetitions($nombreCompetencia, $idCategoria, $idDeporte, $idTipoOrg, $genero, $ciudad, $estado);
-  //     // pasamos a json el resultado
-  //     $respJson = json_encode($respJson);
-
-  //     $response = new Response($respJson);
-  //     $response->setStatusCode(Response::HTTP_OK);
-  //     $response->headers->set('Content-Type', 'application/json');
-
-  //     return $response;
-  // }
-
   /**
      * 
      * @Rest\Get("/competition/classified")
@@ -698,18 +640,24 @@ class CompetenciaController extends AbstractFOSRestController
 
       $repository = $this->getDoctrine()->getRepository(Competencia::class);
  
+      // TODO: corregir
       if(!empty($idUsuario)){
         $competitions = $repository->filterCompetitionsByUserFull($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoOrg, $genero, $ciudad, $estado);
 
-        $competitions = $this->get('serializer')->serialize($competitions, 'json', [
-          'circular_reference_handler' => function ($object) {
-            return $object->getId();
-          }
-        ]);
+        // reemplazamos el rol (string) por un array de roles y agregamos la fase en caso de q sea eliminatoria
+        foreach ($competitions as &$competition) {
+          $newType = $this->getPhase($competition['id'], $competition['tipo_organizacion']);
+          $competition['tipo_organizacion'] = $newType;
+        }
+
+        $competitions = json_encode($competitions);
+
         $statusCode = Response::HTTP_OK;
       }
       else{
-         $respJson->competitions = NULL;
+         $competitions = (object) null;
+         $competitions->messaging = "Debe pasar un usuario compo parametro de la consulta.";
+         $competitions = json_encode($competitions);
          $statusCode = Response::HTTP_BAD_REQUEST;
       }
  
@@ -933,6 +881,43 @@ class CompetenciaController extends AbstractFOSRestController
     }
 
     return $phaseAvailable;
+  }
+
+  // Devuelve el tipo de organizacion y la fase, si es una eliminatoria
+  private function getPhase($idCompetition, $typeOrg){
+    if(strpos($typeOrg, 'Eliminatorias') !== false){
+      // vamos a buscar la fase en la que se encuentra la competencia
+      $repository = $this->getDoctrine()->getRepository(Competencia::class);
+      $competitionAux = $repository->find($idCompetition);
+      $fase = $competitionAux->getFase();
+      $faseCompetition;
+
+      if($fase == 1){
+        $faseCompetition = "Final";
+      }
+      if($fase == 2){
+        $faseCompetition = "Semifinal";
+      }
+      if($fase == 3){
+        $faseCompetition = "4º Final";
+      }
+      if($fase == 4){
+        $faseCompetition = "8º Final";
+      }
+      if($fase == 5){
+        $faseCompetition = "16º Final";
+      }
+      if($fase == 6){
+        $faseCompetition = "32º Final";
+      }
+      if($fase == 7){
+        $faseCompetition = "64º Final";
+      }
+      
+      return $typeOrg." - ".$faseCompetition;
+    }
+    
+    return $typeOrg;
   }
 
   // pasamos los encuentros[id,id] a encuentros[alias,alias]
