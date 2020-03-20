@@ -75,37 +75,44 @@ class InscripcionController extends AbstractFOSRestController
                 else{
                     $fechaInicio = DateTime::createFromFormat(Constant::FORMAT_DATE, $fechaInicio);
                     $fechaCierre = DateTime::createFromFormat(Constant::FORMAT_DATE, $fechaCierre);
-                    // control de fechas
-                    if($this->dateCorrect($fechaInicio, $fechaCierre)){
-                        // creamos la inscripcion
-                        $nuevainscripcion = new Inscripcion();
-                        $nuevainscripcion->setFechaIni($fechaInicio);
-                        $nuevainscripcion->setFechaCierre($fechaCierre);
-
-                        if($monto != null){
-                            $nuevainscripcion->setMonto($monto);
+                    // controlamos con la competencia
+                    if(ControlDate::getInstance()->datePre($fechaInicio, $competencia->getFechaIni())){
+                        // control de fechas
+                        if($this->dateCorrect($fechaInicio, $fechaCierre)){
+                            // creamos la inscripcion
+                            $nuevainscripcion = new Inscripcion();
+                            $nuevainscripcion->setFechaIni($fechaInicio);
+                            $nuevainscripcion->setFechaCierre($fechaCierre);
+    
+                            if($monto != null){
+                                $nuevainscripcion->setMonto($monto);
+                            }
+                            if($requisitos != null){
+                                $nuevainscripcion->setRequisitos($requisitos);
+                            }
+    
+                            // seteamos el esatdo de la competencia
+                            $competencia->setEstado(Constant::ESTADO_COMP_CON_INSCRIPCION);
+    
+                            $em = $this->getDoctrine()->getManager();
+                            $em->persist($nuevainscripcion);
+                            $em->flush();
+    
+                            // asignamos la inscricion a la competencia
+                            $competencia->setInscripcion($nuevainscripcion);
+                            $em->flush();
+                    
+                            $statusCode = Response::HTTP_CREATED;
+                            $respJson->messaging = "Creacion exitosa";
                         }
-                        if($requisitos != null){
-                            $nuevainscripcion->setRequisitos($requisitos);
+                        else{
+                            $statusCode = Response::HTTP_BAD_REQUEST;
+                            $respJson->messaging = "Verifique la consistencia de las fechas. Controle que la feche de cierre sea al menos un dia posterior a la fecha de inicio";
                         }
-
-                        // seteamos el esatdo de la competencia
-                        $competencia->setEstado(Constant::ESTADO_COMP_INSCRIPCION_ABIERTA);
-
-                        $em = $this->getDoctrine()->getManager();
-                        $em->persist($nuevainscripcion);
-                        $em->flush();
-
-                        // asignamos la inscricion a la competencia
-                        $competencia->setInscripcion($nuevainscripcion);
-                        $em->flush();
-                
-                        $statusCode = Response::HTTP_CREATED;
-                        $respJson->messaging = "Creacion exitosa";
                     }
                     else{
                         $statusCode = Response::HTTP_BAD_REQUEST;
-                        $respJson->messaging = "Verifique la consistencia de las fechas. Controle que la feche de cierre sea al menos un dia posterior a la fecha de inicio";
+                        $respJson->messaging = "La fecha de incio de la inscripcion debe ser anterior al inicio de la competencia.";
                     }
                 }
             }

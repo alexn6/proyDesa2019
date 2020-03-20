@@ -57,4 +57,17 @@ class ControlDate
         
         return false;
     }
+
+    // analiza si f1 es anterior a f2
+    public function datePre($f1, $f2){
+        $diff = date_diff($f1, $f2);
+        $array_diff = str_split($diff->format("%R%a"));
+        if($array_diff[0] == '+'){
+            if($array_diff[1] >= 1){
+                return true;
+            }
+        }
+        
+        return false;
+    }
 }
