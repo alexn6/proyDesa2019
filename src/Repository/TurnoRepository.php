@@ -76,11 +76,49 @@ class TurnoRepository extends ServiceEntityRepository
         if($idTurno != NULL){
             $stringQueryTurno = ' AND t.id = '.$idTurno;
             $stringQueryBase = $stringQueryBase.$stringQueryTurno;
-                
         }
 
         $query = $entityManager->createQuery($stringQueryBase);    
         return $query->execute();   
+    }
+
+    // controlamos que entre un conjunto de turnos no exista ningun turno, fecha inicio turnos
+    public function findTurnInitBetween($idCompetencia, $horaIniSet, $horaFinSet){
+        $entityManager = $this->getEntityManager();
+        // $stringQuery = '   SELECT t
+        //                 FROM App\Entity\Turno t
+        //                 INNER JOIN App\Entity\Competencia c
+        //                 WITH c.id = t.competencia 
+        //                 AND c.id = :idCompetencia
+        //                 AND (t.hora_desde >= \'18:00:00\' AND t.hora_desde <= \'20:36:00\')
+        //                 ';
+        $stringQuery = '   SELECT t
+                            FROM App\Entity\Turno t
+                            INNER JOIN App\Entity\Competencia c
+                            WITH c.id = t.competencia 
+                            AND c.id = :idCompetencia
+                            AND (t.hora_desde >= \''.$horaIniSet.'\' AND t.hora_desde <= \''.$horaFinSet.'\')
+                            ';
+        var_dump($stringQuery);
+        $query = $entityManager->createQuery($stringQuery)->setParameter('idCompetencia',$idCompetencia);
+        
+        return $query->execute();
+    }
+
+    // controlamos que entre un conjunto de turnos o exista ningun turno, fecha fin turnos
+    public function findTurnEndBetween($idCompetencia, $horaIniSet, $horaFinSet){
+        $entityManager = $this->getEntityManager();
+        $stringQuery = '   SELECT t
+                            FROM App\Entity\Turno t
+                            INNER JOIN App\Entity\Competencia c
+                            WITH c.id = t.competencia 
+                            AND c.id = :idCompetencia
+                            AND (t.hora_hasta >= \''.$horaIniSet.'\' AND t.hora_hasta <= \''.$horaFinSet.'\')
+                            ';
+        var_dump($stringQuery);
+        $query = $entityManager->createQuery($stringQuery)->setParameter('idCompetencia',$idCompetencia);
+        
+        return $query->execute();
     }
 
 }

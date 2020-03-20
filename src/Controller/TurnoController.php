@@ -178,17 +178,24 @@ class TurnoController extends AbstractFOSRestController
               $respJson->messaging = "La competencia no existe.";
             }
             else{
-              $setTurns = $this->createSetTurn($competencia, $horaInicio, $duracion, $n_turnos);
-
-              // persistimos los turnos
-              $em = $this->getDoctrine()->getManager();
-              for ($i=0; $i < count($setTurns); $i++) { 
-                $em->persist($setTurns[$i]);
+              // controlamos que no hayan turnos en el medio
+              if($this->existTurn($competencia, $horaInicio, $duracion, $n_turnos)){
+                $statusCode = Response::HTTP_BAD_REQUEST;
+                $respJson->messaging = "Existe turnos creados entre medio.";
               }
-              $em->flush();
+              else{
+                $setTurns = $this->createSetTurn($competencia, $horaInicio, $duracion, $n_turnos);
 
-              $statusCode = Response::HTTP_CREATED;
-              $respJson->messaging = "Creacion exitosa";
+                // persistimos los turnos
+                $em = $this->getDoctrine()->getManager();
+                for ($i=0; $i < count($setTurns); $i++) { 
+                  $em->persist($setTurns[$i]);
+                }
+                $em->flush();
+
+                $statusCode = Response::HTTP_CREATED;
+                $respJson->messaging = "Creacion exitosa";
+              }
             }
         }
 
@@ -311,6 +318,30 @@ class TurnoController extends AbstractFOSRestController
     }
 
     return true; 
+  }
+
+  // controlamos que no exista un turno entre el futuro conjunto de turnos a crear
+  private function existTurn($competencia, $horaInicio, $duracion, $n_turnos){
+    $horaIniSet = DateTime::createFromFormat(Constant::FORMAT_DATE_HOUR, $horaInicio);
+    $horaFinSet = clone $horaIniSet;
+    // vamos con el fin del turno
+    $duracion = $duracion*$n_turnos;
+    $horaFinSet->modify("+{$duracion} minutes");
+
+    $hrIniSet = $horaIniSet->format(Constant::FORMAT_DATE_HOUR);
+    $hrFinSet = $horaFinSet->format(Constant::FORMAT_DATE_HOUR);
+
+    $repository = $this->getDoctrine()->getRepository(Turno::class);
+    if($repository->findTurnInitBetween($competencia->getId(), $hrIniSet, $hrFinSet) != null){
+      //var_dump("Encuentra turno");
+      return true;
+    }
+    if($repository->findTurnEndBetween($competencia->getId(), $hrIniSet, $hrFinSet) != null){
+      //var_dump("Encuentro turno");
+      return true;
+    }
+    //var_dump("No hay turnos.");
+    return false;
   }
 
   // crea un conjunto de turno
