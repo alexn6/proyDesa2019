@@ -295,10 +295,11 @@ class GeneradorEncuentroController extends AbstractFOSRestController
                     $respJson->msg = "Encuentros ya generados";
                     $statusCode = Response::HTTP_BAD_REQUEST; 
                 }else{
-                    if(!($this->validarCantCompetidores($competition, $participantes))){
+                    $cantCorrecta = $this->validarCantCompetidores($competition, $participantes);
+                    if($cantCorrecta !== true){
                         $respJson->matches = NULL;
                         $statusCode = Response::HTTP_BAD_REQUEST;
-                        $respJson->msg = "No cuenta con suficientes participantes para crear la competencia";
+                        $respJson->msg = "Verifique la cantidad de comopetidores. Cantidad minima: ".$cantCorrecta;
                     }
                     else{
                         // recuperamos la lista de los nombres de los participantes
@@ -320,8 +321,8 @@ class GeneradorEncuentroController extends AbstractFOSRestController
                             $matchesCompetition = $generatorMatches->createMatches($nombre_participantes, $codigo_tipo, null);
                         }
                         // actualizamos el estado de la competencia
-                        if($competition->getEstado() != Constant::COMPETENCIA_INSCRIPCION_CERRADA){
-                            $competition->setEstado(Constant::COMPETENCIA_INSCRIPCION_CERRADA); 
+                        if($competition->getEstado() != Constant::ESTADO_COMP_INSCRIPCION_CERRADA){
+                            $competition->setEstado(Constant::ESTADO_COMP_INSCRIPCION_CERRADA); 
                         }
                         
                         // vamos a persistir los datos de los encuentros generados
@@ -375,15 +376,15 @@ class GeneradorEncuentroController extends AbstractFOSRestController
         return $rdo_validation;
     }
 
-    private function validarCompetidoresEliminitorias($n_fase, $n_minima, $n_grupos, $n_competidores){
+    // private function validarCompetidoresEliminitorias($n_fase, $n_minima, $n_grupos, $n_competidores){
 
-    }
+    // }
 
-    private function validarCompetidoresLiga($n_fase, $n_minima, $n_grupos, $n_competidores){
+    // private function validarCompetidoresLiga($n_fase, $n_minima, $n_grupos, $n_competidores){
 
-    }
+    // }
 
-    private function validarCompetidoresGrupos($n_fase, $n_minima, $n_grupos, $n_competidores){
+    // private function validarCompetidoresGrupos($n_fase, $n_minima, $n_grupos, $n_competidores){
 
-    }
+    // }
 }
