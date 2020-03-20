@@ -73,10 +73,10 @@ class UpdateDataDbByDate extends Command
         // pasamos los datos a un array para poder trabajarlos
         $inscripciones = json_decode($inscripciones, true);
 
-        $fechaActual = new DateTime();
-        // pasamos el dato de la a un formato mas simple
+        // controlamos las fechas de las inscripciones
         for ($i=0; $i < count($inscripciones); $i++){
-            $this->controlInitInscription($inscripciones[$i], $output);
+            $this->controlInitInscription($inscripciones[$i]);
+            $this->controlCloseInscription($inscripciones[$i]);
         }
 
         $output->writeln('Cant de inscripciones: '.count($inscripciones));
@@ -87,7 +87,7 @@ class UpdateDataDbByDate extends Command
     // #################### funciones auxiliares ####################
 
     // controla si es el dia de apertura de la inscripcion
-    private function controlInitInscription($dataInscripction, $output){
+    private function controlInitInscription($dataInscripction){
         $timestamp = $dataInscripction['fechaIni']['timestamp'];
         $fechaInicio = new DateTime();
         $fechaInicio->setTimestamp($timestamp);
@@ -106,6 +106,26 @@ class UpdateDataDbByDate extends Command
             // mandamos la notificacion al topico
             $this->sendNotificationInitInscription($competencia);
             $this->publishNewCloud($competencia);
+        }
+    }
+
+    // controla si es el dia de cierre de la inscripcion
+    private function controlCloseInscription($dataInscripction){
+        $timestamp = $dataInscripction['fechaCierre']['timestamp'];
+        $fechaCierre = new DateTime();
+        $fechaCierre->setTimestamp($timestamp);
+
+        $isTodayClose = ControlDate::getInstance()->isToday($fechaCierre);
+        // IMPORTANTE: cuando es false no se imprime valor en la pantalla de la consola
+        if($isTodayClose){
+            $idInscription = $dataInscripction['id'];
+            $repository = $this->em->getRepository(Inscripcion::class);
+            $inscription = $repository->find($idInscription);
+            // buscamos la competencia para actualizar su estado
+            $repositoryComp = $this->em->getRepository(Competencia::class);
+            $competencia = $repositoryComp->findOneBy(['inscripcion' => $inscription]);
+            // actualizamos el estado de la competencia
+            $this->changeStatusCompetition($competencia, Constant::ESTADO_COMP_INSCRIPCION_CERRADA);
         }
     }
 
