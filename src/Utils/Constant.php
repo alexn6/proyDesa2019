@@ -41,6 +41,9 @@ class Constant{
     // #############################################################################
     // ############################### FASES TORNEO ################################
 
+    const FASE_DEFAULT_LIGA = -1;
+    const FASE_DEFAULT_GRUPOS = 0;
+
     const FASE_IDA = -1;
     const FASE_VUELTA = -2;
     const FASE_FINAL = 1;

@@ -99,7 +99,7 @@ class TurnoRepository extends ServiceEntityRepository
                             AND c.id = :idCompetencia
                             AND (t.hora_desde >= \''.$horaIniSet.'\' AND t.hora_desde <= \''.$horaFinSet.'\')
                             ';
-        var_dump($stringQuery);
+        // var_dump($stringQuery);
         $query = $entityManager->createQuery($stringQuery)->setParameter('idCompetencia',$idCompetencia);
         
         return $query->execute();
@@ -115,7 +115,7 @@ class TurnoRepository extends ServiceEntityRepository
                             AND c.id = :idCompetencia
                             AND (t.hora_hasta >= \''.$horaIniSet.'\' AND t.hora_hasta <= \''.$horaFinSet.'\')
                             ';
-        var_dump($stringQuery);
+        // var_dump($stringQuery);
         $query = $entityManager->createQuery($stringQuery)->setParameter('idCompetencia',$idCompetencia);
         
         return $query->execute();

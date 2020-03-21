@@ -598,16 +598,15 @@ class EncuentroController extends AbstractFOSRestController
 
   // gurda en la DB los encuentros generados en una eliminatorio(single y double)
   private function saveEliminatorias($fixtureEncuentros, $competencia){
-    // var_dump(count($fixtureEncuentros));
-    $frec_jornada = 6;
-    //$frec_jornada = $competencia->getFrecuencia();
+    // $frec_jornada = 6;
+    $frec_jornada = $competencia->getFrecDias();
     // recuperamos el id y la fase de a competencia
     for ($i=1; $i <= count($fixtureEncuentros); $i++) {
       $jornada = $i;
       // le vamos agregando la frecuencia de juego de la competencia a la fecha de inicio
       $dias_frec = $frec_jornada*($i-1);
-      $fecha_jornada = date('Y-m-d', strtotime($competencia->getFechaIni()->format('Y-m-d'). ' + '.$dias_frec.' days'));
-      //var_dump($fixtureEncuentros[$i]);
+      // $fecha_jornada = date('Y-m-d', strtotime($competencia->getFechaIni()->format('Y-m-d'). ' + '.$dias_frec.' days'));
+      $fecha_jornada = date(Constant::FORMAT_DATE, strtotime($competencia->getFechaIni()->format(Constant::FORMAT_DATE). ' + '.$dias_frec.' days'));
       // ######### CORREGIR #########
       $this->saveEncuentrosCompetition($fixtureEncuentros[$i], $competencia, $jornada, null, $fecha_jornada);
     }
@@ -615,24 +614,23 @@ class EncuentroController extends AbstractFOSRestController
 
   // guardamos los encuentros generados en una liga (single y double)
   private function saveLiga($fixtureEncuentros, $competencia){
-    $frec_jornada = 6;
-    //$frec_jornada = $competencia->getFrecuencia();
-    // recuperamos el id y la fase de a copetencia
+    //$frec_jornada = 6;
+    $frec_jornada = $competencia->getFrecDias();
     // recorremos la lista de encuentros y persistimos los encuentros
     for ($i=1; $i <= count($fixtureEncuentros); $i++) {
       $jornada = $i;
       // le vamos agregando la frecuencia de juego de la competencia a la fecha de inicio
       $dias_frec = $frec_jornada*($i-1);
-      $fecha_jornada = date('Y-m-d', strtotime($competencia->getFechaIni()->format('Y-m-d'). ' + '.$dias_frec.' days'));
+      // $fecha_jornada = date('Y-m-d', strtotime($competencia->getFechaIni()->format('Y-m-d'). ' + '.$dias_frec.' days'));
+      $fecha_jornada = date(Constant::FORMAT_DATE, strtotime($competencia->getFechaIni()->format(Constant::FORMAT_DATE). ' + '.$dias_frec.' days'));
       $this->saveEncuentrosCompetition($fixtureEncuentros[$i], $competencia, $jornada, null, $fecha_jornada);
     }
   }
 
   // guardamos los encuentros generados por una competencia con grupos
   private function saveGrupos($fixtureEncuentros, $competencia){
-    // var_dump("Entro a saveGrupos()");
-    $frec_jornada = 6;
-    //$frec_jornada = $competencia->getFrecuencia();
+    // $frec_jornada = 6;
+    $frec_jornada = $competencia->getFrecDias();
     // el fixture serian los matches, controlar que tengan cant de grupos
     for ($i=0; $i < count($fixtureEncuentros); $i++) {
       $fixtureGrupo = $fixtureEncuentros[$i]["Encuentros"];
@@ -641,7 +639,8 @@ class EncuentroController extends AbstractFOSRestController
         $jornada = $j;
         // le vamos agregando la frecuencia de juego de la competencia a la fecha de inicio
         $dias_frec = $frec_jornada*($j-1);
-        $fecha_jornada = date('Y-m-d', strtotime($competencia->getFechaIni()->format('Y-m-d'). ' + '.$dias_frec.' days'));
+        // $fecha_jornada = date('Y-m-d', strtotime($competencia->getFechaIni()->format('Y-m-d'). ' + '.$dias_frec.' days'));
+        $fecha_jornada = date(Constant::FORMAT_DATE, strtotime($competencia->getFechaIni()->format(Constant::FORMAT_DATE). ' + '.$dias_frec.' days'));
         $this->saveEncuentrosCompetition($fixtureGrupo[$j], $competencia, $jornada, $grupo, $fecha_jornada);
       }
     }
@@ -654,7 +653,6 @@ class EncuentroController extends AbstractFOSRestController
     $repository = $this->getDoctrine()->getRepository(Encuentro::class);
     $repositoryUserComp = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
     $em = $this->getDoctrine()->getManager();
-    // var_dump($encuentros);
     // recorremos todos los encuentros
     for ($i=0; $i < count($encuentros); $i++) {
       $nameComp1 = $encuentros[$i][0];
@@ -685,20 +683,17 @@ class EncuentroController extends AbstractFOSRestController
   private function getJornada($jornada, $competencia, $fecha){
     $repository = $this->getDoctrine()->getRepository(Jornada::class);
 
-    // TODO: agregar nueva query (incluir fase, la fase actual de la competencia)
-    //$jornadaEncuentro = $repository->findOneBy(['numero' => $jornada, 'competencia' => $competencia]);
     $jornadaEncuentro = $repository->findOneBy(['numero' => $jornada, 'competencia' => $competencia, 'fase' =>$competencia->getFaseActual()]);
 
     // vemos si existe la jornada
     if($jornadaEncuentro == NULL){
-      $formato = 'Y-m-d';
-      $fecha_date = DateTime::createFromFormat($formato, $fecha);
+      //$formato = 'Y-m-d';
+      $fecha_date = DateTime::createFromFormat(Constant::FORMAT_DATE, $fecha);
       // si no existe la creamos y la guardamos
       $jornadaEncuentro = new Jornada();
       $jornadaEncuentro->setCompetencia($competencia);
       $jornadaEncuentro->setNumero($jornada);
       $jornadaEncuentro->setFecha($fecha_date);
-      // TODO: cambiar por getFaseActual()
       $jornadaEncuentro->setFase($competencia->getFaseActual());
 
       $this->forward('App\Controller\JornadaController::save', [

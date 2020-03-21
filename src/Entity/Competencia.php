@@ -31,7 +31,7 @@ class Competencia
     private $fecha_ini;
 
     /**
-     * @ORM\Column(type="date")
+     * @ORM\Column(type="date", nullable=true)
      */
     private $fecha_fin;
 

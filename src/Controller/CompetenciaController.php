@@ -23,6 +23,7 @@ use App\Entity\Deporte;
 use App\Utils\Constant;
 use App\Utils\TablePositionService;
 use App\Utils\NotificationManager;
+use App\Utils\ControlDate;
 use Kreait\Firebase\Messaging\Notification;
 
 /**
@@ -99,89 +100,96 @@ class CompetenciaController extends AbstractFOSRestController
           $respJson->messaging = "El nombre de la competencia esta en uso";
         }
         else{
-          $format = 'Y-m-d';
+          $fecha_ini = DateTime::createFromFormat(Constant::FORMAT_DATE, $dataCompetitionRequest->fecha_ini);
+          // controlamos q la fecha de incio de la competencia sea com minima la actual
+          if(ControlDate::getInstance()->datePostCurrent($fecha_ini)){
+            // buscamos los datos de los id recibidos
+            $categoria = $repository_cat->find($dataCompetitionRequest->categoria_id);
+            $tipoorg = $repository_tipoorg->find($dataCompetitionRequest->tipoorg_id);
+            $user_creator = $repository_user->find($dataCompetitionRequest->user_id);
+            // creamos la competencia
+            $competenciaCreate = new Competencia();
 
-          $fecha_ini = DateTime::createFromFormat($format, $dataCompetitionRequest->fecha_ini);
-          $fecha_fin = DateTime::createFromFormat($format, $dataCompetitionRequest->fecha_fin);
-          // buscamos los datos de los id recibidos
-          $categoria = $repository_cat->find($dataCompetitionRequest->categoria_id);
-          $tipoorg = $repository_tipoorg->find($dataCompetitionRequest->tipoorg_id);
-          $user_creator = $repository_user->find($dataCompetitionRequest->user_id);
-          // creamos la competencia
-          $competenciaCreate = new Competencia();
+            try{
+              $competenciaCreate->setGenero($dataCompetitionRequest->genero);
+            }
+            catch (\Exception $e)
+            {
+              $statusCode = Response::HTTP_INSUFFICIENT_STORAGE;
+              $respJson->success = false;
+              $respJson->messaging = "ERROR-> " . $e->getMessage();
 
-          try
-          {
-            $competenciaCreate->setGenero($dataCompetitionRequest->genero);
+              $respJson = json_encode($respJson);
+
+              $response = new Response($respJson);
+              $response->headers->set('Content-Type', 'application/json');
+              $response->setStatusCode($statusCode);
+
+              return $response;
+            }
+
+            $competenciaCreate->setNombre($nombre_comp);
+            $competenciaCreate->setFechaIni($fecha_ini);
+            // TODO: esto debe ser null
+            $competenciaCreate->setFechaFin($fecha_ini);
+            $competenciaCreate->setCiudad($dataCompetitionRequest->ciudad);
+            $competenciaCreate->setFrecDias($dataCompetitionRequest->frecuencia);
+            $competenciaCreate->setCategoria($categoria);
+            $competenciaCreate->setOrganizacion($tipoorg);
+            $competenciaCreate->setEstado(Constant::ESTADO_COMP_SIN_INSCRIPCION);
+
+            if(property_exists((object) $dataCompetitionRequest,'max_comp')){
+              $competenciaCreate->setMaxCompetidores($dataCompetitionRequest->max_comp);
+            }
+            if(property_exists((object) $dataCompetitionRequest,'min_comp')){
+              $competenciaCreate->setMinCompetidores($dataCompetitionRequest->min_comp);
+            }
+
+            // $hayGrupos = property_exists((object) $dataCompetitionRequest,'cant_grupos');
+            if(property_exists((object) $dataCompetitionRequest,'cant_grupos')){
+              $cant_grupos = $dataCompetitionRequest->cant_grupos;
+              $competenciaCreate->setCantGrupos($cant_grupos);
+            }
+
+            // recuperamos la fase de la competencia(solo en caso de q sea eliminitorias deberia ser != null)
+            $fase = null;
+            //$existeFase = property_exists((object) $dataCompetitionRequest,'fase');
+            if(property_exists((object) $dataCompetitionRequest,'fase')){
+              $fase = $dataCompetitionRequest->fase;
+            }
+
+            // seteamos la fase de la competencia
+            $this->setFaseCompetition($competenciaCreate, $fase);
+    
+            // persistimos la nueva competencia
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($competenciaCreate);
+            $em->flush();
+
+            // creamos el registro del usuario como organizador
+            $repositoryRol=$this->getDoctrine()->getRepository(Rol::class);
+            $rolOrganizador = $repositoryRol->findOneBy(['nombre' => Constant::ROL_ORGANIZADOR]);
+            $newUserOrganizator = new UsuarioCompetencia();
+            $newUserOrganizator->setUsuario($user_creator);
+            $newUserOrganizator->setCompetencia($competenciaCreate);
+            $newUserOrganizator->setRol($rolOrganizador);
+            $newUserOrganizator->setAlias("org");
+            
+            // persistimos el registro
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($newUserOrganizator);
+            $em->flush();
+            
+            $statusCode = Response::HTTP_CREATED;
+
+            $respJson->success = true;
+            $respJson->messaging = "Creacion exitosa";  
           }
-          catch (\Exception $e)
-          {
-            $statusCode = Response::HTTP_INSUFFICIENT_STORAGE;
-            $respJson->success = false;
-            $respJson->messaging = "ERROR-> " . $e->getMessage();
-
-            $respJson = json_encode($respJson);
-
-            $response = new Response($respJson);
-            $response->headers->set('Content-Type', 'application/json');
-            $response->setStatusCode($statusCode);
-
-            return $response;
-        }
-
-          $competenciaCreate->setNombre($nombre_comp);
-          $competenciaCreate->setFechaIni($fecha_ini);
-          $competenciaCreate->setFechaFin($fecha_fin);
-          $competenciaCreate->setCiudad($dataCompetitionRequest->ciudad);
-          $competenciaCreate->setMaxCompetidores($dataCompetitionRequest->max_comp);
-          $competenciaCreate->setFrecDias($dataCompetitionRequest->frecuencia);
-          $competenciaCreate->setCategoria($categoria);
-          $competenciaCreate->setOrganizacion($tipoorg);
-          $competenciaCreate->setEstado(Constant::ESTADO_COMP_SIN_INSCRIPCION);
-
-          $hayGrupos = property_exists((object) $dataCompetitionRequest,'cant_grupos');
-          if($hayGrupos){
-            $cant_grupos = $dataCompetitionRequest->cant_grupos;
-            $competenciaCreate->setCantGrupos($cant_grupos);
-          }
-
-          // recuperamos la fase de la competencia(solo en caso de q sea eliminitorias deberia ser != null)
-          $fase = null;
-          $existeFase = property_exists((object) $dataCompetitionRequest,'fase');
-          if($existeFase){
-            $fase = $dataCompetitionRequest->fase;
-          }
-          // TODO: aca se deberia colocar la fase correspondiente al tipo de organizacion
           else{
-            $fase = 1;
+            $respJson->success = false;
+            $statusCode = Response::HTTP_BAD_REQUEST;
+            $respJson->messaging = "La fecha de inicio de la competencia es incorrecta.";    
           }
-
-          // seteamos la fase de la competencia
-          $this->setFaseCompetition($competenciaCreate, $fase);
-  
-          // persistimos la nueva competencia
-          $em = $this->getDoctrine()->getManager();
-          $em->persist($competenciaCreate);
-          $em->flush();
-
-          // creamos el registro del usuario como organizador
-          $repositoryRol=$this->getDoctrine()->getRepository(Rol::class);
-          $rolOrganizador = $repositoryRol->findOneBy(['nombre' => Constant::ROL_ORGANIZADOR]);
-          $newUserOrganizator = new UsuarioCompetencia();
-          $newUserOrganizator->setUsuario($user_creator);
-          $newUserOrganizator->setCompetencia($competenciaCreate);
-          $newUserOrganizator->setRol($rolOrganizador);
-          $newUserOrganizator->setAlias("org");
-          
-          // persistimos el registro
-          $em = $this->getDoctrine()->getManager();
-          $em->persist($newUserOrganizator);
-          $em->flush();
-          
-          $statusCode = Response::HTTP_CREATED;
-
-          $respJson->success = true;
-          $respJson->messaging = "Creacion exitosa";
         }
       }
       else{
@@ -708,26 +716,22 @@ class CompetenciaController extends AbstractFOSRestController
     // #####################################################################################
     // ################################ funciones privadas ################################
 
-    // controlamos que la cant de competidores se adecue a la competencia
+    // le asignamos la fase, inicial, a la competencia
     private function setFaseCompetition($competencia, $fase){
-      // aca sacamos la funcion de control de cada tipo de organizacion
-      $codigoTipo = $competencia->getOrganizacion()->getCodigo();
+      if($fase == null){
+        // aca sacamos la funcion de control de cada tipo de organizacion
+        $codigoTipo = $competencia->getOrganizacion()->getCodigo();
+        
+        if(($codigoTipo == Constant::COD_TIPO_LIGA_SINGLE)||($codigoTipo == Constant::COD_TIPO_LIGA_DOUBLE)){
+            $fase = Constant::FASE_DEFAULT_LIGA;
+        }
+        else{
+            $fase = Constant::FASE_DEFAULT_GRUPOS;
+        }
+      }
       
-      if(($codigoTipo == 'ELIM')||($codigoTipo == 'ELIMDOUB')){
-          $competencia->setFase($fase);
-          $competencia->setFaseActual($fase);
-      }
-      else{
-          if(($codigoTipo == 'LIGSING')||($codigoTipo == 'LIGDOUB')){
-            $competencia->setFase(1);
-            $competencia->setFaseActual(1);
-          }
-          // sino es un grupo (0 -> fase de grupos)
-          else{
-            $competencia->setFase(0);
-            $competencia->setFaseActual(0);
-          }
-      }
+      $competencia->setFase($fase);
+      $competencia->setFaseActual($fase);
     }
 
     // controlamos que los encuentros recibidos cuenten con un resultado
