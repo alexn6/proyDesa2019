@@ -38,6 +38,18 @@ class CompetenciaRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    // recuperamos las fases con encuentros de la competencia
+    public function phasesCreated($idCompetencia){
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            ' SELECT DISTINCT j.fase
+            FROM App\Entity\Jornada j 
+            WHERE j.competencia = :idCompetencia
+            ')->setParameter('idCompetencia', $idCompetencia);
+
+        return $query->execute();
+    }
+
     // recupera todos los datos de la competencia  como string, agregado el rol
     public function dataOffline($idUsuario, $idCompetencia){
         $entityManager = $this->getEntityManager();

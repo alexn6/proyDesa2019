@@ -377,6 +377,7 @@ class EncuentroController extends AbstractFOSRestController
               $respJson->matches = NULL;
               $statusCode = Response::HTTP_BAD_REQUEST;
               $respJson->msg = "La competencia no existe o fue eliminada";
+              $respJson = json_encode($respJson);
           }
           else{
             $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
@@ -433,6 +434,9 @@ class EncuentroController extends AbstractFOSRestController
               }
             }
 
+            // buscamos si quedo algun competidor libre
+            // $this->getCompetitors
+
             $encuentros = json_encode($encuentros);
 
             $statusCode = Response::HTTP_OK;
@@ -442,6 +446,7 @@ class EncuentroController extends AbstractFOSRestController
       else{
         $respJson->encuentros = NULL;
         $respJson->msg = "Solicitud mal formada";
+        $respJson = json_encode($respJson);
         $statusCode = Response::HTTP_BAD_REQUEST;
       }
 
@@ -598,7 +603,6 @@ class EncuentroController extends AbstractFOSRestController
 
   // gurda en la DB los encuentros generados en una eliminatorio(single y double)
   private function saveEliminatorias($fixtureEncuentros, $competencia){
-    // $frec_jornada = 6;
     $frec_jornada = $competencia->getFrecDias();
     // recuperamos el id y la fase de a competencia
     for ($i=1; $i <= count($fixtureEncuentros); $i++) {
@@ -614,7 +618,6 @@ class EncuentroController extends AbstractFOSRestController
 
   // guardamos los encuentros generados en una liga (single y double)
   private function saveLiga($fixtureEncuentros, $competencia){
-    //$frec_jornada = 6;
     $frec_jornada = $competencia->getFrecDias();
     // recorremos la lista de encuentros y persistimos los encuentros
     for ($i=1; $i <= count($fixtureEncuentros); $i++) {
@@ -629,7 +632,6 @@ class EncuentroController extends AbstractFOSRestController
 
   // guardamos los encuentros generados por una competencia con grupos
   private function saveGrupos($fixtureEncuentros, $competencia){
-    // $frec_jornada = 6;
     $frec_jornada = $competencia->getFrecDias();
     // el fixture serian los matches, controlar que tengan cant de grupos
     for ($i=0; $i < count($fixtureEncuentros); $i++) {
@@ -639,7 +641,6 @@ class EncuentroController extends AbstractFOSRestController
         $jornada = $j;
         // le vamos agregando la frecuencia de juego de la competencia a la fecha de inicio
         $dias_frec = $frec_jornada*($j-1);
-        // $fecha_jornada = date('Y-m-d', strtotime($competencia->getFechaIni()->format('Y-m-d'). ' + '.$dias_frec.' days'));
         $fecha_jornada = date(Constant::FORMAT_DATE, strtotime($competencia->getFechaIni()->format(Constant::FORMAT_DATE). ' + '.$dias_frec.' days'));
         $this->saveEncuentrosCompetition($fixtureGrupo[$j], $competencia, $jornada, $grupo, $fecha_jornada);
       }
@@ -657,23 +658,26 @@ class EncuentroController extends AbstractFOSRestController
     for ($i=0; $i < count($encuentros); $i++) {
       $nameComp1 = $encuentros[$i][0];
       $nameComp2 = $encuentros[$i][1];
-      // vamos a recuperar los competidores del encuentro
-      $competitor1 = $repositoryUserComp->findOneBy(['alias' => $nameComp1]);
-      $competitor2 = $repositoryUserComp->findOneBy(['alias' => $nameComp2]);
-      // recuperamos la jornada que corresponde
-      $newJornada = $this->getJornada($jornada, $competencia, $fecha_jornada);
-      // creamos el encuentro
-      $newEncuentro = new Encuentro();
-      $newEncuentro->setCompetencia($competencia);
-      $newEncuentro->setJornada($newJornada);
-      $newEncuentro->setCompetidor1($competitor1);
-      $newEncuentro->setCompetidor2($competitor2);
-
-      if($grupo != NULL){
-        $newEncuentro->setGrupo($grupo);
+      // no persistimos encuentros con competiodres libres
+      if(($nameComp1 != NULL) && ($nameComp2 != NULL)){
+        // vamos a recuperar los competidores del encuentro
+        $competitor1 = $repositoryUserComp->findOneBy(['alias' => $nameComp1]);
+        $competitor2 = $repositoryUserComp->findOneBy(['alias' => $nameComp2]);
+        // recuperamos la jornada que corresponde
+        $newJornada = $this->getJornada($jornada, $competencia, $fecha_jornada);
+        // creamos el encuentro
+        $newEncuentro = new Encuentro();
+        $newEncuentro->setCompetencia($competencia);
+        $newEncuentro->setJornada($newJornada);
+        $newEncuentro->setCompetidor1($competitor1);
+        $newEncuentro->setCompetidor2($competitor2);
+  
+        if($grupo != NULL){
+          $newEncuentro->setGrupo($grupo);
+        }
+  
+        $em->persist($newEncuentro);
       }
-
-      $em->persist($newEncuentro);
     }
 
     $em->flush();

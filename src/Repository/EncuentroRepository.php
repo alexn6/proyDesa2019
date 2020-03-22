@@ -86,35 +86,6 @@ class EncuentroRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    // recuperamos los encuentros de una competencia, por fase y grupo
-    public function findEncuentrosByCompetenciaFaseGrupo($idCompetencia, $fase, $grupo)
-    {
-        $entityManager = $this->getEntityManager();
-        // le adjuntamos la parte generica/unica de la consulta
-        $stringQuery = ' SELECT e
-                            FROM App\Entity\Encuentro e
-                            WHERE e.competencia = :idCompetencia
-                        ';
-        // si recibimos parametros agrandamos la consulta
-        if($fase != NULL){
-            // creamos la parte de la consulta con el parametro recibido y la juntamos
-            $stringQueryFase = ' AND e.jornada = '.$fase;
-            $stringQuery = $stringQuery.$stringQueryFase;
-        }
-
-        if($grupo != NULL){
-            // creamos la parte de la consulta con el parametro recibido y la juntamos
-            $stringQueryGrupo = ' AND e.grupo = '.$grupo;
-            $stringQuery = $stringQuery.$stringQueryGrupo;
-        }
-
-        $query = $entityManager->createQuery($stringQuery);
-        // seteamos la competencia
-        $query->setParameter('idCompetencia', $idCompetencia);
-
-        return $query->execute();
-    }
-
     // recuperamos los encuentros de una competencia por jornada y grupo
     public function findEncuentrosByCompetenciaJornadaGrupo($idCompetencia, $fase, $grupo)
     {
@@ -145,6 +116,72 @@ class EncuentroRepository extends ServiceEntityRepository
         // seteamos la competencia
         $query->setParameter('idCompetencia', $idCompetencia);
                     
+        return $query->execute();
+    }
+
+    // Pre: solo para tipo eliminatoria y liga
+    // Buscamos encuentros de una fase, de una competencia, sin resultado
+    public function findResultEmpty($idCompetencia, $fase)
+    {
+        $entityManager = $this->getEntityManager();
+        // $query = $entityManager->createQuery(
+        //     '   SELECT e
+        //         FROM App\Entity\Encuentro e
+        //         WHERE (e.competencia = :idCompetencia
+        //         AND c.fase = :fase
+        //         AND (e.rdo_comp1 is NULL OR e.rdo_comp2 is NULL))
+        //     ')->setParameter('idCompetencia', $idCompetencia)
+        //     ->setParameter('fase', $fase);
+        $query = $entityManager->createQuery(
+            '   SELECT e
+                FROM App\Entity\Encuentro e
+                INNER JOIN App\Entity\Jornada j
+                WITH e.jornada = j.id
+                WHERE (e.competencia = :idCompetencia
+                AND j.fase = :fase
+                AND (e.rdo_comp1 is NULL OR e.rdo_comp2 is NULL))
+            ')->setParameter('idCompetencia', $idCompetencia)
+            ->setParameter('fase', $fase);
+
+        return $query->execute();
+    }
+
+    // Pre: solo para tipo grupos
+    // Buscamos encuentros de una fase, de una competencia, sin resultado
+    public function findResultEmptyCompGroup($idCompetencia, $fase, $grupo)
+    {
+        // TODO: modificar query
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            '   SELECT e
+                FROM App\Entity\Encuentro e
+                INNER JOIN App\Entity\Jornada j
+                WITH e.jornada = j.id
+                WHERE (e.competencia = :idCompetencia
+                AND e.grupo = :grupo
+                AND j.fase = :fase
+                AND (e.rdo_comp1 is NULL OR e.rdo_comp2 is NULL))
+            ')->setParameter('idCompetencia', $idCompetencia)
+            ->setParameter('fase', $fase)
+            ->setParameter('grupo', $grupo);
+
+        return $query->execute();
+    }
+
+    // verificamos que la competencia cuente con encuentros
+    public function confrontationCompetition($idCompetencia, $fase)
+    {
+        $entityManager = $this->getEntityManager();
+        
+        $query = $entityManager->createQuery(
+            '   SELECT e
+                FROM App\Entity\Encuentro e
+                INNER JOIN App\Entity\Jornada j
+                WITH e.jornada = j.id
+                WHERE (e.competencia = :idCompetencia AND j.fase = :fase)
+            ')->setParameter('idCompetencia', $idCompetencia)
+            ->setParameter('fase', $fase);
+
         return $query->execute();
     }
 

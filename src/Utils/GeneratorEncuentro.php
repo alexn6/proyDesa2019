@@ -65,7 +65,6 @@ class GeneratorEncuentro{
             $encuentros_por_grupo["Competidores"] = $equipos_por_grupo;
             $encuentros_por_grupo["Encuentros"] = schedule($equipos_por_grupo);
             array_push($encuentros_grupos, $encuentros_por_grupo);
-            // $i++;
         }
 
         return $encuentros_grupos;

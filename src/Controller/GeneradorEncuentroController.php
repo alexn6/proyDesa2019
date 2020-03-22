@@ -315,7 +315,9 @@ class GeneradorEncuentroController extends AbstractFOSRestController
         
                         $generatorMatches = new CreatorEncuentros();
                         if(strcmp($codigo_tipo, "FASEGRUP") == 0){
+                            // var_dump($nombre_participantes);
                             $matchesCompetition = $generatorMatches->createMatches($nombre_participantes, $codigo_tipo, $competition->getCantGrupos());
+                            // var_dump($matchesCompetition);
                         }
                         else{
                             $matchesCompetition = $generatorMatches->createMatches($nombre_participantes, $codigo_tipo, null);

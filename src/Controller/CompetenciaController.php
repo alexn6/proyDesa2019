@@ -384,9 +384,80 @@ class CompetenciaController extends AbstractFOSRestController
         return $response;
     }
 
+
     /**
      * 
-     * @Rest\Post("/competition/org")
+     * @Rest\Get("/competition/phase-completed")
+     * 
+     * @return Response
+     */
+    public function phaseCompleted(Request $request){
+      $respJson = (object) null;
+      $statusCode;
+
+      $repository = $this->getDoctrine()->getRepository(Competencia::class);
+
+      $idCompetencia = $request->get('idCompetencia');
+      if(empty($idCompetencia)){
+        $statusCode = Response::HTTP_BAD_REQUEST;
+        $respJson->messaging = "Peticion mal formada. Faltan parametros.";
+      }
+      else{
+        $competition = $repository->find($idCompetencia);
+  
+        if ($competition == null) {
+          $statusCode = Response::HTTP_BAD_REQUEST;
+          $respJson->messaging = "La competencia no existe o fue eliminada.";
+        }
+        else{
+          $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
+          // controlamos que la competencia cuente con encuentros de esa fase
+          $encuentrosFase = $repositoryEnc->confrontationCompetition($idCompetencia, $competition->getFaseActual());
+          if($encuentrosFase != null){
+            // vamos a verificar q los resultados de su fase actual esten completos
+            $cantGrupos = $competition->getCantGrupos();
+            if($cantGrupos == null){
+              // es eliminatoria o liga: analizamos los encuentros de la fase actual
+              $rdoEmpty = $repositoryEnc->findResultEmpty($competition->getId(), $competition->getFaseActual());
+            }
+            else{
+              // esto seria en grupos
+              $hayRdoEmpty = false;
+              for ($i=1; ($i <= $cantGrupos) && (!$hayRdoEmpty); $i++) { 
+                $rdoEmpty = $repositoryEnc->findResultEmptyCompGroup($competition->getId(), $competition->getFaseActual(), $i);
+                if($rdoEmpty != null){
+                  $hayRdoEmpty = true;
+                }
+              }
+            }
+            if($rdoEmpty){
+              $statusCode = Response::HTTP_BAD_REQUEST;
+              $respJson->messaging = "No se han disputados todos los encuentros de la fase actual de la competencia.";
+            }
+            else{
+              $statusCode = Response::HTTP_OK;
+              $respJson->messaging = "Fase actual de la competencia completa.";
+            }
+          }
+          else{
+            $statusCode = Response::HTTP_BAD_REQUEST;
+            $respJson->messaging = "La competencia no cuenta con encuentros en su fase actual.";
+          }
+        }
+      }
+
+      $respJson = json_encode($respJson);
+
+      $response = new Response($respJson);
+      $response->setStatusCode($statusCode);
+      $response->headers->set('Content-Type', 'application/json');
+
+      return $response;
+  }
+
+    /**
+     * 
+     * @Rest\Get("/competition/org")
      * 
      * @return Response
      */
@@ -405,10 +476,18 @@ class CompetenciaController extends AbstractFOSRestController
         }
         else{
           $repositoryJornada = $this->getDoctrine()->getRepository(Jornada::class);
+          $repositoryCompetencia = $this->getDoctrine()->getRepository(Competencia::class);
+          $fasesDb = $repositoryCompetencia->phasesCreated($idCompetencia);
+          $arrayFases = array();
+
+          foreach($fasesDb as $fase){
+            array_push($arrayFases, $fase["fase"]);
+          }
           
           $respJson->cant_grupo = $competition->getCantGrupos();
           $stringCantJornada = $repositoryJornada->nJornadaCompetetion($idCompetencia)[0][1];
           $respJson->cant_jornada = (int)$stringCantJornada;
+          $respJson->fases = $arrayFases;
           $respJson->messaging = "Operacion realizada con exito";
         }
       }
@@ -431,7 +510,8 @@ class CompetenciaController extends AbstractFOSRestController
      * 
      * @Rest\Get("/competition/classified")
      * Pre: solo comptempla competencias del tipo Eliminatorias y FaseGrupos
-     * Buscamos los clasificados de una competencia
+     *      con todos los encuentros de la fase actual disputados
+     * Buscamos los clasificados de una competencia, la cant dependiendo de la fase recibida
      * 
      * @return Response
      */
@@ -459,7 +539,7 @@ class CompetenciaController extends AbstractFOSRestController
             // buscamos todos los encuentros de la fase actual de la competencia
             $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
             $encuentrosFase = $repositoryEnc->findEncuentrosByCompetenciaFase($idCompetition, $competition->getFaseActual());
-            if($this->faseCompleted($encuentrosFase)){
+            // if($this->faseCompleted($encuentrosFase)){
               // controlamos el tipo de organizacion
               $typeOrganization = $competition->getOrganizacion()->getCodigo();
 
@@ -499,12 +579,14 @@ class CompetenciaController extends AbstractFOSRestController
                     ]);
                     // pasamos los reultados a un array para poder trabajarlos
                     $resultados = json_decode($resultados, true);
+                    // var_dump($resultados);
   
                     $servPosition = new TablePositionService();
                     $pointsBySport = $this->getPointsBySport($competition);
                     $tableGroup = $servPosition->getTablePosition($resultados, $pointsBySport);
                     array_push($tablesAllGroup, $tableGroup);
                   }
+                  //var_dump($tablesAllGroup);
                   // hacemos una tabla general a partir de todas las tablas
                   $tableGral = $this->getTableComplete($tablesAllGroup);
                   //var_dump($tableGral);
@@ -525,10 +607,10 @@ class CompetenciaController extends AbstractFOSRestController
                   $respJson->msg = "Debe seleccionar la fase siguiente";
                 }
               }
-            }
-            else{
-              $respJson->msg = "Deben resolverse todos los encuentros de la fase";
-            }
+            // }
+            // else{
+            //   $respJson->msg = "Deben resolverse todos los encuentros de la fase";
+            // }
             $statusCode = Response::HTTP_OK;
           }
       }
