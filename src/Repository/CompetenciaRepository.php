@@ -45,6 +45,7 @@ class CompetenciaRepository extends ServiceEntityRepository
             ' SELECT DISTINCT j.fase
             FROM App\Entity\Jornada j 
             WHERE j.competencia = :idCompetencia
+            ORDER BY j.fase DESC
             ')->setParameter('idCompetencia', $idCompetencia);
 
         return $query->execute();
@@ -111,7 +112,7 @@ class CompetenciaRepository extends ServiceEntityRepository
     public function filterCompetitionsRol($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad, $estado){
         $entityManager = $this->getEntityManager();
 
-        $queryBase = ' SELECT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.genero, c.estado, c.ciudad, r.nombre as rol
+        $queryBase = ' SELECT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.genero, c.fase_actual, c.estado, c.ciudad, r.nombre as rol
                         FROM App\Entity\Competencia c
                         INNER JOIN App\Entity\Categoria categ
                         WITH c.categoria = categ.id
@@ -160,7 +161,7 @@ class CompetenciaRepository extends ServiceEntityRepository
         }
 
         // base de la query
-        $queryBase = ' SELECT DISTINCT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.genero, c.estado, c.ciudad, \'ESPECTADOR\' as rol
+        $queryBase = ' SELECT DISTINCT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.genero, c.fase_actual, c.estado, c.ciudad, \'ESPECTADOR\' as rol
                         FROM App\Entity\Competencia c
                         INNER JOIN App\Entity\Categoria categ
                         WITH c.categoria = categ.id

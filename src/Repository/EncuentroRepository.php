@@ -86,6 +86,79 @@ class EncuentroRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    // recuperamos los encuentros de una competencia por determinada fase
+    public function findEncuentrosLiga($idCompetencia, $jornada)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            '   SELECT e
+                FROM App\Entity\Encuentro e
+                INNER JOIN App\Entity\Jornada j
+                WITH e.jornada = j.id
+                WHERE e.competencia = :idCompetencia
+                AND j.numero = :jornada
+            ')->setParameter('idCompetencia', $idCompetencia)
+            ->setParameter('jornada', $jornada);
+
+        return $query->execute();
+    }
+
+    // recuperamos los encuentros de una competencia por determinada fase
+    public function findEncuentrosEliminatoria($idCompetencia, $fase, $jornada)
+    {
+        $entityManager = $this->getEntityManager();
+        // $query = $entityManager->createQuery(
+        //     '   SELECT e
+        //         FROM App\Entity\Encuentro e
+        //         INNER JOIN App\Entity\Jornada j
+        //         WITH e.jornada = j.id
+        //         WHERE e.competencia = :idCompetencia
+        //         AND j.fase = :fase
+        //         AND j.numero = :jornada
+        //     ')->setParameter('idCompetencia', $idCompetencia)
+        //     ->setParameter('jornada', $jornada)
+        //     ->setParameter('fase', $fase);
+        $stringQuery =
+            '   SELECT e
+                FROM App\Entity\Encuentro e
+                INNER JOIN App\Entity\Jornada j
+                WITH e.jornada = j.id
+                WHERE e.competencia = :idCompetencia
+                AND j.fase = :fase';
+        if($jornada != null){
+            $stringQuery = $stringQuery.' AND j.numero = :jornada';
+        }
+
+        $query = $entityManager->createQuery($stringQuery);
+        // seteamos la competencia
+        $query->setParameter('idCompetencia', $idCompetencia);
+        $query->setParameter('fase', $fase);
+        if($jornada != null){
+            $query->setParameter('jornada', $jornada);
+        }
+
+        return $query->execute();
+    }
+
+    // recuperamos los encuentros de una competencia por jornada y grupo
+    public function findEncuentrosFaseGrupos($idCompetencia, $jornada, $grupo)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            '   SELECT e
+                FROM App\Entity\Encuentro e
+                INNER JOIN App\Entity\Jornada j
+                WITH e.jornada = j.id
+                WHERE e.competencia = :idCompetencia
+                AND j.numero = :jornada
+                AND e.grupo = :grupo
+            ')->setParameter('idCompetencia', $idCompetencia)
+            ->setParameter('jornada', $jornada)
+            ->setParameter('grupo', $grupo);
+
+        return $query->execute();
+    }
+
     // recuperamos los encuentros de una competencia por jornada y grupo
     public function findEncuentrosByCompetenciaJornadaGrupo($idCompetencia, $fase, $grupo)
     {
