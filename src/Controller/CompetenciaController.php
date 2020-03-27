@@ -414,23 +414,27 @@ class CompetenciaController extends AbstractFOSRestController
           // controlamos que la competencia cuente con encuentros de esa fase
           $encuentrosFase = $repositoryEnc->confrontationCompetition($idCompetencia, $competition->getFaseActual());
           if($encuentrosFase != null){
+            $hayRdoEmpty = false;
+            $rdoEmpty;
             // vamos a verificar q los resultados de su fase actual esten completos
             $cantGrupos = $competition->getCantGrupos();
-            if($cantGrupos == null){
+            if($competition->getFaseActual() != 0){
               // es eliminatoria o liga: analizamos los encuentros de la fase actual
               $rdoEmpty = $repositoryEnc->findResultEmpty($competition->getId(), $competition->getFaseActual());
             }
             else{
               // esto seria en grupos
-              $hayRdoEmpty = false;
               for ($i=1; ($i <= $cantGrupos) && (!$hayRdoEmpty); $i++) { 
                 $rdoEmpty = $repositoryEnc->findResultEmptyCompGroup($competition->getId(), $competition->getFaseActual(), $i);
-                if($rdoEmpty != null){
+                if(($rdoEmpty != null) && (count($rdoEmpty) != 0)){
                   $hayRdoEmpty = true;
                 }
               }
             }
-            if($rdoEmpty){
+            if(($rdoEmpty != null) || (count($rdoEmpty) != 0)){
+              $hayRdoEmpty = true;
+            }
+            if($hayRdoEmpty){
               $statusCode = Response::HTTP_BAD_REQUEST;
               $respJson->messaging = "No se han disputados todos los encuentros de la fase actual de la competencia.";
             }

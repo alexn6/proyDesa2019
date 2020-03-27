@@ -409,7 +409,6 @@ class EncuentroController extends AbstractFOSRestController
                 }
                 // si es fase grupos
                 if(strpos($competition->getOrganizacion()->getNombre(), 'grupo') !== false ){
-                  // var_dump("Es tipo GRPOS");
                   $fase = $dataConfrontationRequest->fase;
                   if(property_exists((object) $dataConfrontationRequest,'jornada')){
                     $jornada = $dataConfrontationRequest->jornada;
