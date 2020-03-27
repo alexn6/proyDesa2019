@@ -212,14 +212,14 @@ class EncuentroController extends AbstractFOSRestController
           $rdoDBEncuentroComp2 = $encuentro->getRdoComp2();
           // vemos si el encuentro ya contenia resultados
           if(($rdoDBEncuentroComp1 != NULL) || ($rdoDBEncuentroComp2 != NULL)){
-            var_dump("editamos el resultado existente");
+            // var_dump("editamos el resultado existente");
             // TODO: actualizar(-) con encuentro DB
             $this->reverseUpdateResult($encuentro, $encuentro->getRdoComp1(), $encuentro->getRdoComp2());
             // TODO: actualizar(+) con datos recibidos
             $this->updateResult($encuentro, $dataRequest->rdo_comp1, $dataRequest->rdo_comp2);
           }
           else{
-            var_dump("Agregamos un resultado");
+            // var_dump("Agregamos un resultado");
             // actualizamos los partidos jugados y los PG, PE, PP, con los datos recibidos
             $this->updateResult($encuentro, $dataRequest->rdo_comp1, $dataRequest->rdo_comp2);
             $this->updateJugadosCompetitors($encuentro);
@@ -885,7 +885,7 @@ class EncuentroController extends AbstractFOSRestController
     ]);
     // pasamos los datos a un array para poder trabajarlos
     $newEncuentros = json_decode($newEncuentros, true);
-    
+
     return $newEncuentros;
   }
 
