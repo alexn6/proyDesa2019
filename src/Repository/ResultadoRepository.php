@@ -94,8 +94,6 @@ class ResultadoRepository extends ServiceEntityRepository
         // eliminar los numeros repetidos
         $userCompetitors = array_unique($userCompetitors, SORT_REGULAR);
 
-        // var_dump($userCompetitors);
-
         $array_idCompetitors = array();
         // pasamos solo los id de las competencias a un array
         foreach ($userCompetitors as &$valor) {
@@ -114,8 +112,6 @@ class ResultadoRepository extends ServiceEntityRepository
                              INNER JOIN App\Entity\Resultado r
                              WITH uc.id = r.competidor
                              AND uc.id IN '.$stringIdCompetitors;
-
-        var_dump($stringQuery);
         
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery($stringQuery);
@@ -146,7 +142,6 @@ class ResultadoRepository extends ServiceEntityRepository
                         INNER JOIN App\Entity\UsuarioCompetencia uc ';
         $stringQuery = $stringQuery.' WITH e.'.$competidor.' = uc.id WHERE e.competencia = :idCompetencia AND e.grupo = :grupo';
 
-        //var_dump($stringQuery);
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery($stringQuery);
         // le seteamos los parametros

@@ -382,85 +382,79 @@ class EncuentroController extends AbstractFOSRestController
               $respJson = json_encode($respJson);
           }
           else{
-            // $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
-            $fase = null;
-            $jornada = null;
-            $grupo = null;
             // vemos si existe un body
             if(!empty($request->getContent())){
+                $fase = null;
+                $jornada = null;
+                $grupo = null;
                 // recuperamos los datos del body y pasamos a un array
                 $dataConfrontationRequest = json_decode($request->getContent());
 
-                $hayJornada = property_exists((object) $dataConfrontationRequest,'jornada');
-                // if($hayJornada){
-                //   $jornada = $dataConfrontationRequest->jornada;
-                //   // buscamos el id correspondiente a la jornada
-                //   $repositoryJornada = $this->getDoctrine()->getRepository(Jornada::class);
-                //   $rowJornada = $repositoryJornada->findOneBy(['competencia'=> $competition, 'numero'=> $jornada])->getId();
-                // }
-                $hayGrupo = property_exists((object) $dataConfrontationRequest,'grupo');
-                if($hayGrupo){
-                  $grupo = $dataConfrontationRequest->grupo;
+                $encuentros;
+                // vemos si es una LIGA
+                if(strpos($competition->getOrganizacion()->getNombre(), 'Liga') !== false ){
+                  $jornada = $dataConfrontationRequest->jornada;
+                  if(property_exists((object) $dataConfrontationRequest,'fase')){
+                    $fase = $dataConfrontationRequest->fase;
+                  }
+                  $encuentros = $this->getEncuentrosLiga($idCompetition, $jornada, $fase);
                 }
+                // vemos si es una ELIMINATORIA
+                if(strpos($competition->getOrganizacion()->getNombre(), 'Eliminatoria') !== false ){
+                  $fase = $dataConfrontationRequest->fase;
+                  if(property_exists((object) $dataConfrontationRequest,'jornada')){
+                    $jornada = $dataConfrontationRequest->jornada;
+                  }
+                  $encuentros = $this->getEncuentrosEliminatoria($idCompetition, $fase, $jornada);
+                }
+                // si es fase grupos
+                if(strpos($competition->getOrganizacion()->getNombre(), 'grupo') !== false ){
+                  // var_dump("Es tipo GRPOS");
+                  $fase = $dataConfrontationRequest->fase;
+                  if(property_exists((object) $dataConfrontationRequest,'jornada')){
+                    $jornada = $dataConfrontationRequest->jornada;
+                  }
+                  if(property_exists((object) $dataConfrontationRequest,'grupo')){
+                    $grupo = $dataConfrontationRequest->grupo;
+                  }
+                  $encuentros = $this->getEncuentrosGrupos($idCompetition, $fase, $grupo, $jornada);
+                }
+                
+                // mostramos solo el alias de los competidores
+                for ($i=0; $i < count($encuentros); $i++) {
+                    $encuentros[$i]['competidor1'] = $encuentros[$i]['competidor1']['alias'];
+                    $encuentros[$i]['competidor2'] = $encuentros[$i]['competidor2']['alias'];
+                }
+    
+                // harcode de los resultados con null
+                for ($i=0; $i < count($encuentros); $i++) {
+                  if($encuentros[$i]['rdoComp1'] === null){
+                    $encuentros[$i]['rdoComp1'] = -1;
+                  }
+                  if($encuentros[$i]['rdoComp2'] === null){
+                    $encuentros[$i]['rdoComp2'] = -1;
+                  }
+                  // si hy turno
+                  if($encuentros[$i]['turno'] !== null){
+                    $encuentros[$i]['turno']['horaDesde'] = substr($encuentros[$i]['turno']['horaDesde'], -14, 5);
+                    $encuentros[$i]['turno']['horaHasta'] = substr($encuentros[$i]['turno']['horaHasta'], -14, 5);
+                  }
+                }
+    
+                // TODO: buscamos si quedo algun competidor libre
+                // $this->getCompetitors
+    
+                $encuentros = json_encode($encuentros);
+    
+                $statusCode = Response::HTTP_OK;
+                $respJson = $encuentros;
             }
-            $encuentros;
-            // vemos si es una LIGA
-            if(strpos($competition->getOrganizacion()->getNombre(), 'Liga') !== false ){
-              $jornada = $dataConfrontationRequest->jornada;
-              if(property_exists((object) $dataConfrontationRequest,'fase')){
-                $fase = $dataConfrontationRequest->fase;
-              }
-              $encuentros = $this->getEncuentrosLiga($idCompetition, $jornada, $fase);
+            else{
+              $respJson->encuentros = NULL;
+              $respJson->msg = "Solicitud mal formada. Faltan parametros";
+              $respJson = json_encode($respJson);
+              $statusCode = Response::HTTP_BAD_REQUEST;
             }
-            // vemos si es una ELIMINATORIA
-            if(strpos($competition->getOrganizacion()->getNombre(), 'Eliminatoria') !== false ){
-              $fase = $dataConfrontationRequest->fase;
-              if(property_exists((object) $dataConfrontationRequest,'jornada')){
-                $jornada = $dataConfrontationRequest->jornada;
-              }
-              $encuentros = $this->getEncuentrosEliminatoria($idCompetition, $fase, $jornada);
-            }
-            // si es fase grupos
-            if(strpos($competition->getOrganizacion()->getNombre(), 'grupo') !== false ){
-              // var_dump("Es tipo GRPOS");
-              $fase = $dataConfrontationRequest->fase;
-              if(property_exists((object) $dataConfrontationRequest,'jornada')){
-                $jornada = $dataConfrontationRequest->jornada;
-              }
-              if(property_exists((object) $dataConfrontationRequest,'grupo')){
-                $grupo = $dataConfrontationRequest->grupo;
-              }
-              $encuentros = $this->getEncuentrosGrupos($idCompetition, $fase, $grupo, $jornada);
-            }
-            
-            // mostramos solo el alias de los competidores
-            for ($i=0; $i < count($encuentros); $i++) {
-                $encuentros[$i]['competidor1'] = $encuentros[$i]['competidor1']['alias'];
-                $encuentros[$i]['competidor2'] = $encuentros[$i]['competidor2']['alias'];
-            }
-
-            // harcode de los resultados con null
-            for ($i=0; $i < count($encuentros); $i++) {
-              if($encuentros[$i]['rdoComp1'] === null){
-                $encuentros[$i]['rdoComp1'] = -1;
-              }
-              if($encuentros[$i]['rdoComp2'] === null){
-                $encuentros[$i]['rdoComp2'] = -1;
-              }
-              // si hy turno
-              if($encuentros[$i]['turno'] !== null){
-                $encuentros[$i]['turno']['horaDesde'] = substr($encuentros[$i]['turno']['horaDesde'], -14, 5);
-                $encuentros[$i]['turno']['horaHasta'] = substr($encuentros[$i]['turno']['horaHasta'], -14, 5);
-              }
-            }
-
-            // buscamos si quedo algun competidor libre
-            // $this->getCompetitors
-
-            $encuentros = json_encode($encuentros);
-
-            $statusCode = Response::HTTP_OK;
-            $respJson = $encuentros;
           }
       }
       else{
@@ -739,7 +733,6 @@ class EncuentroController extends AbstractFOSRestController
       $jornada = $i;
       // le vamos agregando la frecuencia de juego de la competencia a la fecha de inicio
       $dias_frec = $frec_jornada*($i-1);
-      // $fecha_jornada = date('Y-m-d', strtotime($competencia->getFechaIni()->format('Y-m-d'). ' + '.$dias_frec.' days'));
       $fecha_jornada = date(Constant::FORMAT_DATE, strtotime($competencia->getFechaIni()->format(Constant::FORMAT_DATE). ' + '.$dias_frec.' days'));
       // ######### CORREGIR #########
       $this->saveEncuentrosCompetition($fixtureEncuentros[$i], $competencia, $jornada, null, $fecha_jornada);
@@ -754,7 +747,6 @@ class EncuentroController extends AbstractFOSRestController
       $jornada = $i;
       // le vamos agregando la frecuencia de juego de la competencia a la fecha de inicio
       $dias_frec = $frec_jornada*($i-1);
-      // $fecha_jornada = date('Y-m-d', strtotime($competencia->getFechaIni()->format('Y-m-d'). ' + '.$dias_frec.' days'));
       $fecha_jornada = date(Constant::FORMAT_DATE, strtotime($competencia->getFechaIni()->format(Constant::FORMAT_DATE). ' + '.$dias_frec.' days'));
       $this->saveEncuentrosCompetition($fixtureEncuentros[$i], $competencia, $jornada, null, $fecha_jornada);
     }
@@ -821,7 +813,6 @@ class EncuentroController extends AbstractFOSRestController
 
     // vemos si existe la jornada
     if($jornadaEncuentro == NULL){
-      //$formato = 'Y-m-d';
       $fecha_date = DateTime::createFromFormat(Constant::FORMAT_DATE, $fecha);
       // si no existe la creamos y la guardamos
       $jornadaEncuentro = new Jornada();
@@ -911,11 +902,9 @@ class EncuentroController extends AbstractFOSRestController
     // vemos si no estamos en fase de grupos => es ELIMINATORIA
     if($fase != 0){
       $encuentros = $repositoryEnc->findEncuentrosEliminatoria($idCompetition, $fase, $jornada);
-      var_dump("Es ELIM");
     }
     // si estamos en fase de grupos
     else{
-      // var_dump("Es GRUPOS");
       $encuentros = $repositoryEnc->findEncuentrosFaseGrupos($idCompetition, $jornada, $grupo);
     }
     $encuentros = $this->get('serializer')->serialize($encuentros, 'json', [
