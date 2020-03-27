@@ -570,6 +570,7 @@ class CompetenciaController extends AbstractFOSRestController
                   $repository = $this->getDoctrine()->getRepository(Resultado::class);
                   for ($i=0; $i < $competition->getCantGrupos() ; $i++) {
                     $resultados = $repository->findResultCompetitorsGroup($competition->getId(), $i+1);
+                    var_dump($resultados);
                     // pasamos los resultado a un array para poder trabajarlo
                     $resultados = $this->get('serializer')->serialize($resultados, 'json', [
                         'circular_reference_handler' => function ($object) {
@@ -579,7 +580,6 @@ class CompetenciaController extends AbstractFOSRestController
                     ]);
                     // pasamos los reultados a un array para poder trabajarlos
                     $resultados = json_decode($resultados, true);
-                    // var_dump($resultados);
   
                     $servPosition = new TablePositionService();
                     $pointsBySport = $this->getPointsBySport($competition);

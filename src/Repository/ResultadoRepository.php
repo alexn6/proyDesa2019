@@ -113,7 +113,7 @@ class ResultadoRepository extends ServiceEntityRepository
                              AND e.grupo = :grupo
                              INNER JOIN App\Entity\Resultado r
                              WITH uc.id = r.competidor
-                             AND uc.id IN '.$stringIdCompetitors.' ';
+                             AND uc.id IN '.$stringIdCompetitors;
 
         var_dump($stringQuery);
         
