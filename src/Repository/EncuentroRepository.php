@@ -223,7 +223,6 @@ class EncuentroRepository extends ServiceEntityRepository
     // Buscamos encuentros de una fase, de una competencia, sin resultado
     public function findResultEmptyCompGroup($idCompetencia, $fase, $grupo)
     {
-        // TODO: modificar query
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             '   SELECT e

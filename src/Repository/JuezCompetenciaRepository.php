@@ -23,15 +23,25 @@ class JuezCompetenciaRepository extends ServiceEntityRepository
     public function refereesByCompetetition($idCompetencia){
         $entityManager = $this->getEntityManager();
        
-        $stringQueryBase = 'SELECT j.id, j.nombre, j.apellido, j.dni 
-                            FROM App\Entity\JuezCompetencia jc
-                            INNER JOIN App\Entity\Competencia c
-                            WITH jc.competencia = c.id
-                            INNER JOIN App\Entity\Juez j
-                            WITH jc.juez = j.id
-                            AND c.id =' .$idCompetencia;
+        // $stringQueryBase = 'SELECT j.id, j.nombre, j.apellido, j.dni 
+        //                     FROM App\Entity\JuezCompetencia jc
+        //                     INNER JOIN App\Entity\Competencia c
+        //                     WITH jc.competencia = c.id
+        //                     INNER JOIN App\Entity\Juez j
+        //                     WITH jc.juez = j.id
+        //                     AND c.id =' .$idCompetencia;
 
-        $query = $entityManager->createQuery($stringQueryBase);    
+        // $query = $entityManager->createQuery($stringQueryBase);
+
+        $query = $entityManager->createQuery(
+            'SELECT j.id, j.nombre, j.apellido, j.dni 
+            FROM App\Entity\JuezCompetencia jc
+            INNER JOIN App\Entity\Competencia c
+            WITH jc.competencia = c.id
+            INNER JOIN App\Entity\Juez j
+            WITH jc.juez = j.id
+            AND c.id =' .$idCompetencia
+        );  
         return $query->execute();   
     }
 

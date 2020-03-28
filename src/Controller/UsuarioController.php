@@ -15,6 +15,7 @@ use App\Entity\Campo;
 use App\Entity\Competencia;
 use App\Entity\Notification;
 use App\Entity\Juez;
+use App\Entity\JuezCompetencia;
 
 use App\Utils\VerificationMail;
 use App\Utils\MailManager;
@@ -583,38 +584,42 @@ class UsuarioController extends AbstractFOSRestController
 
               $repositoryField = $this->getDoctrine()->getRepository(Campo::class);
               $fileds = $repositoryField->findFielsByCompetition($idCompetencia);
-              $fileds = $this->get('serializer')->serialize($fileds, 'json', [
-                'circular_reference_handler' => function ($object) {
-                  return $object->getId();
-                },
-                'ignored_attributes' => ['competencia','__initializer__', '__cloner__', '__isInitialized__']
-                ]);
-
-              $fileds = json_decode($fileds, true);
-              // le incorporamos el id de la competencia
               if($fileds != null){
+                $fileds = $this->get('serializer')->serialize($fileds, 'json', [
+                  'circular_reference_handler' => function ($object) {
+                    return $object->getId();
+                  },
+                  'ignored_attributes' => ['competencia','__initializer__', '__cloner__', '__isInitialized__']
+                  ]);
+  
+                $fileds = json_decode($fileds, true);
+                // le agregamos el id de la competencia
                 for ($i=0; $i < count($fileds); $i++) {
                   $fileds[$i]["idCompetencia"] = $idCompetencia;
                 }
               }
 
-              $repositoryJuez = $this->getDoctrine()->getRepository(Juez::class);
-              $judges = $repositoryJuez->findJudgesByCompetetition($idCompetencia);
-              $judges = $this->get('serializer')->serialize($judges, 'json', [
-                'circular_reference_handler' => function ($object) {
-                  return $object->getId();
-                },
-                'ignored_attributes' => ['competencia','__initializer__', '__cloner__', '__isInitialized__']
-                ]);
-
-              $judges = json_decode($judges, true);
-              // le incorporamos el id de la competencia
+              $repositoryJuezComp = $this->getDoctrine()->getRepository(JuezCompetencia::class);
+              $judges = $repositoryJuezComp->refereesByCompetetition($idCompetencia);
               if($judges != null){
+                var_dump("Jueces distinto de null");
+                $judges = $this->get('serializer')->serialize($judges, 'json', [
+                  'circular_reference_handler' => function ($object) {
+                    return $object->getId();
+                  },
+                  'ignored_attributes' => ['competencia','__initializer__', '__cloner__', '__isInitialized__']
+                  ]);
+  
+                $judges = json_decode($judges, true);
+                // le agregamos el id de la competencia
                 for ($i=0; $i < count($judges); $i++) {
                   $judges[$i]["idCompetencia"] = $idCompetencia;
                 }
               }
-
+              else{
+                $judges = null;
+              }
+              
               $inscription = null;
               // recuperamos la inscripcion
               if($competencia->getInscripcion() != null){
@@ -636,13 +641,21 @@ class UsuarioController extends AbstractFOSRestController
                   $respJson->messaging = "Competencia sin inscripcion.";        
               }
               
-              // vamos por los encuentros
-              // $respJson->competencia = $dataCompetitionOffline;
+              // recuperamos las fases creadas de la competencia
+              $repositoryCompetencia = $this->getDoctrine()->getRepository(Competencia::class);
+              $fasesDb = $repositoryCompetencia->phasesCreated($idCompetencia);
+              $arrayFases = array();
+
+              foreach($fasesDb as $fase){
+                array_push($arrayFases, $fase["fase"]);
+              }
+              
               $respJson->competencia = $dataCompetition;
               $respJson->competidores = $competitors;
               $respJson->fields = $fileds;
               $respJson->judges = $judges;
               $respJson->inscription = $inscription;
+              $respJson->fases = $arrayFases;
 
               $statusCode = Response::HTTP_OK;
             }
