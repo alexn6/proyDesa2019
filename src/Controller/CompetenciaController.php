@@ -130,8 +130,6 @@ class CompetenciaController extends AbstractFOSRestController
 
             $competenciaCreate->setNombre($nombre_comp);
             $competenciaCreate->setFechaIni($fecha_ini);
-            // TODO: esto debe ser null
-            $competenciaCreate->setFechaFin($fecha_ini);
             $competenciaCreate->setCiudad($dataCompetitionRequest->ciudad);
             $competenciaCreate->setFrecDias($dataCompetitionRequest->frecuencia);
             $competenciaCreate->setCategoria($categoria);
@@ -144,8 +142,6 @@ class CompetenciaController extends AbstractFOSRestController
             if(property_exists((object) $dataCompetitionRequest,'min_comp')){
               $competenciaCreate->setMinCompetidores($dataCompetitionRequest->min_comp);
             }
-
-            // $hayGrupos = property_exists((object) $dataCompetitionRequest,'cant_grupos');
             if(property_exists((object) $dataCompetitionRequest,'cant_grupos')){
               $cant_grupos = $dataCompetitionRequest->cant_grupos;
               $competenciaCreate->setCantGrupos($cant_grupos);
@@ -153,7 +149,6 @@ class CompetenciaController extends AbstractFOSRestController
 
             // recuperamos la fase de la competencia(solo en caso de q sea eliminitorias deberia ser != null)
             $fase = null;
-            //$existeFase = property_exists((object) $dataCompetitionRequest,'fase');
             if(property_exists((object) $dataCompetitionRequest,'fase')){
               $fase = $dataCompetitionRequest->fase;
             }
