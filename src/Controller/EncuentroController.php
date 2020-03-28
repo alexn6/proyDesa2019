@@ -477,117 +477,6 @@ class EncuentroController extends AbstractFOSRestController
      * 
      * @return Response
      */
-
-    // public function getConfratationsByCompetitionOffline(Request $request){
-    //   $idCompetition = $request->get('idCompetencia');
-
-    //   $respJson = (object) null;
-    //   $statusCode;
-     
-    //   // vemos si recibimos algun parametro
-    //   if(!empty($idCompetition)){
-    //       // controlamos que exista la competencia
-    //       $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
-    //       $competition = $repositoryComp->find($idCompetition);
-
-    //       if(empty($competition)){
-    //           $respJson->matches = NULL;
-    //           $statusCode = Response::HTTP_BAD_REQUEST;
-    //           $respJson->msg = "La competencia no existe o fue eliminada";
-    //       }
-    //       else{
-    //         $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
-    //         $fase = null;
-    //         $grupo = null;
-    //         $jornada = null;
-    //         // vemos si existe un body
-    //         if(!empty($request->getContent())){
-    //             // recuperamos los datos del body y pasamos a un array
-    //             $dataConfrontationRequest = json_decode($request->getContent());
-
-    //             $hayFase = property_exists((object) $dataConfrontationRequest,'fase');
-    //             if($hayFase){
-    //               $fase = $dataConfrontationRequest->fase;
-    //               // buscamos el id correspondiente a la fase
-    //               $repositoryJornada = $this->getDoctrine()->getRepository(Jornada::class);
-    //               $jornada = $repositoryJornada->findOneBy(['competencia'=> $competition, 'numero'=> $fase])->getId();
-    //             }
-    //             $hayGrupo = property_exists((object) $dataConfrontationRequest,'grupo');
-    //             if($hayGrupo){
-    //               $grupo = $dataConfrontationRequest->grupo;
-    //             }
-    //         }
-
-    //         // recuperamos inicialmente los datos del competidor1
-    //         $encuentros = $repositoryEnc->findEncuentrosByCompetenciaJornadaGrupo($idCompetition, $jornada, $grupo);
-    //         $encuentros = $this->get('serializer')->serialize($encuentros, 'json', [
-    //           'circular_reference_handler' => function ($object) {
-    //             return $object->getId();
-    //           },
-    //           'ignored_attributes' => ['competencia', 'roles', '__initializer__','__cloner__', '__isInitialized__']
-    //         ]);
-    //         // pasamos los datos a un array para poder trabajarlos
-    //         $encuentros = json_decode($encuentros, true);
-            
-    //         // mostramos solo el alias de los competidores
-    //         for ($i=0; $i < count($encuentros); $i++) {
-    //             $encuentros[$i]['competidor1'] = $encuentros[$i]['competidor1']['alias'];
-    //             $encuentros[$i]['competidor2'] = $encuentros[$i]['competidor2']['alias'];
-    //         }
-
-    //         // harcode de los resultados con null
-    //         for ($i=0; $i < count($encuentros); $i++) {
-    //           if($encuentros[$i]['rdoComp1'] === null){
-    //             $encuentros[$i]['rdoComp1'] = -1;
-    //           }
-    //           if($encuentros[$i]['rdoComp2'] === null){
-    //             $encuentros[$i]['rdoComp2'] = -1;
-    //           }
-    //         }
-
-    //         // modificamos la jornada y agregams su fase
-    //         for ($i=0; $i < count($encuentros); $i++) {
-    //           // le agregamos la jornada y fase
-    //           $jornada = $encuentros[$i]['jornada'];
-    //           $encuentros[$i]['jornada'] = $jornada['numero'];
-    //           $encuentros[$i]['fase'] = $jornada['fase'];
-    //           // le agregamos el id del juez
-    //           $juez = $encuentros[$i]['juez'];
-    //           $encuentros[$i]['juez'] = $juez['id'];
-    //           // le agregamos el id del campo
-    //           $campo = $encuentros[$i]['campo'];
-    //           $encuentros[$i]['campo'] = $campo['id'];
-              
-    //           $turno = $encuentros[$i]['turno'];
-    //           $hDesde= substr($turno['horaDesde'], -14, 5);
-    //           $hHasta= substr($turno['horaHasta'], -14, 5);
-    //           $encuentros[$i]['turno'] = $hDesde." - ".$hHasta;
-    //           $fecha = substr($turno['horaDesde'], 0, -15);
-    //           if(!$fecha){
-    //             $fecha = " - ";
-    //           }
-    //           $encuentros[$i]['fecha'] = $fecha;
-    //           // le agregamos el id de la competencia a cada encuentro
-    //           $encuentros[$i]['idCompetencia'] = $idCompetition;
-    //         }
-    //         $encuentros = json_encode($encuentros);
-
-    //         $statusCode = Response::HTTP_OK;
-    //         $respJson = $encuentros;
-    //       }
-    //   }
-    //   else{
-    //     $respJson->encuentros = NULL;
-    //     $respJson->msg = "Solicitud mal formada";
-    //     $statusCode = Response::HTTP_BAD_REQUEST;
-    //   }
-
-    //   $response = new Response($respJson);
-    //   $response->setStatusCode($statusCode);
-    //   $response->headers->set('Content-Type', 'application/json');
-
-    //   return $response;
-    // }
     public function getConfratationsByCompetitionOffline(Request $request){
       $idCompetition = $request->get('idCompetencia');
 
@@ -607,29 +496,9 @@ class EncuentroController extends AbstractFOSRestController
           }
           else{
             $repositoryEnc = $this->getDoctrine()->getRepository(Encuentro::class);
-            $fase = null;
-            $grupo = null;
-            $jornada = null;
-            // vemos si existe un body
-            if(!empty($request->getContent())){
-                // recuperamos los datos del body y pasamos a un array
-                $dataConfrontationRequest = json_decode($request->getContent());
 
-                $hayFase = property_exists((object) $dataConfrontationRequest,'fase');
-                if($hayFase){
-                  $fase = $dataConfrontationRequest->fase;
-                  // buscamos el id correspondiente a la fase
-                  $repositoryJornada = $this->getDoctrine()->getRepository(Jornada::class);
-                  $jornada = $repositoryJornada->findOneBy(['competencia'=> $competition, 'numero'=> $fase])->getId();
-                }
-                $hayGrupo = property_exists((object) $dataConfrontationRequest,'grupo');
-                if($hayGrupo){
-                  $grupo = $dataConfrontationRequest->grupo;
-                }
-            }
-
-            // recuperamos inicialmente los datos del competidor1
-            $encuentros = $repositoryEnc->findEncuentrosByCompetenciaJornadaGrupo($idCompetition, $jornada, $grupo);
+            // recuperamos todos los encuentros de la competencia
+            $encuentros = $repositoryEnc->findEncuentrosByCompetencia($idCompetition);
             $encuentros = $this->get('serializer')->serialize($encuentros, 'json', [
               'circular_reference_handler' => function ($object) {
                 return $object->getId();
