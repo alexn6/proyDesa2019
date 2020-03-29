@@ -602,7 +602,6 @@ class UsuarioController extends AbstractFOSRestController
               $repositoryJuezComp = $this->getDoctrine()->getRepository(JuezCompetencia::class);
               $judges = $repositoryJuezComp->refereesByCompetetition($idCompetencia);
               if($judges != null){
-                var_dump("Jueces distinto de null");
                 $judges = $this->get('serializer')->serialize($judges, 'json', [
                   'circular_reference_handler' => function ($object) {
                     return $object->getId();
@@ -636,10 +635,10 @@ class UsuarioController extends AbstractFOSRestController
                   $inscription['fechaCierre'] = substr($inscription['fechaCierre'], 0, -15);
                   $inscription['idCompetencia'] = $idCompetencia;
               }
-              else {
-                  $statusCode = Response::HTTP_BAD_REQUEST;
-                  $respJson->messaging = "Competencia sin inscripcion.";        
-              }
+              // else {
+              //     $statusCode = Response::HTTP_BAD_REQUEST;
+              //     $respJson->messaging = "Competencia sin inscripcion.";        
+              // }
               
               // recuperamos las fases creadas de la competencia
               $repositoryCompetencia = $this->getDoctrine()->getRepository(Competencia::class);

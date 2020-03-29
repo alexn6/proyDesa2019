@@ -55,7 +55,7 @@ class CompetenciaRepository extends ServiceEntityRepository
     public function dataOffline($idUsuario, $idCompetencia){
         $entityManager = $this->getEntityManager();
         
-        $query = ' SELECT c.id, c.nombre, cat.nombre categoria, org.nombre organizacion, c.genero, c.estado, c.frec_dias, c.ciudad, c.fecha_ini, r.nombre as rol
+        $query = ' SELECT c.id, c.nombre, cat.nombre categoria, org.nombre organizacion, c.genero, c.estado, c.frec_dias, c.ciudad, c.fecha_ini, r.nombre as rol, c.fase_actual
             FROM App\Entity\Competencia c
             INNER JOIN App\Entity\Categoria cat
             WITH c.categoria = cat.id
