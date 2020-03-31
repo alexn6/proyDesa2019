@@ -552,7 +552,8 @@ class CompetenciaController extends AbstractFOSRestController
               $typeOrganization = $competition->getOrganizacion()->getCodigo();
 
               // ################################## ELIMINATORIAS ########################################
-              if(($typeOrganization == Constant::COD_TIPO_ELIMINATORIAS) || ($typeOrganization == Constant::COD_TIPO_ELIMINATORIAS_DOUBLE)){
+              // if(($typeOrganization == Constant::COD_TIPO_ELIMINATORIAS) || ($typeOrganization == Constant::COD_TIPO_ELIMINATORIAS_DOUBLE)){
+              if($competition->getFaseActual() != 0){
                 // ***************** ELIMINATORIAS DOBLES *****************
                 if($typeOrganization == Constant::COD_TIPO_ELIMINATORIAS_DOUBLE){
                   $encuentrosFase = $this->getConfrontationsGlobal($encuentrosFase);
@@ -569,7 +570,8 @@ class CompetenciaController extends AbstractFOSRestController
                 $existWinners = true;
               }
               // ############################# FASE DE GRUPOS #####################################
-              if($typeOrganization == Constant::COD_TIPO_FASE_GRUPOS){
+              // if($typeOrganization == Constant::COD_TIPO_FASE_GRUPOS){
+              else{
                 if(!empty($fase)){
                   $tableGral = null;
                   $cantClassified = pow(2, $fase);
@@ -789,7 +791,8 @@ class CompetenciaController extends AbstractFOSRestController
         }
         else{
           $phasesAvailable;
-          if(($competencia->getOrganizacion()->getCodigo() == Constant::COD_TIPO_ELIMINATORIAS) || ($competencia->getOrganizacion()->getCodigo() == Constant::COD_TIPO_ELIMINATORIAS_DOUBLE)){
+          //if(($competencia->getOrganizacion()->getCodigo() == Constant::COD_TIPO_ELIMINATORIAS) || ($competencia->getOrganizacion()->getCodigo() == Constant::COD_TIPO_ELIMINATORIAS_DOUBLE)){
+          if($competencia->getFaseActual() != 0){
             $phasesAvailable = $competencia->getFaseActual() - 1;
           }
           else{
