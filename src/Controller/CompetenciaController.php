@@ -424,6 +424,7 @@ class CompetenciaController extends AbstractFOSRestController
             if($competition->getFaseActual() != 0){
               // es eliminatoria o liga: analizamos los encuentros de la fase actual
               $rdoEmpty = $repositoryEnc->findResultEmpty($competition->getId(), $competition->getFaseActual());
+            //  var_dump($competition->getFaseActual());
             }
             else{
               // esto seria en grupos
