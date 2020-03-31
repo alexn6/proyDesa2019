@@ -767,7 +767,7 @@ class CompetenciaController extends AbstractFOSRestController
     }
 
      /**
-     * Lista de todos las competencias.
+     * Devuelve la fase maxima a la que puede pasar la competencia.
      * @Rest\Get("/competition/phases"), defaults={"_format"="json"})
      * 
      * @return Response
@@ -775,19 +775,34 @@ class CompetenciaController extends AbstractFOSRestController
     public function getPhasesAvailable(Request $request)
     {
       $respJson = (object) null;
-
       // recuperamos el id de la competencia
       $idCompetencia = $request->get('idCompetencia');
 
-      // recuperamos la cantidad de competidores de la competencia
-      $repository = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
- 
       if(!empty($idCompetencia)){
-        $n_competitors = $repository->countCompetidoresByCompetencia($idCompetencia);
-        $phasesAvailable = $this->getPhases($n_competitors[0]['1']);
-        
-        $respJson->phase = $phasesAvailable;
-        $statusCode = Response::HTTP_OK;
+        $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
+
+        $competencia = $repositoryComp->find($idCompetencia);
+
+        if($competencia->getFaseActual() == 1){
+          $respJson->msg = "La competencia se encuentra en su fase final.";
+          $statusCode = Response::HTTP_BAD_REQUEST;
+        }
+        else{
+          $phasesAvailable;
+          if(($competencia->getOrganizacion()->getCodigo() == Constant::COD_TIPO_ELIMINATORIAS) || ($competencia->getOrganizacion()->getCodigo() == Constant::COD_TIPO_ELIMINATORIAS_DOUBLE)){
+            $phasesAvailable = $competencia->getFaseActual() - 1;
+          }
+          else{
+            // recuperamos la cantidad de competidores de la competencia
+            $repository = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+            $n_competitors = $repository->countCompetidoresByCompetencia($idCompetencia);
+            $phasesAvailable = $this->getPhases($n_competitors[0]['1']);
+          }
+          
+          $respJson->phase = $phasesAvailable;
+          $statusCode = Response::HTTP_OK;
+        }
+
       }
       else{
          $respJson->msg = "Faltan parametros.";
