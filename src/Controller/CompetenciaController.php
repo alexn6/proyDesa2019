@@ -305,6 +305,7 @@ class CompetenciaController extends AbstractFOSRestController
           // seteamos la fase de la competencia
           $competencia = $repositoryComp->find($idCompetencia);
           $competencia->setFaseActual($fase);
+
           //var_dump($competencia->getFaseActual());
           $em = $this->getDoctrine()->getManager();
           $em->persist($competencia);
@@ -318,15 +319,22 @@ class CompetenciaController extends AbstractFOSRestController
           else{
             $encuentros = $this->getAliasConfrontations($encuentros);
           }
-          if($tipoorg === Constant::COD_TIPO_FASE_GRUPOS){
-            $tipoorg = Constant::COD_TIPO_ELIMINATORIAS;
-          }
+
+          // $fechaJornada = null;
+          // // asignamos la fecha de la nueva fase
+          // if(property_exists((object) $dataRequest,'fecha')){
+          //   $fechaJornada = DateTime::createFromFormat(Constant::FORMAT_DATE, $dataRequest->fecha);
+          // }
 
           // vamos a persistir los datos de los encuentros generados
-          $this->forward('App\Controller\EncuentroController::saveFixture', [
-              'matches'  => $encuentros,
-              'competencia' => $competencia,
-              'tipoorg' => $tipoorg
+          // $this->forward('App\Controller\EncuentroController::saveFixtureNewPhase', [
+          //     'matches'  => $encuentros,
+          //     'competencia' => $competencia,
+          //     'fecha' => $fechaJornada
+          // ]);
+          $this->forward('App\Controller\EncuentroController::saveFixtureNewPhase', [
+            'matches'  => $encuentros,
+            'competencia' => $competencia
           ]);
       
           $respJson->success = true;
@@ -1066,6 +1074,30 @@ class CompetenciaController extends AbstractFOSRestController
     array_push($encuentrosTotal, $encuentros_vuelta);
 
     return $encuentrosTotal;
+  }
+
+  // recupera la jornada de un encuentro segun el nro de jornada
+  private function getJornada($jornada, $competencia, $fase, $fecha){
+    $repository = $this->getDoctrine()->getRepository(Jornada::class);
+
+    $jornadaEncuentro = $repository->findOneBy(['numero' => $jornada, 'competencia' => $competencia, 'fase' =>$competencia->getFaseActual()]);
+
+    // vemos si existe la jornada
+    if($jornadaEncuentro == NULL){
+      $fecha_date = DateTime::createFromFormat(Constant::FORMAT_DATE, $fecha);
+      // si no existe la creamos y la guardamos
+      $jornadaEncuentro = new Jornada();
+      $jornadaEncuentro->setCompetencia($competencia);
+      $jornadaEncuentro->setNumero($jornada);
+      $jornadaEncuentro->setFecha($fecha_date);
+      $jornadaEncuentro->setFase($competencia->getFaseActual());
+
+      $this->forward('App\Controller\JornadaController::save', [
+        'newJornada'  => $jornadaEncuentro
+      ]);
+    }
+
+    return $jornadaEncuentro;
   }
 
   // controlamos que los datos recibidos esten completos

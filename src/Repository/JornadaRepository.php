@@ -61,4 +61,17 @@ class JornadaRepository extends ServiceEntityRepository
             
         return $query->execute();
     }
+
+    // recuperamos la fecha de la jornada mas reciente de una competencia
+    public function lastedByCompetition($idCompetencia){
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            ' SELECT DISTINCT MAX(j.fecha)
+            FROM App\Entity\Jornada j
+            WHERE j.competencia = :idCompetencia
+            ')->setParameter('idCompetencia', $idCompetencia);
+
+            
+        return $query->execute();
+    }
 }

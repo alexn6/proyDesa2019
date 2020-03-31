@@ -590,13 +590,57 @@ class EncuentroController extends AbstractFOSRestController
     }
   }
 
+  // persiste los encuentros de una nueva fase
+  // public function saveFixtureNewPhase($matches, $competencia, $fecha){
+  //   $fechaJornada;
+  //   if($fecha == null){
+  //     // le vamos agregando la frecuencia de juego de la competencia a la fecha de inicio
+  //     $diasFrec = $competencia->getFrecDias();
+  //     $repositoryJornada = $this->getDoctrine()->getRepository(Jornada::class);
+  //     // recuperamos la fecha de la ultima jornada, para usarla como referencia para la nueva fase
+  //     $lastedJornada = $repositoryJornada->lastedByCompetition($competencia->getId());
+  //     $stringFecha = $lastedJornada[0][1];
+  //     $fechaJornada = Date(Constant::FORMAT_DATE, strtotime($stringFecha. ' + '.$diasFrec.' days'));
+  //   }
+  //   else{
+  //     $fechaJornada = $fecha->format(Constant::FORMAT_DATE);
+  //   }
+  //   // var_dump($fechaJornada);
+
+  //   // vamos guardando los encuentros
+  //   for ($i=1; $i <= count($matches); $i++) {
+  //     $jornada = $i;
+  //     // ######### CORREGIR #########
+  //     $this->saveEncuentrosCompetition($matches[$i], $competencia, $jornada, null, $fechaJornada);
+  //   }
+  // }
+
+  // persiste los encuentros de una nueva fase
+  public function saveFixtureNewPhase($matches, $competencia){
+    // le vamos agregando la frecuencia de juego de la competencia a la fecha de inicio
+    $repositoryJornada = $this->getDoctrine()->getRepository(Jornada::class);
+    // recuperamos la fecha de la ultima jornada, para usarla como referencia para la nueva fase
+    $lastedJornada = $repositoryJornada->lastedByCompetition($competencia->getId());
+    $stringFecha = $lastedJornada[0][1];
+    // var_dump($fechaJornada);
+
+    // vamos guardando los encuentros
+    for ($i=1; $i <= count($matches); $i++) {
+      $jornada = $i;
+      // le vamos agregando la frecuencia de juego de la competencia a la fecha de inicio
+      $diasFrec = $competencia->getFrecDias()*$i;
+      $fechaJornada = Date(Constant::FORMAT_DATE, strtotime($stringFecha. ' + '.$diasFrec.' days'));
+      $this->saveEncuentrosCompetition($matches[$i], $competencia, $jornada, null, $fechaJornada);
+    }
+  }
+
   // ################################################################
   // ################ funciones privadas ############################
 
   // gurda en la DB los encuentros generados en una eliminatorio(single y double)
   private function saveEliminatorias($fixtureEncuentros, $competencia){
     $frec_jornada = $competencia->getFrecDias();
-    // recuperamos el id y la fase de a competencia
+    // recuperamos el id y la fase de la competencia
     for ($i=1; $i <= count($fixtureEncuentros); $i++) {
       $jornada = $i;
       // le vamos agregando la frecuencia de juego de la competencia a la fecha de inicio

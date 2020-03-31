@@ -62,20 +62,27 @@ class ResultadoController extends AbstractFOSRestController
                         // recuperamos los resultados del grupo
                         $resultados = $repository->findResultCompetitorsGroup($idCompetencia, $nroGrupo);
                     }
-                    // pasamos los resultado a un array para poder trabajarlo
-                    $resultados = $this->get('serializer')->serialize($resultados, 'json', [
-                        'circular_reference_handler' => function ($object) {
-                            return $object->getId();
-                        },
-                        'ignored_attributes' => ['competencia', 'competidor']
-                    ]);
-        
-                    // pasamos los reultados a un array para poder trabajarlos
-                    $resultados = json_decode($resultados, true);
-                    // buscamos los puntos por resultado segun deporte
-                    $ptsByResult = $this->getPointsBySport($competencia);
-                    // calculamos la tabla de posiciones de la competencia
-                    $resultResp = $this->getTablePosition($resultados, $ptsByResult);
+                    if(count($resultados) == 0){
+                        $statusCode = Response::HTTP_BAD_REQUEST;
+                        $resultResp = (object) null;
+                        $resultResp->msg = "No se han generados o disputados encuentros de la competencia.";
+                    }
+                    else{
+                        // pasamos los resultado a un array para poder trabajarlo
+                        $resultados = $this->get('serializer')->serialize($resultados, 'json', [
+                            'circular_reference_handler' => function ($object) {
+                                return $object->getId();
+                            },
+                            'ignored_attributes' => ['competencia', 'competidor']
+                        ]);
+            
+                        // pasamos los reultados a un array para poder trabajarlos
+                        $resultados = json_decode($resultados, true);
+                        // buscamos los puntos por resultado segun deporte
+                        $ptsByResult = $this->getPointsBySport($competencia);
+                        // calculamos la tabla de posiciones de la competencia
+                        $resultResp = $this->getTablePosition($resultados, $ptsByResult);
+                    }
                 }
                 
                 $statusCode = Response::HTTP_OK;

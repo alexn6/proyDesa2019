@@ -577,6 +577,9 @@ class UsuarioController extends AbstractFOSRestController
               // pasamos los datos a un array para poder trabajarlos
               $dataCompetitionOffline = json_decode($dataCompetitionOffline, true);
               $dataCompetition = $dataCompetitionOffline[0];
+              // le asignamos la fase de la eliminatoria
+              $newType = $this->getPhase($dataCompetition['id'], $dataCompetition['organizacion']);
+              $dataCompetition['organizacion'] = $newType;
               $dataCompetition['fecha_ini'] = substr($dataCompetition['fecha_ini'], 0, -15);
 
               $repositoryUserComp = $this->getDoctrine()->getRepository(UsuarioCompetencia::class);
@@ -635,10 +638,6 @@ class UsuarioController extends AbstractFOSRestController
                   $inscription['fechaCierre'] = substr($inscription['fechaCierre'], 0, -15);
                   $inscription['idCompetencia'] = $idCompetencia;
               }
-              // else {
-              //     $statusCode = Response::HTTP_BAD_REQUEST;
-              //     $respJson->messaging = "Competencia sin inscripcion.";        
-              // }
               
               // recuperamos las fases creadas de la competencia
               $repositoryCompetencia = $this->getDoctrine()->getRepository(Competencia::class);
@@ -855,6 +854,43 @@ class UsuarioController extends AbstractFOSRestController
 
     // ##########################################################################################
     // ############################## FUNCIONES PRIVADAS ########################################
+
+    // Devuelve el tipo de organizacion y la fase, si es una eliminatoria
+  private function getPhase($idCompetition, $typeOrg){
+    if(strpos($typeOrg, 'Eliminatorias') !== false){
+      // vamos a buscar la fase en la que se encuentra la competencia
+      $repository = $this->getDoctrine()->getRepository(Competencia::class);
+      $competitionAux = $repository->find($idCompetition);
+      $fase = $competitionAux->getFase();
+      $faseCompetition;
+
+      if($fase == 1){
+        $faseCompetition = "Final";
+      }
+      if($fase == 2){
+        $faseCompetition = "Semifinal";
+      }
+      if($fase == 3){
+        $faseCompetition = "4º Final";
+      }
+      if($fase == 4){
+        $faseCompetition = "8º Final";
+      }
+      if($fase == 5){
+        $faseCompetition = "16º Final";
+      }
+      if($fase == 6){
+        $faseCompetition = "32º Final";
+      }
+      if($fase == 7){
+        $faseCompetition = "64º Final";
+      }
+      
+      return $typeOrg." - ".$faseCompetition;
+    }
+    
+    return $typeOrg;
+  }
 
     private function getArrayNameCompetitions($arrayCompetions){
       $arrayNames = array();
