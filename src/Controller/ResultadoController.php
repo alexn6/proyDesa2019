@@ -75,17 +75,17 @@ class ResultadoController extends AbstractFOSRestController
                             },
                             'ignored_attributes' => ['competencia', 'competidor']
                         ]);
-            
                         // pasamos los reultados a un array para poder trabajarlos
                         $resultados = json_decode($resultados, true);
                         // buscamos los puntos por resultado segun deporte
                         $ptsByResult = $this->getPointsBySport($competencia);
                         // calculamos la tabla de posiciones de la competencia
                         $resultResp = $this->getTablePosition($resultados, $ptsByResult);
+                        
+                        $statusCode = Response::HTTP_OK;
                     }
                 }
                 
-                $statusCode = Response::HTTP_OK;
             }
             else{
                 $statusCode = Response::HTTP_OK;
