@@ -458,19 +458,10 @@ class EncuentroController extends AbstractFOSRestController
                 $compLibre = array_diff($aliasCompetitorsDb, $aliasCompetitorsEnc);
                 $libre = null;
                 foreach ($compLibre as $valor){
-                  $libre = (object) null;
-                  $libre->competidor = $valor;
-                  if(strpos($competition->getOrganizacion()->getNombre(), 'grupo') !== false ){
-                    $libre->grupo = $dataConfrontationRequest->grupo;
-                  }
-                  else{
-                    $libre->grupo = null;
-                  }
+                  $libre = $valor;
                 }
                 //var_dump($compLibre);
-                 
-                // *******<
-                
+                // *******< 
                 $statusCode = Response::HTTP_OK;
                 $respJson->encuentros = $encuentros;
                 $respJson->libre = $libre;
