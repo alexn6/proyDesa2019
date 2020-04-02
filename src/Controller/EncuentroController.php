@@ -17,6 +17,7 @@ use App\Entity\Jornada;
 use App\Entity\Campo;
 use App\Entity\Turno;
 use App\Entity\Juez;
+use App\Entity\Rol;
 use App\Entity\Resultado;
 
 use App\Controller\JornadaController;
@@ -390,6 +391,7 @@ class EncuentroController extends AbstractFOSRestController
                 // recuperamos los datos del body y pasamos a un array
                 $dataConfrontationRequest = json_decode($request->getContent());
 
+                // ->
                 $encuentros;
                 // vemos si es una LIGA
                 if(strpos($competition->getOrganizacion()->getNombre(), 'Liga') !== false ){
@@ -439,14 +441,39 @@ class EncuentroController extends AbstractFOSRestController
                     $encuentros[$i]['turno']['horaHasta'] = substr($encuentros[$i]['turno']['horaHasta'], -14, 5);
                   }
                 }
-    
-                // TODO: buscamos si quedo algun competidor libre
-                // $this->getCompetitors
-    
-                $encuentros = json_encode($encuentros);
-    
+                // <-
+                // *******> Recuperamos el competidor libre de la competencia, si es que lo hay
+                // recuperamos los alias de los competidores de los encuentros
+                $aliasCompetitorsEnc = $this->getAliasCompetitors($encuentros);
+                // var_dump($aliasCompetitorsEnc);
+                // recuperamos los alias de todos los competidores de la liga
+                if(strpos($competition->getOrganizacion()->getNombre(), 'Liga') !== false ){
+                  $aliasCompetitorsDb = $repositoryComp->getAliasCompetitors($competition->getId());
+                }
+                if(strpos($competition->getOrganizacion()->getNombre(), 'grupo') !== false ){
+                  $aliasCompetitorsDb = $repositoryComp->getAliasCompetitorsByGroup($competition->getId(), $dataConfrontationRequest->grupo);
+                }
+                // var_dump($aliasCompetitorsEnc);
+                // var_dump($aliasCompetitorsDb);
+                $compLibre = array_diff($aliasCompetitorsDb, $aliasCompetitorsEnc);
+                $libre = null;
+                foreach ($compLibre as $valor){
+                  $libre = (object) null;
+                  $libre->competidor = $valor;
+                  if(strpos($competition->getOrganizacion()->getNombre(), 'grupo') !== false ){
+                    $libre->grupo = $dataConfrontationRequest->grupo;
+                  }
+                  else{
+                    $libre->grupo = null;
+                  }
+                }
+                //var_dump($compLibre);
+                 
+                // *******<
+                
                 $statusCode = Response::HTTP_OK;
-                $respJson = $encuentros;
+                $respJson->encuentros = $encuentros;
+                $respJson->libre = $libre;
             }
             else{
               $respJson->encuentros = NULL;
@@ -463,6 +490,7 @@ class EncuentroController extends AbstractFOSRestController
         $statusCode = Response::HTTP_BAD_REQUEST;
       }
 
+      $respJson = json_encode($respJson);
       $response = new Response($respJson);
       $response->setStatusCode($statusCode);
       $response->headers->set('Content-Type', 'application/json');
@@ -771,6 +799,16 @@ class EncuentroController extends AbstractFOSRestController
     }
 
     return false;
+  }
+
+  // devolvemos un array con los alias de todos los competidores de los encuentros
+  private function getAliasCompetitors($encuentros){
+    $aliasCompetitors = array();
+    for ($i=0; $i < count($encuentros); $i++) {
+      array_push($aliasCompetitors, $encuentros[$i]['competidor1']);
+      array_push($aliasCompetitors, $encuentros[$i]['competidor2']);
+    }
+    return $aliasCompetitors;
   }
 
   // #############################################################################
