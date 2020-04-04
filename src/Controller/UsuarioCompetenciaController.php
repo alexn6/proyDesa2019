@@ -892,7 +892,8 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
       $body = "El usuario ".$nameUser." quiere formar parte de tu competencia";
 
       $data = [
-        'COMPETENCIA_ID' => $idCompetition
+        'COMPETENCIA_ID' => $idCompetition,
+        'VIEW' => "MIS_SOLICITUDES"
       ];
 
       $tokenDevices = array();

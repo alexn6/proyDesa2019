@@ -34,7 +34,8 @@ class NotificationOrganizadoresTest extends TestCase{
     public function testNotificationMultipleDevicesWithData(){
 
         $data = [
-            'COMPETENCIA_ID' => '23'
+            'COMPETENCIA_ID' => '23',
+            'VIEW' => "MIS_SOLICITUDES"
         ];
 
         $tokenTest = 'edNtmgk1bHM:APA91bHmrsYr6_A4MdiMEt93kCRPb6oFjWqTjyetnF3Zua32doxc6I306aTqMhihRFgfbFzrYssRzAQLJcFx827y8SONfAdVHPS2pAnhvkEmNDlI5mmDnvztiEBvaUEnAcXZr6KdcqYB';
