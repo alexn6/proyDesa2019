@@ -23,7 +23,6 @@ class DeporteController extends AbstractFOSRestController
   */
   public function allSports()
   {
-
     $repository=$this->getDoctrine()->getRepository(Deporte::class);
     $sports=$repository->findall();
 

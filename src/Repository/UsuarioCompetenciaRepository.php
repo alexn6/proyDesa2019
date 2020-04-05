@@ -271,7 +271,7 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
   {
       $entityManager = $this->getEntityManager();
       $query = $entityManager->createQuery(
-          '   SELECT c.id,c.nombre, cat.nombre categoria, d.nombre deporte, org.nombre tipo_organizacion, c.ciudad, c.genero, r.nombre rol
+          '   SELECT c.id,c.nombre, cat.nombre categoria, d.nombre deporte, org.nombre tipo_organizacion, cd.nombre as ciudad, c.genero, r.nombre rol
               FROM App\Entity\Competencia c
               INNER JOIN App\Entity\UsuarioCompetencia uc
               WITH uc.competencia = c.id
@@ -281,6 +281,8 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
               WITH c.organizacion = org.id
               INNER JOIN App\Entity\Deporte d
               WITH cat.deporte = d.id
+              INNER JOIN App\Entity\Ciudad cd
+             WITH cd.id = c.ciudad
               INNER JOIN App\Entity\Rol r
              WITH uc.rol = r.id
               AND uc.usuario = :idUsuario
@@ -295,7 +297,7 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
   {
       $entityManager = $this->getEntityManager();
       $query = $entityManager->createQuery(
-          '   SELECT c.id,c.nombre, cat.nombre categoria, d.nombre deporte, org.nombre tipo_organizacion, c.ciudad, c.genero, c.fase_actual, c.estado, r.nombre rol
+          '   SELECT c.id,c.nombre, cat.nombre categoria, d.nombre deporte, org.nombre tipo_organizacion, cd.nombre as ciudad, c.genero, c.fase_actual, c.estado, r.nombre rol
               FROM App\Entity\Competencia c
               INNER JOIN App\Entity\UsuarioCompetencia uc
               WITH uc.competencia = c.id
@@ -307,6 +309,8 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
              WITH cat.deporte = d.id
              INNER JOIN App\Entity\Rol r
              WITH uc.rol = r.id
+             INNER JOIN App\Entity\Ciudad cd
+             WITH cd.id = c.ciudad
               AND uc.usuario = :idUsuario
               AND r.nombre = :rolUser
           ')->setParameter('idUsuario', $idUsuario)
@@ -320,7 +324,7 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
   {
       $entityManager = $this->getEntityManager();
       $query = $entityManager->createQuery(
-        '   SELECT c.id,c.nombre, cat.nombre categoria, d.nombre deporte, org.nombre tipo_organizacion, c.ciudad, c.genero, c.fase_actual, c.estado, r.nombre rol
+        '   SELECT c.id,c.nombre, cat.nombre categoria, d.nombre deporte, org.nombre tipo_organizacion, cd.nombre as ciudad, c.genero, c.fase_actual, c.estado, r.nombre rol
             FROM App\Entity\Competencia c
             INNER JOIN App\Entity\UsuarioCompetencia uc
             WITH uc.competencia = c.id
@@ -330,6 +334,8 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
             WITH c.organizacion = org.id
             INNER JOIN App\Entity\Deporte d
             WITH cat.deporte = d.id
+            INNER JOIN App\Entity\Ciudad cd
+            WITH cd.id = c.ciudad
             INNER JOIN App\Entity\Rol r
             WITH uc.rol = r.id
             AND uc.usuario = :idUsuario
@@ -346,7 +352,7 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
   {
       $entityManager = $this->getEntityManager();
       $query = $entityManager->createQuery(
-       '   SELECT c.id, c.nombre, cat.nombre categoria, cat.duracion_default duracionDefault, d.nombre deporte, org.nombre tipo_organizacion, c.ciudad, c.genero, c.fase_actual, c.estado, r.nombre rol
+       '   SELECT c.id, c.nombre, cat.nombre categoria, cat.duracion_default duracionDefault, d.nombre deporte, org.nombre tipo_organizacion, cd.nombre as ciudad, c.genero, c.fase_actual, c.estado, r.nombre rol
            FROM App\Entity\Competencia c
            INNER JOIN App\Entity\UsuarioCompetencia uc
            WITH uc.competencia = c.id
@@ -356,6 +362,8 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
            WITH c.organizacion = org.id
            INNER JOIN App\Entity\Deporte d
            WITH cat.deporte = d.id
+           INNER JOIN App\Entity\Ciudad cd
+           WITH cd.id = c.ciudad
            INNER JOIN App\Entity\Rol r
            WITH uc.rol = r.id
            AND uc.usuario = :idUsuario

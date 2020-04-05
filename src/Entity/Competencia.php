@@ -36,7 +36,8 @@ class Competencia
     private $fecha_fin;
 
     /**
-     * @ORM\Column(type="string", length=127)
+     * @ORM\ManyToOne(targetEntity="App\Entity\Ciudad")
+     * @ORM\JoinColumn(name="ciudad_id", referencedColumnName="id")
      */
     private $ciudad;
 
@@ -199,12 +200,12 @@ class Competencia
         return $this;
     }
 
-    public function getCiudad(): ?string
+    public function getCiudad(): ?Ciudad
     {
         return $this->ciudad;
     }
 
-    public function setCiudad(string $ciudad): self
+    public function setCiudad(?Ciudad $ciudad): self
     {
         $this->ciudad = $ciudad;
 

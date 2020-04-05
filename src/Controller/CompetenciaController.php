@@ -19,6 +19,8 @@ use App\Entity\Jornada;
 use App\Entity\Encuentro;
 use App\Entity\Resultado;
 use App\Entity\Deporte;
+use App\Entity\Ciudad;
+
 
 use App\Utils\Constant;
 use App\Utils\TablePositionService;
@@ -49,7 +51,7 @@ class CompetenciaController extends AbstractFOSRestController
       'circular_reference_handler' => function ($object) {
         return $object->getId();
       },
-      'ignored_attributes' => ['usuarioscompetencias', '__initializer__', '__cloner__', '__isInitialized__']
+      'ignored_attributes' => ['inscripcion','prediocompetencia','usuarioscompetencias', '__initializer__', '__cloner__', '__isInitialized__']
     ]);
 
     // Convert JSON string to Array
@@ -57,6 +59,7 @@ class CompetenciaController extends AbstractFOSRestController
 
     foreach ($array_comp as &$valor) {
       $valor['categoria']['deporte'] = $valor['categoria']['deporte']['nombre'];
+      $valor['ciudad'] = $valor['ciudad']['nombre'];      
     }
 
     $array_comp = json_encode($array_comp);
@@ -85,6 +88,8 @@ class CompetenciaController extends AbstractFOSRestController
         $repository_cat = $this->getDoctrine()->getRepository(Categoria::class);
         $repository_tipoorg = $this->getDoctrine()->getRepository(TipoOrganizacion::class);
         $repository_user = $this->getDoctrine()->getRepository(Usuario::class);
+        $repository_city = $this->getDoctrine()->getRepository(Ciudad::class);
+        
 
         // recuperamos los datos del body y pasamos a un array
         $dataCompetitionRequest = json_decode($request->getContent());      
@@ -92,7 +97,7 @@ class CompetenciaController extends AbstractFOSRestController
 
         $nombre_comp = $dataCompetitionRequest->nombre;
           
-        // controlamos que el nombre de usuario este disponible
+        // controlamos que el nombre de competencia este disponible
         $competencia = $repository->findOneBy(['nombre' => $nombre_comp]);
         if($competencia){
           $respJson->success = false;
@@ -107,6 +112,7 @@ class CompetenciaController extends AbstractFOSRestController
             $categoria = $repository_cat->find($dataCompetitionRequest->categoria_id);
             $tipoorg = $repository_tipoorg->find($dataCompetitionRequest->tipoorg_id);
             $user_creator = $repository_user->find($dataCompetitionRequest->user_id);
+            $city = $repository_city->find($dataCompetitionRequest->ciudad);
             // creamos la competencia
             $competenciaCreate = new Competencia();
 
@@ -130,7 +136,7 @@ class CompetenciaController extends AbstractFOSRestController
 
             $competenciaCreate->setNombre($nombre_comp);
             $competenciaCreate->setFechaIni($fecha_ini);
-            $competenciaCreate->setCiudad($dataCompetitionRequest->ciudad);
+            $competenciaCreate->setCiudad($city);
             $competenciaCreate->setFrecDias($dataCompetitionRequest->frecuencia);
             $competenciaCreate->setCategoria($categoria);
             $competenciaCreate->setOrganizacion($tipoorg);
@@ -644,7 +650,7 @@ class CompetenciaController extends AbstractFOSRestController
     // ########################################################
     // ################### funciones auxiliares ################
  
-    	 /**
+    /**
      * 
      * @Rest\GET("/findCompetitionsByName/{nameCompetition}"), defaults={"_format"="json"})
      * 
@@ -664,13 +670,14 @@ class CompetenciaController extends AbstractFOSRestController
             'circular_reference_handler' => function ($object) {
               return $object->getId();
             },
-            'ignored_attributes' => ['usuarioscompetencias', '__initializer__', '__cloner__', '__isInitialized__']
+            'ignored_attributes' => ['inscripcion','prediocompetencia','usuarioscompetencias', '__initializer__', '__cloner__', '__isInitialized__']
           ]);
       
           $array_comp = json_decode($competitions, true);
     
           foreach ($array_comp as &$valor) {
             $valor['categoria']['deporte'] = $valor['categoria']['deporte']['nombre'];
+            $valor['ciudad'] = $valor['ciudad']['nombre'];
           }
       
           $array_comp = json_encode($array_comp);

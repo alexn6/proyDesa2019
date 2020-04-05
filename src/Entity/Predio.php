@@ -31,9 +31,9 @@ class Predio
     private $direccion;
     
     /**
-     * @ORM\Column(type="string", length=150)
+     * @ORM\ManyToOne(targetEntity="App\Entity\Ciudad")
+     * @ORM\JoinColumn(name="ciudad_id", referencedColumnName="id")
      */
-    // ############# despues cambiar por la entidad Ciudad #############
     private $ciudad;
 
     /**
@@ -75,12 +75,12 @@ class Predio
         return $this;
     }
 
-    public function getCiudad(): ?string
+    public function getCiudad(): ?Ciudad
     {
         return $this->ciudad;
     }
 
-    public function setCiudad(string $ciudad): self
+    public function setCiudad(?Ciudad $ciudad): self
     {
         $this->ciudad = $ciudad;
 
