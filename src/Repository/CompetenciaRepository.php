@@ -12,6 +12,8 @@ use App\Entity\Rol;
 use App\Entity\Deporte;
 use App\Entity\Categoria;
 
+use App\Utils\Constant;
+
 /**
  * @method Competencia|null find($id, $lockMode = null, $lockVersion = null)
  * @method Competencia|null findOneBy(array $criteria, array $orderBy = null)
@@ -49,6 +51,90 @@ class CompetenciaRepository extends ServiceEntityRepository
             ')->setParameter('idCompetencia', $idCompetencia);
 
         return $query->execute();
+    }
+
+    // vemos si existe un competidor libre en la jornada
+    public function getAliasCompetitors($idCompetencia){
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            ' SELECT uc.alias
+            FROM App\Entity\UsuarioCompetencia uc
+            INNER JOIN App\Entity\Rol r
+            WITH (uc.rol = r.id AND r.nombre = :rolCompetidor)
+            WHERE uc.competencia = :idCompetencia
+            ')->setParameter('idCompetencia', $idCompetencia)
+            ->setParameter('rolCompetidor', Constant::ROL_COMPETIDOR);
+        $resultQuery = $query->execute();
+
+        // pasamos los ids a un array
+        $arrayAlias = array();
+        for ($i=0; $i < count($resultQuery) ; $i++) { 
+            array_push($arrayAlias, $resultQuery[$i]['alias']);
+        }
+
+        return $arrayAlias;
+    }
+
+    // devuelve los alias de los competidores de un grupo de una competencia
+    public function getAliasCompetitorsByGroup($idCompetencia, $grupo){
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            ' SELECT DISTINCT e.id
+            FROM App\Entity\Encuentro e
+            WHERE (e.competencia = :idCompetencia AND e.grupo = :grupo)
+            ')->setParameter('idCompetencia', $idCompetencia)
+            ->setParameter('grupo', $grupo);
+        
+        $idEnc = $query->execute();
+        // var_dump($idEnc);
+        // pasamos los ids a un array
+        $arrayIdEnc = array();
+        for ($i=0; $i < count($idEnc) ; $i++) { 
+            array_push($arrayIdEnc, $idEnc[$i]['id']);
+        }
+        // los pasamos a string para incorporarlo a la query
+        $arrayIdEnc = implode(", ", $arrayIdEnc);
+        $stringIdEncuentros = "(".$arrayIdEnc.")";
+        // var_dump($arrayIdComp1);
+
+        // recuperamos los id de competidor1 de todos los encuentros del grupo
+        $queryComp1 = $entityManager->createQuery(
+            ' SELECT DISTINCT uc.id, uc.alias
+            FROM App\Entity\Encuentro e
+            INNER JOIN App\Entity\UsuarioCompetencia uc
+            WITH (e.competidor1 = uc.id
+            AND e.competencia = :idCompetencia AND e.id IN '.$stringIdEncuentros.')
+            ')->setParameter('idCompetencia', $idCompetencia);
+        $idComp1 = $queryComp1->execute();
+
+        // recuperamos los id de competidor1 de todos los encuentros del grupo
+        $queryComp2 = $entityManager->createQuery(
+            ' SELECT DISTINCT uc.id, uc.alias
+            FROM App\Entity\Encuentro e
+            INNER JOIN App\Entity\UsuarioCompetencia uc
+            WITH (e.competidor2 = uc.id
+            AND e.competencia = :idCompetencia AND e.id IN '.$stringIdEncuentros.')
+            ')->setParameter('idCompetencia', $idCompetencia);
+        $idComp2 = $queryComp2->execute();
+
+        $idCompetidoresUnion = array_merge($idComp1, $idComp2);
+        // $idCompetitorsGroup = array();
+        // for ($i=0; $i < count($idCompetidoresUnion) ; $i++) {
+        //     $idCompetidor = $idCompetidoresUnion[$i]['id'];
+        //     if(!in_array( $idCompetidor, $idCompetitorsGroup)){
+        //         array_push($idCompetitorsGroup, $idCompetidoresUnion[$i]['id']);
+        //     }
+        // }
+        $aliasCompetitorsGroup = array();
+        for ($i=0; $i < count($idCompetidoresUnion) ; $i++) {
+            $idCompetidor = $idCompetidoresUnion[$i]['alias'];
+            if(!in_array( $idCompetidor, $aliasCompetitorsGroup)){
+                array_push($aliasCompetitorsGroup, $idCompetidoresUnion[$i]['alias']);
+            }
+        }
+        //var_dump($aliasCompetitorsGroup);
+
+        return $aliasCompetitorsGroup;
     }
 
     // recupera todos los datos de la competencia  como string, agregado el rol

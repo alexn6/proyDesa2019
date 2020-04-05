@@ -128,7 +128,8 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
                         $respJson->messaging = "Solicitud registrada";
                                     
                         // notificamos a los organizadores de la solicitud de inscripcion
-                        $this->notifyInscriptionToOrganizators($arrayToken, $nameCompetition, $nameUser);
+                        // $this->notifyInscriptionToOrganizators($arrayToken, $nameCompetition, $nameUser);
+                        $this->notifyInscriptionToOrganizators($arrayToken, $idCompetition, $nameCompetition, $nameUser);
                       }
                       // persistimos el nuevo dato
                       $em = $this->getDoctrine()->getManager();
@@ -870,9 +871,30 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
       NotificationManager::getInstance()->notificationSpecificDevices($tokenUser, $notification);
     }
 
-    private function notifyInscriptionToOrganizators($arrayTokens, $nameCompetition, $nameUser){
+    // se notifica a los usuarios organizadores de la solicitud ingresada
+    // private function notifyInscriptionToOrganizators($arrayTokens, $nameCompetition, $nameUser){
+    //   $title = "Inscripcion: ".$nameCompetition;
+    //   $body = "El usuario ".$nameUser." quiere formar parte de tu competencia";
+
+    //   $tokenDevices = array();
+    //   foreach ($arrayTokens as &$valor) {
+    //     array_push($tokenDevices, $valor['token']);
+    //   }
+
+    //   $notification = Notification::create($title, $body);
+
+    //   if(count($tokenDevices) > 0){
+    //     NotificationManager::getInstance()->notificationMultipleDevices($tokenDevices, $notification);
+    //   }
+    // }
+    private function notifyInscriptionToOrganizators($arrayTokens, $idCompetition, $nameCompetition, $nameUser){
       $title = "Inscripcion: ".$nameCompetition;
       $body = "El usuario ".$nameUser." quiere formar parte de tu competencia";
+
+      $data = [
+        'COMPETENCIA_ID' => $idCompetition,
+        'VIEW' => "MIS_SOLICITUDES"
+      ];
 
       $tokenDevices = array();
       foreach ($arrayTokens as &$valor) {
@@ -882,7 +904,7 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
       $notification = Notification::create($title, $body);
 
       if(count($tokenDevices) > 0){
-        NotificationManager::getInstance()->notificationMultipleDevices($tokenDevices, $notification);
+        NotificationManager::getInstance()->notificationMultipleDevicesWithData($tokenDevices, $notification, $data);
       }
     }
 
