@@ -12,6 +12,7 @@ use Symfony\Component\HttpClient\HttpClient;    // para incorporar servicios res
 use App\Entity\Predio;
 use App\Entity\Competencia;
 use App\Entity\Campo;
+use App\Entity\Ciudad;
 
 use App\Utils\Constant;
 
@@ -29,9 +30,8 @@ class PredioController extends AbstractFOSRestController
      * 
      * @return Response
      */
-    public function allGrounds()
-    {
-
+    public function allGrounds(){
+        $respJson =  null;
         $repository = $this->getDoctrine()->getRepository(Predio::class);
         $grounds = $repository->findall();
 
@@ -41,8 +41,24 @@ class PredioController extends AbstractFOSRestController
             },
             'ignored_attributes' => ['competencia', 'prediocompetencia']
         ]);
+        // pasamos a un array para procesarlo
+        $array_comp = json_decode($grounds, true);
+        // cambiamos el objeto deporte por su nombre
+        foreach ($array_comp as &$valor) {
+            $valor['ciudad'] = $valor['ciudad']['nombre'];      
+        }
+        if(empty($array_comp)){
+            $respJson = (object) null;
+            $respJson->messaging = "No se encontraron ciudades";
+            $respJson = json_encode($respJson);
+            $statusCode = Response::HTTP_BAD_REQUEST;
+        }else{
+            $respJson = json_encode($array_comp);  
+            $response = new Response($respJson);
+            $statusCode = Response::HTTP_OK;
+        }
 
-        $response = new Response($grounds);
+        $response = new Response($respJson);
         $response->setStatusCode(Response::HTTP_OK);
         $response->headers->set('Content-Type', 'application/json');
 
@@ -64,7 +80,8 @@ class PredioController extends AbstractFOSRestController
         if(!empty($request->getContent())){
   
           $repository = $this->getDoctrine()->getRepository(Predio::class);
-    
+          $repositoryCity = $this->getDoctrine()->getRepository(Ciudad::class);
+
           // recuperamos los datos del body y pasamos a un array
           $dataPredioRequest = json_decode($request->getContent());
           
@@ -77,7 +94,7 @@ class PredioController extends AbstractFOSRestController
               $nombre = $dataPredioRequest->nombre;
             //   $idCompetencia = $dataPredioRequest->idCompetencia;
               $direccion = $dataPredioRequest->direccion;
-              $ciudad = $dataPredioRequest->ciudad;
+              $ciudad = $repositoryCity->find($dataPredioRequest->ciudad);
                 
               // controlamos que el nombre de predio este disponible
               $predio = $repository->findOneBy(['nombre' => $nombre]);
