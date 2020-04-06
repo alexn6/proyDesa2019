@@ -751,15 +751,24 @@ class CompetenciaController extends AbstractFOSRestController
       if(!empty($idUsuario)){
         $competitions = $repository->filterCompetitionsByUserFull($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoOrg, $genero, $ciudad, $estado);
 
-        // reemplazamos el rol (string) por un array de roles y agregamos la fase en caso de q sea eliminatoria
-        foreach ($competitions as &$competition) {
-          $newType = $this->getPhase($competition['id'], $competition['tipo_organizacion']);
-          $competition['tipo_organizacion'] = $newType;
+        // var_dump($competitions);
+        if($competitions != NULL){
+          // reemplazamos el rol (string) por un array de roles y agregamos la fase en caso de q sea eliminatoria
+          foreach ($competitions as &$competition) {
+            $newType = $this->getPhase($competition['id'], $competition['tipo_organizacion']);
+            $competition['tipo_organizacion'] = $newType;
+          }
+
+          $competitions = json_encode($competitions);
+          $statusCode = Response::HTTP_OK;
         }
-
-        $competitions = json_encode($competitions);
-
-        $statusCode = Response::HTTP_OK;
+        else{
+          $competitions = (object) null;
+          $competitions->messaging = "No existen competencia que apliquen a los parametros ingresados.";
+          $competitions = json_encode($competitions);
+          $statusCode = Response::HTTP_BAD_REQUEST;
+        }
+        
       }
       else{
          $competitions = (object) null;

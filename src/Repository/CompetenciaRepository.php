@@ -334,7 +334,7 @@ class CompetenciaRepository extends ServiceEntityRepository
         if($ciudad != NULL){
             // escapamos los %, no los toma como debe si no hacemos esto
             $like = $qb->expr()->literal('%'.$ciudad.'%');
-            $stringQueryCiudad = ' AND c.ciudad LIKE '.$like;
+            $stringQueryCiudad = ' AND ciu.nombre LIKE '.$like;
             $stringQueryBase = $stringQueryBase.$stringQueryCiudad;
         }
 
