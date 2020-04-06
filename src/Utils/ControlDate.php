@@ -27,6 +27,14 @@ class ControlDate
         return false;
     }
 
+    // determina si las fechas son iguales
+    public function equals($f1, $f2){
+        if($f1->format('Y-m-d') == $f2->format('Y-m-d')){
+            return true;
+        }
+        return false;
+    }
+
     // verifica q se asegure una cant minima de dias entre las fechas
     public function diffDateCorrect($f1, $f2, $n){
         if($n < 0){
