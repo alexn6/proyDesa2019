@@ -31,7 +31,7 @@ class NotificationOrganizadoresTest extends TestCase{
     // }
 
     // mandamos una notificacion de prueba con datos a varios dispositivos
-    public function testNotificationMultipleDevicesWithData(){
+    public function testNotificationOrganizadoresWithData(){
 
         $data = [
             'COMPETENCIA_ID' => '23',

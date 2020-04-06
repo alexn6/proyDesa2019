@@ -11,6 +11,7 @@ use App\Entity\UsuarioCompetencia;
 use App\Entity\Rol;
 use App\Entity\Deporte;
 use App\Entity\Categoria;
+use App\Entity\Ciudad;
 
 use App\Utils\Constant;
 
@@ -198,8 +199,10 @@ class CompetenciaRepository extends ServiceEntityRepository
     public function filterCompetitionsRol($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad, $estado){
         $entityManager = $this->getEntityManager();
 
-        $queryBase = ' SELECT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.genero, c.fase_actual, c.estado, c.ciudad, r.nombre as rol
+        $queryBase = ' SELECT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.genero, c.fase_actual, c.estado, ciu.nombre as ciudad, r.nombre as rol
                         FROM App\Entity\Competencia c
+                        INNER JOIN App\Entity\Ciudad ciu
+                        WITH c.ciudad = ciu.id
                         INNER JOIN App\Entity\Categoria categ
                         WITH c.categoria = categ.id
                         INNER JOIN App\Entity\TipoOrganizacion organ
@@ -247,8 +250,10 @@ class CompetenciaRepository extends ServiceEntityRepository
         }
 
         // base de la query
-        $queryBase = ' SELECT DISTINCT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.genero, c.fase_actual, c.estado, c.ciudad, \'ESPECTADOR\' as rol
+        $queryBase = ' SELECT DISTINCT c.id, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.genero, c.fase_actual, c.estado, ciu.nombre as ciudad, \'ESPECTADOR\' as rol
                         FROM App\Entity\Competencia c
+                        INNER JOIN App\Entity\Ciudad ciu
+                        WITH c.ciudad = ciu.id
                         INNER JOIN App\Entity\Categoria categ
                         WITH c.categoria = categ.id
                         INNER JOIN App\Entity\TipoOrganizacion organ
