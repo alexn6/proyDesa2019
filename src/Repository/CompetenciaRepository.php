@@ -194,7 +194,7 @@ class CompetenciaRepository extends ServiceEntityRepository
     public function filterCompetitionsRol($idUsuario, $nombreCompetencia, $idCategoria, $idDeporte, $idTipoorg, $genero, $ciudad, $estado){
         $entityManager = $this->getEntityManager();
 
-        $queryBase = ' SELECT c.id, c.fecha_ini, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.genero, c.fase_actual, c.estado, ciu.nombre as ciudad, r.nombre as rol
+        $queryBase = ' SELECT c.id, c.fecha_ini, c.nombre, c.frec_dias as frecuencia, categ.nombre categoria, organ.nombre tipo_organizacion, c.genero, c.fase_actual, c.estado, ciu.nombre as ciudad, r.nombre as rol
                         FROM App\Entity\Competencia c
                         INNER JOIN App\Entity\Ciudad ciu
                         WITH c.ciudad = ciu.id
@@ -245,7 +245,7 @@ class CompetenciaRepository extends ServiceEntityRepository
         }
 
         // base de la query
-        $queryBase = ' SELECT DISTINCT c.id, c.fecha_ini, c.nombre, categ.nombre categoria, organ.nombre tipo_organizacion, c.genero, c.fase_actual, c.estado, ciu.nombre as ciudad, \'ESPECTADOR\' as rol
+        $queryBase = ' SELECT DISTINCT c.id, c.fecha_ini, c.nombre, c.frec_dias as frecuencia, categ.nombre categoria, organ.nombre tipo_organizacion, c.genero, c.fase_actual, c.estado, ciu.nombre as ciudad, \'ESPECTADOR\' as rol
                         FROM App\Entity\Competencia c
                         INNER JOIN App\Entity\Ciudad ciu
                         WITH c.ciudad = ciu.id
