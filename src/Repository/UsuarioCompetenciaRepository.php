@@ -297,7 +297,7 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
   {
       $entityManager = $this->getEntityManager();
       $query = $entityManager->createQuery(
-          '   SELECT c.id,c.nombre, cat.nombre categoria, d.nombre deporte, org.nombre tipo_organizacion, cd.nombre as ciudad, c.genero, c.fase_actual, c.estado, r.nombre rol
+          '   SELECT c.id, c.fecha_ini, c.nombre, cat.nombre categoria, d.nombre deporte, org.nombre tipo_organizacion, cd.nombre as ciudad, c.genero, c.fase_actual, c.estado, r.nombre rol
               FROM App\Entity\Competencia c
               INNER JOIN App\Entity\UsuarioCompetencia uc
               WITH uc.competencia = c.id
@@ -324,7 +324,7 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
   {
       $entityManager = $this->getEntityManager();
       $query = $entityManager->createQuery(
-        '   SELECT c.id,c.nombre, cat.nombre categoria, d.nombre deporte, org.nombre tipo_organizacion, cd.nombre as ciudad, c.genero, c.fase_actual, c.estado, r.nombre rol
+        '   SELECT c.id, c.fecha_ini, c.nombre, cat.nombre categoria, d.nombre deporte, org.nombre tipo_organizacion, cd.nombre as ciudad, c.genero, c.fase_actual, c.estado, r.nombre rol
             FROM App\Entity\Competencia c
             INNER JOIN App\Entity\UsuarioCompetencia uc
             WITH uc.competencia = c.id
@@ -352,7 +352,7 @@ class UsuarioCompetenciaRepository extends ServiceEntityRepository
   {
       $entityManager = $this->getEntityManager();
       $query = $entityManager->createQuery(
-       '   SELECT c.id, c.nombre, cat.nombre categoria, cat.duracion_default duracionDefault, d.nombre deporte, org.nombre tipo_organizacion, cd.nombre as ciudad, c.genero, c.fase_actual, c.estado, r.nombre rol
+       '   SELECT c.id, c.fecha_ini, c.nombre, cat.nombre categoria, cat.duracion_default duracionDefault, d.nombre deporte, org.nombre tipo_organizacion, cd.nombre as ciudad, c.genero, c.fase_actual, c.estado, r.nombre rol
            FROM App\Entity\Competencia c
            INNER JOIN App\Entity\UsuarioCompetencia uc
            WITH uc.competencia = c.id

@@ -112,7 +112,7 @@ class InscripcionController extends AbstractFOSRestController
                         }
                         else{
                             $statusCode = Response::HTTP_BAD_REQUEST;
-                            $respJson->messaging = "Verifique la consistencia de las fechas. Controle que la feche de cierre sea al menos un dia posterior a la fecha de inicio";
+                            $respJson->messaging = "Verifique la consistencia de las fechas. Controle que la feche de cierre sea al menos un dia posterior a la fecha de inicio o que no sean anteriores al dia de la fecha.";
                         }
                     }
                     else{

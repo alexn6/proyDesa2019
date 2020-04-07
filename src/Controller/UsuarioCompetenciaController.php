@@ -371,8 +371,12 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         $idUser = $request->get('idUsuario');
         // vemos si recibimos algun parametro
         if(!empty($idUser)){
-            $respJson = $repository->findCompetitionsFollowByUser($idUser);
-            $statusCode = Response::HTTP_OK;
+          
+          $respJson = $repository->findCompetitionsFollowByUser($idUser);
+          foreach ($respJson as &$competition) {
+            $competition['fecha_ini'] = ($competition['fecha_ini'])->format(Constant::FORMAT_DATE);
+          }
+          $statusCode = Response::HTTP_OK;
         }
         else{
             $respJson->competitions = NULL;
@@ -445,6 +449,9 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         // vemos si recibimos algun parametro
         if(!empty($idUser)){
             $respJson = $repository->findCompetitionsParticipatesByUser($idUser);
+            foreach ($respJson as &$competition) {
+              $competition['fecha_ini'] = ($competition['fecha_ini'])->format(Constant::FORMAT_DATE);
+            }
             $statusCode = Response::HTTP_OK;
         }
         else{
@@ -485,6 +492,9 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
         // vemos si recibimos algun parametro
         if(!empty($idUser)){
             $respJson = $repository->findCompetitionsOrganizeByUser($idUser);
+            foreach ($respJson as &$competition) {
+              $competition['fecha_ini'] = ($competition['fecha_ini'])->format(Constant::FORMAT_DATE);
+            }
             $statusCode = Response::HTTP_OK;
         }
         else{

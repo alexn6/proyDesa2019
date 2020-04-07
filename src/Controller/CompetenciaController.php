@@ -753,11 +753,13 @@ class CompetenciaController extends AbstractFOSRestController
 
         // var_dump($competitions);
         if($competitions != NULL){
-          // reemplazamos el rol (string) por un array de roles y agregamos la fase en caso de q sea eliminatoria
+          // reemplazamos el rol (string) por un array de roles y pasamos la fecha de inicio como un string
           foreach ($competitions as &$competition) {
             $newType = $this->getPhase($competition['id'], $competition['tipo_organizacion']);
             $competition['tipo_organizacion'] = $newType;
+            $competition['fecha_ini'] = ($competition['fecha_ini'])->format(Constant::FORMAT_DATE);
           }
+          
 
           $competitions = json_encode($competitions);
           $statusCode = Response::HTTP_OK;
