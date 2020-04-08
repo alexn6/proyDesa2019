@@ -38,7 +38,8 @@ class InvitacionController extends AbstractFOSRestController
     public function receiveInvitationCoorganizator(Request $request){
         $repository = $this->getDoctrine()->getRepository(Invitacion::class);
         $repositoryUser=$this->getDoctrine()->getRepository(Usuario::class);
-        $repositoryComp=$this->getDoctrine()->getRepository(UsuarioCompetencia::class);
+        $repositoryComp=$this->getDoctrine()->getRepository(Competencia::class);
+        $repositoryUsComp=$this->getDoctrine()->getRepository(UsuarioCompetencia::class);
        // $repositoryEstado=$this->getDoctrine()->getRepository(Estado::class);
        
         $respJson = (object) null;
@@ -50,28 +51,30 @@ class InvitacionController extends AbstractFOSRestController
           $dataRequest = json_decode($request->getContent());
   
           // vemos si existen los datos necesarios
-          if((!empty($dataRequest->idUsuario))&&(!empty($dataRequest->idCompetencia))){
-              $idUser = $dataRequest->idUsuario;
+          if((!empty($dataRequest->idUsuarioInvitado)) && (!empty($dataRequest->idUsuarioOrg)) && (!empty($dataRequest->idCompetencia))){
+              $idUserInvitado = $dataRequest->idUsuarioInvitado;
+              $idUsuarioOrg = $dataRequest->idUsuarioOrg;
               $idCompetition = $dataRequest->idCompetencia;   
               // buscamos los datos correspodientes a los id recibidos
-              $user = $repositoryUser->find($idUser);
-              $competition = $repositoryComp->findOneBy(['competencia' => $idCompetition]);  
+              $competition = $repositoryComp->find($idCompetition);
+              $userInvitado = $repositoryUser->find($idUserInvitado);
+              $userOrg = $repositoryUser->find($idUsuarioOrg);
+              $userCompOrg = $repositoryUsComp->findOneBy(['competencia' => $competition, 'usuario' => $userOrg]);  
               // enviamos la invitacion al usuario
-              //$msg = "Has sido invitado a ser CO-ORGANIZADOR ";
-            //  $this->notifyInvitationCoorg($user->getToken(), $competition->getNombre(), $msg);   
-              if(!empty($repository->findOneBy(['usuarioDestino' => $user , 'usuarioCompOrg' => $competition]))){
+              $this->notifyInvitationCoorg($userInvitado->getToken(), $competition->getNombre());
+              if(!empty($repository->findOneBy(['usuarioDestino' => $userInvitado , 'usuarioCompOrg' => $userCompOrg]))){
                 $statusCode = Response::HTTP_BAD_REQUEST;
-                $respJson->messaging = "Ya existe una solicitud.";
+                $respJson->messaging = "Ya existe una solicitud para este usuario";
               }else{
                    // creamos la nueva fila
-                   $newUser = new Invitacion();
-                   $newUser->setUsuarioDestino($user);
-                   $newUser->setUsuarioCompOrg($competition);
-                   $newUser->setEstado(Constant::ESTADO_INV_NO_DEFINIDO);
+                   $newInvitation = new Invitacion();
+                   $newInvitation->setUsuarioDestino($userInvitado);
+                   $newInvitation->setUsuarioCompOrg($userCompOrg);
+                   $newInvitation->setEstado(Constant::ESTADO_INV_NO_DEFINIDO);
                    
                    // persistimos el nuevo dato
                    $em = $this->getDoctrine()->getManager();
-                   $em->persist($newUser);
+                   $em->persist($newInvitation);
                    $em->flush();
   
                    $statusCode = Response::HTTP_OK;
@@ -278,7 +281,8 @@ class InvitacionController extends AbstractFOSRestController
     }
 
 
-
+    // ##########################################################################################
+    // ############################## FUNCIONES AUXILIARES ######################################
 
     private function sendResultInvitacion($nameUserDest, $idUserOrg, $resolucion){
         $title = 'Resolucion de invitacion';
@@ -287,10 +291,19 @@ class InvitacionController extends AbstractFOSRestController
 
         $repository = $this->getDoctrine()->getRepository(Usuario::class);
         $userorg = $repository->find($idUserOrg);
-
         $token = $userorg->getToken();
 
         NotificationManager::getInstance()->notificationSpecificDevices($token, $notification);
+    }
+
+
+    // notifica al invitado que ha sido invitado a formar parte de la organizacion
+    private function notifyInvitationCoorg($tokenUsuario, $nombreCompetencia){
+        $title = 'Invitacion a ser co-organizador';
+        $body = 'Has sido invitado a formar parte de la organizacion de la competencia: '.$nombreCompetencia;
+        $notification = Notification::create($title, $body);
+
+        NotificationManager::getInstance()->notificationSpecificDevices($tokenUsuario, $notification);
     }
 
 }

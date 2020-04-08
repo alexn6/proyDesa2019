@@ -35,17 +35,26 @@ class NotificationTopicCompetitionTest extends TestCase{
     //     $this->assertEquals(0, 0);
     // }
 
-    public function testGetTopics(){
-        //$topicFollowers = self::$nombreComp. '-' .Constant::ROL_SEGUIDOR;
-        //NotificationManager::getInstance()->subscribeTopic($topicFollowers, self::$tokenSeg);
+    // public function testGetTopics(){
+    //     //$topicFollowers = self::$nombreComp. '-' .Constant::ROL_SEGUIDOR;
+    //     //NotificationManager::getInstance()->subscribeTopic($topicFollowers, self::$tokenSeg);
+    //     $tokenCompetidor = 'edNtmgk1bHM:APA91bHmrsYr6_A4MdiMEt93kCRPb6oFjWqTjyetnF3Zua32doxc6I306aTqMhihRFgfbFzrYssRzAQLJcFx827y8SONfAdVHPS2pAnhvkEmNDlI5mmDnvztiEBvaUEnAcXZr6KdcqYB';
+    //     $subscriptions = NotificationManager::getInstance()->getTopicsSusbcribed($tokenCompetidor);
 
-        $subscriptions = NotificationManager::getInstance()->getTopicsSusbcribed(self::$tokenSeg);
+    //     foreach ($subscriptions as $subscription) {
+    //         echo "Esta subscripto a {$subscription->topic()}\n";
+    //     }
 
-        foreach ($subscriptions as $subscription) {
-            echo "Esta subscripto a {$subscription->topic()}\n";
-        }
+    //     $this->assertEquals(0, 0);
+    // }
 
-        $this->assertEquals(0, 0);
+    public function testTopicsCompetitors(){
+        $topicCompetitors = "GrupSigFase2". '-' .Constant::ROL_COMPETIDOR;
+        
+        $notification = Notification::create("Notif competidor", "Test de notifi p/competidores.");
+
+        NotificationManager::getInstance()->notificationToTopic($topicCompetitors, $notification);
     }
+
 
 }
