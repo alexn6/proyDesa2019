@@ -62,7 +62,7 @@ class NotificationManager
     // Envia una notificacion con datos al token recibido
     public function notificationSpecificDevicesWithData($tokenDevice, $notification, $data){
         if(self::$manager === null){
-            echo 'No se cuenta con un NotificationManager';
+            // echo 'No se cuenta con un NotificationManager';
             return;
         }
         

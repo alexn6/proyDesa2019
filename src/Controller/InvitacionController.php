@@ -58,27 +58,35 @@ class InvitacionController extends AbstractFOSRestController
               // buscamos los datos correspodientes a los id recibidos
               $competition = $repositoryComp->find($idCompetition);
               $userInvitado = $repositoryUser->find($idUserInvitado);
-              $userOrg = $repositoryUser->find($idUsuarioOrg);
-              $userCompOrg = $repositoryUsComp->findOneBy(['competencia' => $competition, 'usuario' => $userOrg]);  
-              // enviamos la invitacion al usuario
-              $this->notifyInvitationCoorg($userInvitado->getToken(), $competition->getNombre());
-              if(!empty($repository->findOneBy(['usuarioDestino' => $userInvitado , 'usuarioCompOrg' => $userCompOrg]))){
+              // vemos si el usuario forma parte de la organizacion de la comoetencia
+              if($repositoryUser->findOrganizators($idUserInvitado, $idCompetition) != null){
                 $statusCode = Response::HTTP_BAD_REQUEST;
-                $respJson->messaging = "Ya existe una solicitud para este usuario";
-              }else{
-                   // creamos la nueva fila
-                   $newInvitation = new Invitacion();
-                   $newInvitation->setUsuarioDestino($userInvitado);
-                   $newInvitation->setUsuarioCompOrg($userCompOrg);
-                   $newInvitation->setEstado(Constant::ESTADO_INV_NO_DEFINIDO);
-                   
-                   // persistimos el nuevo dato
-                   $em = $this->getDoctrine()->getManager();
-                   $em->persist($newInvitation);
-                   $em->flush();
-  
-                   $statusCode = Response::HTTP_OK;
-                   $respJson->messaging = "Invitacion enviada con exito.";
+                $respJson->messaging = "El usuario ya forma parte de la organizacion.";
+              }
+              else{
+                $userOrg = $repositoryUser->find($idUsuarioOrg);
+                $userCompOrg = $repositoryUsComp->findOneBy(['competencia' => $competition, 'usuario' => $userOrg]);  
+                if(!empty($repository->findOneBy(['usuarioDestino' => $userInvitado , 'usuarioCompOrg' => $userCompOrg]))){
+                    $statusCode = Response::HTTP_BAD_REQUEST;
+                    $respJson->messaging = "Ya existe una solicitud para este usuario";
+                }else{
+                    // creamos la nueva fila
+                    $newInvitation = new Invitacion();
+                    $newInvitation->setUsuarioDestino($userInvitado);
+                    $newInvitation->setUsuarioCompOrg($userCompOrg);
+                    $newInvitation->setEstado(Constant::ESTADO_INV_NO_DEFINIDO);
+                    
+                    // persistimos el nuevo dato
+                    $em = $this->getDoctrine()->getManager();
+                    $em->persist($newInvitation);
+                    $em->flush();
+
+                    // enviamos la invitacion al usuario
+                    $this->notifyInvitationCoorg($userInvitado->getToken(), $competition->getNombre());
+    
+                    $statusCode = Response::HTTP_OK;
+                    $respJson->messaging = "Invitacion enviada con exito.";
+                }
               }
           }
           else{
@@ -195,7 +203,7 @@ class InvitacionController extends AbstractFOSRestController
                 // Se envia notificacion con el resultado al organizador
                 $idUserCompOrg = $invitacion->getUsuarioCompOrg()->getUsuario()->getId();
                 $mjeresolucion = "ACEPTO";
-               //$this->sendResultInvitacion($user->getNombreUsuario(), $idUserCompOrg, $mjeresolucion);
+                $this->sendResultInvitacion($user->getNombreUsuario(), $idUserCompOrg, $mjeresolucion);
                 
                 // creamos la nueva fila en usuario competencia
                 $newUserComp = new UsuarioCompetencia();
@@ -252,12 +260,12 @@ class InvitacionController extends AbstractFOSRestController
                 // cambiamos el esatdo
                 $invitacion->setEstado(Constant::ESTADO_INV_BAJA);
 
-                $userDestino = $invitacion->getUsuarioDestino()->getNombreUsuario();
+                $userDestino = $invitacion->getUsuarioDestino();
                 $idUserCompOrg = $invitacion->getUsuarioCompOrg()->getUsuario()->getId();
                 $mjeresolucion = "RECHAZO";
                 
                 // Se enviar notificacion con el resultado al organizador
-               // $this->sendResultInvitacion($userDestino, $idUserCompOrg, $mjeresolucion);
+                $this->sendResultInvitacion($userDestino->getNombreUsuario(), $idUserCompOrg, $mjeresolucion);
 
                 $em = $this->getDoctrine()->getManager();
                 $em->persist($invitacion);
@@ -284,6 +292,7 @@ class InvitacionController extends AbstractFOSRestController
     // ##########################################################################################
     // ############################## FUNCIONES AUXILIARES ######################################
 
+    // envia una notificacion de a los organizadores de la resolucion de una invitacion a ser coorg
     private function sendResultInvitacion($nameUserDest, $idUserOrg, $resolucion){
         $title = 'Resolucion de invitacion';
         $body = 'El usuario '.$nameUserDest.' '.$resolucion.' tu invitacion a formar parte de la organizacion';
@@ -291,6 +300,7 @@ class InvitacionController extends AbstractFOSRestController
 
         $repository = $this->getDoctrine()->getRepository(Usuario::class);
         $userorg = $repository->find($idUserOrg);
+        // solo el organizador puede invitar a coorg
         $token = $userorg->getToken();
 
         NotificationManager::getInstance()->notificationSpecificDevices($token, $notification);
@@ -303,7 +313,12 @@ class InvitacionController extends AbstractFOSRestController
         $body = 'Has sido invitado a formar parte de la organizacion de la competencia: '.$nombreCompetencia;
         $notification = Notification::create($title, $body);
 
-        NotificationManager::getInstance()->notificationSpecificDevices($tokenUsuario, $notification);
+        $data = [
+            'VIEW' => "MIS_INVITACIONES"
+        ];
+
+        // NotificationManager::getInstance()->notificationSpecificDevices($tokenUsuario, $notification);
+        NotificationManager::getInstance()->notificationSpecificDevicesWithData($tokenUsuario, $notification, $data);
     }
 
 }
