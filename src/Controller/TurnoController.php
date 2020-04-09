@@ -96,10 +96,8 @@ class TurnoController extends AbstractFOSRestController
               $idCompetencia = $dataTurnoRequest->idCompetencia;
               $hora_desde = $dataTurnoRequest->hs_desde;
               $hora_hasta = $dataTurnoRequest->hs_hasta;
-              // pasar hora a Time
-              $format = 'H:i:s';
-              $hora_desde = DateTime::createFromFormat($format, $hora_desde);
-              $hora_hasta = DateTime::createFromFormat($format, $hora_hasta);
+              $hora_desde = DateTime::createFromFormat(Constant::FORMAT_DATE_HOUR, $hora_desde);
+              $hora_hasta = DateTime::createFromFormat(Constant::FORMAT_DATE_HOUR, $hora_hasta);
 
               $repositoryCompetencia = $this->getDoctrine()->getRepository(Competencia::class);
               $competencia = $repositoryCompetencia->find($idCompetencia);

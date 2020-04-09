@@ -73,8 +73,8 @@ class InscripcionController extends AbstractFOSRestController
                     $respJson->messaging = "La competencia ya cuenta con una inscripcion.";
                 }
                 else{
-                    $fechaInicio = DateTime::createFromFormat(Constant::FORMAT_DATE, $fechaInicio);
-                    $fechaCierre = DateTime::createFromFormat(Constant::FORMAT_DATE, $fechaCierre);
+                    $fechaInicio = DateTime::createFromFormat(Constant::FORMAT_DATE_CREATE, $fechaInicio);
+                    $fechaCierre = DateTime::createFromFormat(Constant::FORMAT_DATE_CREATE, $fechaCierre);
                     // controlamos con la competencia
                     if(ControlDate::getInstance()->datePre($fechaInicio, $competencia->getFechaIni())){
                         // control de fechas

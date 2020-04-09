@@ -610,31 +610,6 @@ class EncuentroController extends AbstractFOSRestController
   }
 
   // persiste los encuentros de una nueva fase
-  // public function saveFixtureNewPhase($matches, $competencia, $fecha){
-  //   $fechaJornada;
-  //   if($fecha == null){
-  //     // le vamos agregando la frecuencia de juego de la competencia a la fecha de inicio
-  //     $diasFrec = $competencia->getFrecDias();
-  //     $repositoryJornada = $this->getDoctrine()->getRepository(Jornada::class);
-  //     // recuperamos la fecha de la ultima jornada, para usarla como referencia para la nueva fase
-  //     $lastedJornada = $repositoryJornada->lastedByCompetition($competencia->getId());
-  //     $stringFecha = $lastedJornada[0][1];
-  //     $fechaJornada = Date(Constant::FORMAT_DATE, strtotime($stringFecha. ' + '.$diasFrec.' days'));
-  //   }
-  //   else{
-  //     $fechaJornada = $fecha->format(Constant::FORMAT_DATE);
-  //   }
-  //   // var_dump($fechaJornada);
-
-  //   // vamos guardando los encuentros
-  //   for ($i=1; $i <= count($matches); $i++) {
-  //     $jornada = $i;
-  //     // ######### CORREGIR #########
-  //     $this->saveEncuentrosCompetition($matches[$i], $competencia, $jornada, null, $fechaJornada);
-  //   }
-  // }
-
-  // persiste los encuentros de una nueva fase
   public function saveFixtureNewPhase($matches, $competencia){
     // le vamos agregando la frecuencia de juego de la competencia a la fecha de inicio
     $repositoryJornada = $this->getDoctrine()->getRepository(Jornada::class);
@@ -648,7 +623,7 @@ class EncuentroController extends AbstractFOSRestController
       $jornada = $i;
       // le vamos agregando la frecuencia de juego de la competencia a la fecha de inicio
       $diasFrec = $competencia->getFrecDias()*$i;
-      $fechaJornada = Date(Constant::FORMAT_DATE, strtotime($stringFecha. ' + '.$diasFrec.' days'));
+      $fechaJornada = Date(Constant::FORMAT_DATE_CREATE, strtotime($stringFecha. ' + '.$diasFrec.' days'));
       $this->saveEncuentrosCompetition($matches[$i], $competencia, $jornada, null, $fechaJornada);
     }
   }
@@ -664,7 +639,7 @@ class EncuentroController extends AbstractFOSRestController
       $jornada = $i;
       // le vamos agregando la frecuencia de juego de la competencia a la fecha de inicio
       $dias_frec = $frec_jornada*($i-1);
-      $fecha_jornada = date(Constant::FORMAT_DATE, strtotime($competencia->getFechaIni()->format(Constant::FORMAT_DATE). ' + '.$dias_frec.' days'));
+      $fecha_jornada = date(Constant::FORMAT_DATE_CREATE, strtotime($competencia->getFechaIni()->format(Constant::FORMAT_DATE). ' + '.$dias_frec.' days'));
       // ######### CORREGIR #########
       $this->saveEncuentrosCompetition($fixtureEncuentros[$i], $competencia, $jornada, null, $fecha_jornada);
     }
@@ -678,7 +653,7 @@ class EncuentroController extends AbstractFOSRestController
       $jornada = $i;
       // le vamos agregando la frecuencia de juego de la competencia a la fecha de inicio
       $dias_frec = $frec_jornada*($i-1);
-      $fecha_jornada = date(Constant::FORMAT_DATE, strtotime($competencia->getFechaIni()->format(Constant::FORMAT_DATE). ' + '.$dias_frec.' days'));
+      $fecha_jornada = date(Constant::FORMAT_DATE_CREATE, strtotime($competencia->getFechaIni()->format(Constant::FORMAT_DATE). ' + '.$dias_frec.' days'));
       $this->saveEncuentrosCompetition($fixtureEncuentros[$i], $competencia, $jornada, null, $fecha_jornada);
     }
   }
@@ -694,7 +669,7 @@ class EncuentroController extends AbstractFOSRestController
         $jornada = $j;
         // le vamos agregando la frecuencia de juego de la competencia a la fecha de inicio
         $dias_frec = $frec_jornada*($j-1);
-        $fecha_jornada = date(Constant::FORMAT_DATE, strtotime($competencia->getFechaIni()->format(Constant::FORMAT_DATE). ' + '.$dias_frec.' days'));
+        $fecha_jornada = date(Constant::FORMAT_DATE_CREATE, strtotime($competencia->getFechaIni()->format(Constant::FORMAT_DATE). ' + '.$dias_frec.' days'));
         $this->saveEncuentrosCompetition($fixtureGrupo[$j], $competencia, $jornada, $grupo, $fecha_jornada);
       }
     }
@@ -744,7 +719,7 @@ class EncuentroController extends AbstractFOSRestController
 
     // vemos si existe la jornada
     if($jornadaEncuentro == NULL){
-      $fecha_date = DateTime::createFromFormat(Constant::FORMAT_DATE, $fecha);
+      $fecha_date = DateTime::createFromFormat(Constant::FORMAT_DATE_CREATE, $fecha);
       // si no existe la creamos y la guardamos
       $jornadaEncuentro = new Jornada();
       $jornadaEncuentro->setCompetencia($competencia);

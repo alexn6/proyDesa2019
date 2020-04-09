@@ -105,7 +105,9 @@ class CompetenciaController extends AbstractFOSRestController
           $respJson->messaging = "El nombre de la competencia esta en uso";
         }
         else{
-          $fecha_ini = DateTime::createFromFormat(Constant::FORMAT_DATE, $dataCompetitionRequest->fecha_ini);
+          $fecha_ini = DateTime::createFromFormat(Constant::FORMAT_DATE_CREATE, $dataCompetitionRequest->fecha_ini);
+          // var_dump($dataCompetitionRequest->fecha_ini);
+          // var_dump($fecha_ini);
           // controlamos q la fecha de incio de la competencia sea com minima la actual
           if(ControlDate::getInstance()->datePostCurrent($fecha_ini)){
             // buscamos los datos de los id recibidos
@@ -326,18 +328,7 @@ class CompetenciaController extends AbstractFOSRestController
             $encuentros = $this->getAliasConfrontations($encuentros);
           }
 
-          // $fechaJornada = null;
-          // // asignamos la fecha de la nueva fase
-          // if(property_exists((object) $dataRequest,'fecha')){
-          //   $fechaJornada = DateTime::createFromFormat(Constant::FORMAT_DATE, $dataRequest->fecha);
-          // }
-
           // vamos a persistir los datos de los encuentros generados
-          // $this->forward('App\Controller\EncuentroController::saveFixtureNewPhase', [
-          //     'matches'  => $encuentros,
-          //     'competencia' => $competencia,
-          //     'fecha' => $fechaJornada
-          // ]);
           $this->forward('App\Controller\EncuentroController::saveFixtureNewPhase', [
             'matches'  => $encuentros,
             'competencia' => $competencia
@@ -1121,7 +1112,7 @@ class CompetenciaController extends AbstractFOSRestController
 
     // vemos si existe la jornada
     if($jornadaEncuentro == NULL){
-      $fecha_date = DateTime::createFromFormat(Constant::FORMAT_DATE, $fecha);
+      $fecha_date = DateTime::createFromFormat(Constant::FORMAT_DATE_CREATE, $fecha);
       // si no existe la creamos y la guardamos
       $jornadaEncuentro = new Jornada();
       $jornadaEncuentro->setCompetencia($competencia);
