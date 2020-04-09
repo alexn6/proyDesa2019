@@ -190,7 +190,9 @@ class NoticiasController extends AbstractFOSRestController
         // pasamos el array a un nuevo array para cambiar el formato de la fecha
         $news = array();
         foreach ($newsAllCompetitions as &$new) {
-            $date = $new->getUptime(); 
+            $dateInmutable = $new->getUptime()->get();
+            $dateTime = new \DateTime();
+            $dateTime->setTimestamp($dateInmutable->getTimestamp());
 
             $newResp = (object) null;
             $newResp->id = $new->getId();
@@ -198,9 +200,9 @@ class NoticiasController extends AbstractFOSRestController
             $newResp->title = $new->getTitle();
             $newResp->resume = $new->getResume();
             $newResp->descripcion = $new->getDescripcion();
-            $newResp->uptime = $date->formatAsString();
+            $newResp->uptime = $dateTime->format(Constant::FORMAT_DATE_TIME_HOUR);
+            $newResp->publisher = $new->getPublisher();
             
-            // var_dump($date->formatAsString());
             array_push($news, $newResp);
         }
         return $news;
@@ -224,7 +226,7 @@ class NoticiasController extends AbstractFOSRestController
             $arrayFields = $document->data();
             $nameCompetition = $this->nameCompetitionNews($document);
             //$date = $arrayFields['uptime']->get('date');
-            $dataObjectNew = new Noticia($document->id(), $nameCompetition, $arrayFields['title'], $arrayFields['resume'], $arrayFields['descripcion'], $arrayFields['uptime']);
+            $dataObjectNew = new Noticia($document->id(), $nameCompetition, $arrayFields['title'], $arrayFields['resume'], $arrayFields['descripcion'], $arrayFields['uptime'], $arrayFields['publisher']);
             //$dataObjectNew = new Noticia($document->id(), $nameCompetition, $arrayFields['title'], $arrayFields['resume'], $arrayFields['descripcion'], $date);
             array_push($arraydata, $dataObjectNew);
         }

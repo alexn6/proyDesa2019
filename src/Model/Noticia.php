@@ -14,16 +14,18 @@ class Noticia implements Serializable
     private $resume;
     private $descripcion;
     private $uptime;
+    private $publisher;
 
     // public function __construct() {}
     
-    public function __construct($id, $competition, $title, $resume, $descripcion, $uptime) {
+    public function __construct($id, $competition, $title, $resume, $descripcion, $uptime, $publisher) {
         $this->id = $id;
         $this->competition = $competition;
         $this->title = $title;
         $this->resume = $resume;
         $this->descripcion = $descripcion;
         $this->uptime = $uptime;
+        $this->publisher = $publisher;
 	}
 
     public function getId(): ?int
@@ -87,6 +89,18 @@ class Noticia implements Serializable
     public function setUptime(Timestamp $uptime): self
     {
         $this->uptime = $uptime;
+
+        return $this;
+    }
+
+    public function getPublisher(): ?string
+    {
+        return $this->publisher;
+    }
+
+    public function setPublisher(string $publisher): self
+    {
+        $this->publisher = $publisher;
 
         return $this;
     }

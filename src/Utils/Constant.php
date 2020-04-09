@@ -16,6 +16,7 @@ class Constant{
     // const FORMAT_DATE = 'Y-m-d';
     const FORMAT_DATE = 'd/m/Y';
     const FORMAT_DATE_HOUR = 'H:i:s';
+    const FORMAT_DATE_TIME_HOUR = 'H:i:s d/m/Y';
 
     // #############################################################################
     // ################################# ROLES #####################################
