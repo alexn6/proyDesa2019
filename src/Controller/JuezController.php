@@ -110,6 +110,48 @@ class JuezController extends AbstractFOSRestController
         return $response;
     }
 
+    /**
+     * Lista de todos los jueces que contengan el nombre recibido por parametro
+     * @Rest\Get("/judges/name"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function getJudgesLikeName(Request $request){
+        $respJson = (object) null;
+        $judges = null;
+        $statusCode;
+        $repository=$this->getDoctrine()->getRepository(Juez::class);
+  
+        $nombre = null;
+        $apellido = null;;
+
+        if(!empty($request->get('nombre'))){
+          $nombre = $request->get('nombre');
+        }
+        if(!empty($request->get('apellido'))){
+          $apellido = $request->get('apellido');
+        }
+      
+        $judges = $repository->getLikeNameLastname($nombre, $apellido);
+  
+        // hacemos el string serializable , controlamos las autoreferencias
+        $judges = $this->get('serializer')->serialize($judges, 'json', [
+          'circular_reference_handler' => function ($object) {
+            return $object->getId();
+          },
+          'ignored_attributes' => ['juezcompetencia']
+        ]);
+        $respJson = json_decode($judges);
+
+        $statusCode = Response::HTTP_OK;
+        $respJson = json_encode($respJson);
+        $response = new Response($respJson);
+        $response->setStatusCode($statusCode);
+        $response->headers->set('Content-Type', 'application/json');
+    
+        return $response;
+      }
+
     // ######################################################################################
     // ############################ funciones auxiliares ####################################
 

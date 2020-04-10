@@ -50,17 +50,50 @@ class JuezRepository extends ServiceEntityRepository
     }
     */
 
-    // Recuperar jueces por id de competencia
-    // public function findJudgesByCompetetition($idCompetencia){
-    //     $entityManager = $this->getEntityManager();
-    //     $query = $entityManager->createQuery(
-    //     '   SELECT j
-    //         FROM App\Entity\Juez j
-    //         INNER JOIN App\Entity\Competencia c
-    //         WITH j.competencia = c.id
-    //         AND c.id = :idCompetencia
-    //     ')->setParameter('idCompetencia',$idCompetencia);
+    // recupera jueces con nombre que contengan lo recibdo
+    public function getLikeName($name, $apellido){
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        '   SELECT j
+            FROM App\Entity\Juez j
+            WHERE (j.nombre LIKE :nameJudge OR j.apellido LIKE :apellido)
+            ')->setParameter('nameJudge','%'.$name.'%')
+            ->setParameter('apellido','%'.$apellido.'%');
         
-    //     return $query->execute();   
-    // }
+        return $query->execute();
+    }
+
+    // recupera jueces con nombre y/o apellido que contengan lo recibdo
+    public function getLikeNameLastname($name, $apellido){
+        $entityManager = $this->getEntityManager();
+
+        $queryBase = ' SELECT j
+                        FROM App\Entity\Juez j';
+
+        if(($name != null) && ($apellido != null)){
+            $queryBase = $queryBase.' WHERE (j.nombre LIKE :nameJudge AND j.apellido LIKE :apellido)';
+        }
+        else{
+            if($name == null){
+                if($apellido != null){
+                    $queryBase = $queryBase.' WHERE j.apellido LIKE :apellido';
+                }
+            }
+            else{
+                if($name != null){
+                    $queryBase = $queryBase.' WHERE j.nombre LIKE :nameJudge';
+                }
+            }
+        }
+
+        $query = $entityManager->createQuery($queryBase);
+        if($name != null){
+            $query->setParameter('nameJudge','%'.$name.'%');
+        }
+        if($apellido != null){
+            $query->setParameter('apellido','%'.$apellido.'%');
+        }
+            
+        return $query->execute();
+    }
 }

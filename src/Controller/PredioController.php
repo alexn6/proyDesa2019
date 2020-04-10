@@ -204,6 +204,50 @@ class PredioController extends AbstractFOSRestController
         return $response;
     }
 
+    /**
+     * Lista de todos los predios que contengan el nombre recibido por parametro
+     * @Rest\Get("/grounds/name"), defaults={"_format"="json"})
+     * 
+     * @return Response
+     */
+    public function getGroundsLikeName(Request $request){
+        $respJson = (object) null;
+        $grounds = null;
+        $statusCode;
+        $repository = $this->getDoctrine()->getRepository(Predio::class);
+  
+        $nombre = null;
+
+        if(!empty($request->get('nombre'))){
+            $nombre = $request->get('nombre');
+        }
+    
+        $grounds = $repository->getLikeName($nombre);
+
+        // hacemos el string serializable , controlamos las autoreferencias
+        $grounds = $this->get('serializer')->serialize($grounds, 'json', [
+        'circular_reference_handler' => function ($object) {
+            return $object->getId();
+        },
+        'ignored_attributes' => ['prediocompetencia']
+        ]);
+        // pasamos solo el nombre de la ciudad
+        $grounds = json_decode($grounds);
+        foreach ($grounds as &$ground) {
+            $ground->ciudad = $ground->ciudad->nombre;
+        }
+
+        $respJson = $grounds;
+
+        $statusCode = Response::HTTP_OK;
+        $respJson = json_encode($respJson);
+        $response = new Response($respJson);
+        $response->setStatusCode($statusCode);
+        $response->headers->set('Content-Type', 'application/json');
+    
+        return $response;
+      }
+
     // ######################################################################################
     // ############################ funciones auxiliares ####################################
 

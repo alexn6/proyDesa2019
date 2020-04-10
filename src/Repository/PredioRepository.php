@@ -69,4 +69,24 @@ class PredioRepository extends ServiceEntityRepository
         return $query->execute();   
     }
 
+    // recupera predios con nombre que contengan lo recibdo
+    public function getLikeName($name){
+        $entityManager = $this->getEntityManager();
+
+        $queryBase = 'SELECT p
+                        FROM App\Entity\Predio p';
+
+        if($name != null){
+            $queryBase = $queryBase.' WHERE p.nombre LIKE :namePredio';
+        }
+
+        $query = $entityManager->createQuery($queryBase);
+
+        if($name != null){
+            $query->setParameter('namePredio','%'.$name.'%');
+        }
+        
+        return $query->execute();
+    }
+
 }
