@@ -205,4 +205,19 @@ class EncuentroRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    // recuperamos la fase del encuentro
+    public function getFase($idEncuentro){
+        $entityManager = $this->getEntityManager();
+        
+        $query = $entityManager->createQuery(
+            '   SELECT j.fase
+                FROM App\Entity\Encuentro e
+                INNER JOIN App\Entity\Jornada j
+                WITH e.jornada = j.id
+                WHERE e.id = :idEncuentro
+            ')->setParameter('idEncuentro', $idEncuentro);
+
+        return $query->execute();
+    }
+
 }

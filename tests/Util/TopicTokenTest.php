@@ -93,31 +93,31 @@ class TopicTokenTest extends TestCase{
     // }
 
     // recupera los topicos a los que el usaurio esta subscrito
-    // public function testGetSubscribeTopics(){
-    //     $token = 'cEYWz4rA8BQ:APA91bFPS3Kq6BrFXG28Ht_5IK4Oa3c1sAEXmmo6DflPlApRz54aST3MYcpCbPiBT0COnrbNX_yv9tu2PsyMR411gvebIQJnhdIB41plN_XpQdhkYpYwm7mk0iNkay3RaqsY1b7-vKdh';
-    //     $subscriptions = NotificationManager::getInstance()->getTopicsSusbcribed($token);
+    public function testGetSubscribeTopics(){
+        $token = 'edNtmgk1bHM:APA91bHmrsYr6_A4MdiMEt93kCRPb6oFjWqTjyetnF3Zua32doxc6I306aTqMhihRFgfbFzrYssRzAQLJcFx827y8SONfAdVHPS2pAnhvkEmNDlI5mmDnvztiEBvaUEnAcXZr6KdcqYB';
+        $subscriptions = NotificationManager::getInstance()->getTopicsSusbcribed($token);
 
-    //     foreach ($subscriptions as $subscription) {
-    //         // echo "{$subscription->registrationToken()} fue subscrito a {$subscription->topic()}\n";
-    //         echo "Esta subscrito a {$subscription->topic()}\n";
-    //     }
+        foreach ($subscriptions as $subscription) {
+            // echo "{$subscription->registrationToken()} fue subscrito a {$subscription->topic()}\n";
+            echo "Esta subscrito a {$subscription->topic()}\n";
+        }
 
-    //     $this->assertEquals(1, count($subscriptions));
-    // }
+        $this->assertEquals(1, count($subscriptions));
+    }
 
 
     // probando el formato de hora
-    public function testFormatDateTimezone(){
-        $fecha = new DateTime('2000-01-01');
-        echo $fecha->format('Y-m-d H:i:sP') . "\n";
+    // public function testFormatDateTimezone(){
+    //     $fecha = new DateTime('2000-01-01');
+    //     echo $fecha->format('Y-m-d H:i:sP') . "\n";
 
-        $fecha->setTimezone(new DateTimeZone('Pacific/Chatham'));
-        echo $fecha->format('Y-m-d H:i:sP') . "\n";
+    //     $fecha->setTimezone(new DateTimeZone('Pacific/Chatham'));
+    //     echo $fecha->format('Y-m-d H:i:sP') . "\n";
 
-        $fecha->setTimezone(new DateTimeZone('America/Argentina/Buenos_Aires'));
-        echo $fecha->format('Y-m-d H:i:sP') . "\n";
+    //     $fecha->setTimezone(new DateTimeZone('America/Argentina/Buenos_Aires'));
+    //     echo $fecha->format('Y-m-d H:i:sP') . "\n";
 
-        $this->assertEquals(1, 1);
-    }
+    //     $this->assertEquals(1, 1);
+    // }
 
 }
