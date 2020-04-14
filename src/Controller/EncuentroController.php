@@ -444,6 +444,9 @@ class EncuentroController extends AbstractFOSRestController
                 for ($i=0; $i < count($encuentros); $i++) {
                     $encuentros[$i]['competidor1'] = $encuentros[$i]['competidor1']['alias'];
                     $encuentros[$i]['competidor2'] = $encuentros[$i]['competidor2']['alias'];
+                    if($encuentros[$i]['campo'] != null){
+                      $encuentros[$i]['campo']['predio']['ciudad'] = $encuentros[$i]['campo']['predio']['ciudad']['nombre'];
+                    }
                 }
     
                 // harcode de los resultados con null
@@ -460,7 +463,6 @@ class EncuentroController extends AbstractFOSRestController
                     $encuentros[$i]['turno']['horaHasta'] = substr($encuentros[$i]['turno']['horaHasta'], -14, 5);
                   }
                 }
-                // <-
                 // *******> Recuperamos el competidor libre de la competencia, si es que lo hay
                 // recuperamos los alias de los competidores de los encuentros
                 $aliasCompetitorsEnc = $this->getAliasCompetitors($encuentros);
@@ -473,11 +475,13 @@ class EncuentroController extends AbstractFOSRestController
                   $aliasCompetitorsDb = $repositoryComp->getAliasCompetitorsByGroup($competition->getId(), $dataConfrontationRequest->grupo);
                 }
                 // var_dump($aliasCompetitorsEnc);
-                // var_dump($aliasCompetitorsDb);
-                $compLibre = array_diff($aliasCompetitorsDb, $aliasCompetitorsEnc);
                 $libre = null;
-                foreach ($compLibre as $valor){
-                  $libre = $valor;
+                if((strpos($competition->getOrganizacion()->getNombre(), 'Liga') !== false) || ((strpos($competition->getOrganizacion()->getNombre(), 'grupo') !== false))){
+                  $compLibre = array_diff($aliasCompetitorsDb, $aliasCompetitorsEnc);
+                
+                  foreach ($compLibre as $valor){
+                    $libre = $valor;
+                  }
                 }
                 //var_dump($compLibre);
                 // *******< 
