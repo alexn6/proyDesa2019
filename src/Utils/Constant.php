@@ -59,7 +59,7 @@ class Constant{
     const ELIM_VUELTA = 2;
 
     // #############################################################################
-    // ############################# ESTADO_COMPETENCIA ############################
+    // ############################# GENERO_COMPETENCIA ############################
 
     const GENERO_MASCULINO = 'MASCULINO';
     const GENERO_FEMENINO = 'FEMENINO';
@@ -82,6 +82,13 @@ class Constant{
     const ESTADO_INV_ALTA = 'ALTA';
     const ESTADO_INV_BAJA = 'BAJA';
     const ESTADO_INV_NO_DEFINIDO = 'N/D';
+
+    // #############################################################################
+    // ############################# TIPO_EDICION ############################
+    const EDIT_RESULTADO = 'RESULTADO';
+    const EDIT_JUEZ = 'JUEZ';
+    const EDIT_TURNO = 'TURNO';
+    const EDIT_CAMPO = 'CAMPO';
 
     // #############################################################################
     // ########################## Config DbCloudFirestore ###########################

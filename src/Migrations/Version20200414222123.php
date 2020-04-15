@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20200406134605 extends AbstractMigration
+final class Version20200414222123 extends AbstractMigration
 {
     public function getDescription() : string
     {
@@ -22,6 +22,7 @@ final class Version20200406134605 extends AbstractMigration
         // this up() migration is auto-generated, please modify it to your needs
         $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
 
+        $this->addSql('CREATE TABLE edicion (id INT AUTO_INCREMENT NOT NULL, encuentro_id INT DEFAULT NULL, tipo ENUM(\'RESULTADO\', \'JUEZ\', \'TURNO\', \'CAMPO\'), editor VARCHAR(60) NOT NULL, fecha DATE NOT NULL, INDEX IDX_655F7739E304C7C8 (encuentro_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE tipo_organizacion (id INT AUTO_INCREMENT NOT NULL, codigo VARCHAR(10) NOT NULL, nombre VARCHAR(127) NOT NULL, descripcion VARCHAR(255) NOT NULL, minimo VARCHAR(127) NOT NULL, UNIQUE INDEX UNIQ_BF73525A20332D99 (codigo), UNIQUE INDEX UNIQ_BF73525A3A909126 (nombre), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE resultado (id INT AUTO_INCREMENT NOT NULL, competidor_id INT DEFAULT NULL, jugados INT DEFAULT NULL, ganados INT DEFAULT NULL, empatados INT DEFAULT NULL, perdidos INT DEFAULT NULL, INDEX IDX_B2ED91C7B73D69E (competidor_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE categoria (id INT AUTO_INCREMENT NOT NULL, deporte_id INT DEFAULT NULL, nombre VARCHAR(127) NOT NULL, descripcion VARCHAR(255) NOT NULL, min_integrantes INT NOT NULL, duracion_default INT NOT NULL, UNIQUE INDEX UNIQ_4E10122D3A909126 (nombre), INDEX IDX_4E10122D239C54DD (deporte_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
@@ -33,7 +34,7 @@ final class Version20200406134605 extends AbstractMigration
         $this->addSql('CREATE TABLE campo (id INT AUTO_INCREMENT NOT NULL, predio_id INT DEFAULT NULL, nombre VARCHAR(50) NOT NULL, capacidad INT DEFAULT NULL, dimensiones INT DEFAULT NULL, INDEX IDX_291737AADC5381D3 (predio_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE usuario (id INT AUTO_INCREMENT NOT NULL, notifications_id INT DEFAULT NULL, nombre_usuario VARCHAR(127) NOT NULL, nombre VARCHAR(127) NOT NULL, apellido VARCHAR(127) NOT NULL, correo VARCHAR(127) NOT NULL, pass VARCHAR(255) NOT NULL, token VARCHAR(255) NOT NULL, UNIQUE INDEX UNIQ_2265B05DD67CF11D (nombre_usuario), UNIQUE INDEX UNIQ_2265B05DD4BE081 (notifications_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE notification (id INT AUTO_INCREMENT NOT NULL, seguidor TINYINT(1) DEFAULT \'1\' NOT NULL, competidor TINYINT(1) DEFAULT \'1\' NOT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
-        $this->addSql('CREATE TABLE deporte (id INT AUTO_INCREMENT NOT NULL, nombre VARCHAR(127) NOT NULL, puntos_pganado INT NOT NULL, puntos_pempetado INT NOT NULL, puntos_pperdido INT NOT NULL, UNIQUE INDEX UNIQ_1C5BBE03A909126 (nombre), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE deporte (id INT AUTO_INCREMENT NOT NULL, nombre VARCHAR(127) NOT NULL, puntos_pganado INT NOT NULL, puntos_pempetado INT DEFAULT NULL, puntos_pperdido INT NOT NULL, UNIQUE INDEX UNIQ_1C5BBE03A909126 (nombre), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE juez (id INT AUTO_INCREMENT NOT NULL, nombre VARCHAR(50) NOT NULL, apellido VARCHAR(50) NOT NULL, dni INT NOT NULL, UNIQUE INDEX UNIQ_8FBF65007F8F253B (dni), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE ciudad (id INT AUTO_INCREMENT NOT NULL, pais_id INT DEFAULT NULL, nombre VARCHAR(50) NOT NULL, INDEX IDX_8E86059EC604D5C6 (pais_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE invitacion (id INT AUTO_INCREMENT NOT NULL, uorganizador_id INT NOT NULL, udestino_id INT NOT NULL, estado ENUM(\'ALTA\', \'BAJA\', \'N/D\'), INDEX IDX_3CD30E84D0F7497F (uorganizador_id), INDEX IDX_3CD30E84E34E213E (udestino_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
@@ -43,6 +44,7 @@ final class Version20200406134605 extends AbstractMigration
         $this->addSql('CREATE TABLE encuentro (id INT AUTO_INCREMENT NOT NULL, competencia_id INT NOT NULL, compuser1_id INT NOT NULL, compuser2_id INT NOT NULL, jornada_id INT NOT NULL, juez_id INT DEFAULT NULL, campo_id INT DEFAULT NULL, turno_id INT DEFAULT NULL, grupo INT DEFAULT NULL, rdo_comp1 INT DEFAULT NULL, rdo_comp2 INT DEFAULT NULL, INDEX IDX_CDFA77FA9980C34D (competencia_id), INDEX IDX_CDFA77FA3AD9E (compuser1_id), INDEX IDX_CDFA77FA12B60270 (compuser2_id), INDEX IDX_CDFA77FA26E992D9 (jornada_id), INDEX IDX_CDFA77FA2515F440 (juez_id), INDEX IDX_CDFA77FAA17A385C (campo_id), INDEX IDX_CDFA77FA69C5211E (turno_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE usuario_competencia (id INT AUTO_INCREMENT NOT NULL, id_usuario INT NOT NULL, id_competencia INT NOT NULL, rol_id INT DEFAULT NULL, alias VARCHAR(127) DEFAULT NULL, INDEX IDX_BC07BB04FCF8192D (id_usuario), INDEX IDX_BC07BB049C3E847D (id_competencia), INDEX IDX_BC07BB044BAB96C (rol_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE predio_competencia (id INT AUTO_INCREMENT NOT NULL, id_predio INT NOT NULL, id_competencia INT NOT NULL, INDEX IDX_3FED37B935D162CA (id_predio), INDEX IDX_3FED37B99C3E847D (id_competencia), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
+        $this->addSql('ALTER TABLE edicion ADD CONSTRAINT FK_655F7739E304C7C8 FOREIGN KEY (encuentro_id) REFERENCES encuentro (id)');
         $this->addSql('ALTER TABLE resultado ADD CONSTRAINT FK_B2ED91C7B73D69E FOREIGN KEY (competidor_id) REFERENCES usuario_competencia (id)');
         $this->addSql('ALTER TABLE categoria ADD CONSTRAINT FK_4E10122D239C54DD FOREIGN KEY (deporte_id) REFERENCES deporte (id)');
         $this->addSql('ALTER TABLE juez_competencia ADD CONSTRAINT FK_3D03DE2449F7902 FOREIGN KEY (id_juez) REFERENCES juez (id) ON DELETE CASCADE');
@@ -102,10 +104,12 @@ final class Version20200406134605 extends AbstractMigration
         $this->addSql('ALTER TABLE encuentro DROP FOREIGN KEY FK_CDFA77FA69C5211E');
         $this->addSql('ALTER TABLE ciudad DROP FOREIGN KEY FK_8E86059EC604D5C6');
         $this->addSql('ALTER TABLE usuario_competencia DROP FOREIGN KEY FK_BC07BB044BAB96C');
+        $this->addSql('ALTER TABLE edicion DROP FOREIGN KEY FK_655F7739E304C7C8');
         $this->addSql('ALTER TABLE resultado DROP FOREIGN KEY FK_B2ED91C7B73D69E');
         $this->addSql('ALTER TABLE invitacion DROP FOREIGN KEY FK_3CD30E84D0F7497F');
         $this->addSql('ALTER TABLE encuentro DROP FOREIGN KEY FK_CDFA77FA3AD9E');
         $this->addSql('ALTER TABLE encuentro DROP FOREIGN KEY FK_CDFA77FA12B60270');
+        $this->addSql('DROP TABLE edicion');
         $this->addSql('DROP TABLE tipo_organizacion');
         $this->addSql('DROP TABLE resultado');
         $this->addSql('DROP TABLE categoria');
