@@ -1315,6 +1315,10 @@ class EncuentroController extends AbstractFOSRestController
 
     $stringFechaActual = (new \DateTime())->format(Constant::FORMAT_DATE_CREATE);
     $fechaActual = DateTime::createFromFormat(Constant::FORMAT_DATE_CREATE, $stringFechaActual);
+    // $stringFechaActual = (new \DateTime())->format('Y-m-d H:i:s');
+    // var_dump($stringFechaActual);
+    // $fechaActual = DateTime::createFromFormat('Y-m-d H:i:s', $stringFechaActual);
+    // var_dump($fechaActual);
 
     $newEdicion = new Edicion();
     $newEdicion->setEncuentro($encuentro);

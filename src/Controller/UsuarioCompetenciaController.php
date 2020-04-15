@@ -509,6 +509,8 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
           $competition['tipo_organizacion'] = $newType;
         }
 
+        //var_dump($respJson);
+
         $respJson = json_encode($respJson);
         $response = new Response($respJson);
         $response->setStatusCode($statusCode);

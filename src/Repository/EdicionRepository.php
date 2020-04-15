@@ -47,4 +47,19 @@ class EdicionRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    // recupera las ediciones de un encuentro ordenadas segun su fecha de edicion
+    public function getEditionsByConfrontation($idEncuentro){
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            '   SELECT ed.tipo, ed.editor, ed.fecha
+                FROM App\Entity\Edicion ed
+                INNER JOIN App\Entity\Encuentro en
+                WITH ed.encuentro = en.id
+                WHERE en.id = :idEncuentro
+                ORDER BY ed.fecha DESC
+            ')->setParameter('idEncuentro',$idEncuentro);
+        
+        return $query->execute();
+    }
 }

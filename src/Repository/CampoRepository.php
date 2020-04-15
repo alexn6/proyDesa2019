@@ -76,7 +76,7 @@ class CampoRepository extends ServiceEntityRepository
             ')->setParameter('idPredio',$idPredio)
               ->setParameter('nameField',$nameField);
         
-        return $query->execute();   
+        return $query->execute();
     }
 
     // buscamos los campos de la competencia
