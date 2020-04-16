@@ -309,7 +309,8 @@ class EncuentroController extends AbstractFOSRestController
               $repositoryJuez = $this->getDoctrine()->getRepository(Juez::class);
               $juez = $repositoryJuez->find($dataRequest->idJuez);
               $encuentro->setJuez($juez);
-              array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, Constant::EDIT_JUEZ, $dataRequest->idUsuario));
+              $operacion = "Se asigna un JUEZ: ".$juez->getNombre()." ".$juez->getApellido();
+              array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, $operacion, $dataRequest->idUsuario));
               $hayEdicion = true;
             }
             // si existe agregamos el campo
@@ -317,7 +318,8 @@ class EncuentroController extends AbstractFOSRestController
               $repositoryCampo = $this->getDoctrine()->getRepository(Campo::class);
               $campo = $repositoryCampo->find($dataRequest->idCampo);
               $encuentro->setCampo($campo);
-              array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, Constant::EDIT_CAMPO, $dataRequest->idUsuario));
+              $operacion = "Se asigna un CAMPO: ".$campo->getNombre();
+              array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, $operacion, $dataRequest->idUsuario));
               $hayEdicion = true;
             }
           }
@@ -338,7 +340,8 @@ class EncuentroController extends AbstractFOSRestController
                   // solo seteamos el campo si lo recibimos desde la peticion
                   $encuentro->setTurno($turno);
                   $hayCamposActualizados = true;
-                  array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, Constant::EDIT_TURNO, $dataRequest->idUsuario));
+                  $operacion = "Se asigna un TURNO: ".$turno->getHoraDesde()->format(Constant::FORMAT_DATE_HOUR)." - ".$turno->getHoraHasta()->format(Constant::FORMAT_DATE_HOUR);
+                  array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, $operacion, $dataRequest->idUsuario));
                   $hayEdicion = true;
                 }
               }
@@ -356,12 +359,14 @@ class EncuentroController extends AbstractFOSRestController
                 if($this->availableJudge($dataRequest->idEncuentro, $competencia, $juez, $turno)){
                   if(property_exists((object) $dataRequest,'idTurno')){
                     $encuentro->setTurno($turno);
-                    array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, Constant::EDIT_TURNO, $dataRequest->idUsuario));
+                    $operacion = "Se asigna un TURNO: ".$turno->getHoraDesde()->format(Constant::FORMAT_DATE_HOUR)." - ".$turno->getHoraHasta()->format(Constant::FORMAT_DATE_HOUR);
+                    array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, $operacion, $dataRequest->idUsuario));
                     $hayEdicion = true;
                   }
                   if(property_exists((object) $dataRequest,'idJuez')){
                     $encuentro->setJuez($juez);
-                    array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, Constant::EDIT_JUEZ, $dataRequest->idUsuario));
+                    $operacion = "Se asigna un JUEZ: ".$juez->getNombre()." ".$juez->getApellido();
+                    array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, $operacion, $dataRequest->idUsuario));
                     $hayEdicion = true;
                   }
                   $hayCamposActualizados = true;
@@ -396,12 +401,14 @@ class EncuentroController extends AbstractFOSRestController
                 // var_dump("El campo esta disponible");
                 if(property_exists((object) $dataRequest,'idTurno')){
                   $encuentro->setTurno($turno);
-                  array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, Constant::EDIT_TURNO, $dataRequest->idUsuario));
+                  $operacion = "Se asigna un TURNO: ".$turno->getHoraDesde()->format(Constant::FORMAT_DATE_HOUR)." - ".$turno->getHoraHasta()->format(Constant::FORMAT_DATE_HOUR);
+                  array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, $operacion, $dataRequest->idUsuario));
                   $hayEdicion = true;
                 }
                 if(property_exists((object) $dataRequest,'idCampo')){
                   $encuentro->setCampo($campo);
-                  array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, Constant::EDIT_CAMPO, $dataRequest->idUsuario));
+                  $operacion = "Se asigna un CAMPO: ".$campo->getNombre();
+                  array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, $operacion, $dataRequest->idUsuario));
                   $hayEdicion = true;
                 }
                 $hayCamposActualizados = true;
@@ -430,12 +437,14 @@ class EncuentroController extends AbstractFOSRestController
               if($this->availableJudge($dataRequest->idEncuentro, $competencia, $juez, $turno)){
                 if(property_exists((object) $dataRequest,'idTurno')){
                   $encuentro->setTurno($turno);
-                  array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, Constant::EDIT_TURNO, $dataRequest->idUsuario));
+                  $operacion = "Se asigna un TURNO: ".$turno->getHoraDesde()->format(Constant::FORMAT_DATE_HOUR)." - ".$turno->getHoraHasta()->format(Constant::FORMAT_DATE_HOUR);
+                  array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, $operacion, $dataRequest->idUsuario));
                   $hayEdicion = true;
                 }
                 if(property_exists((object) $dataRequest,'idJuez')){
                   $encuentro->setJuez($juez);
-                  array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, Constant::EDIT_JUEZ, $dataRequest->idUsuario));
+                  $operacion = "Se asigna un JUEZ: ".$juez->getNombre()." ".$juez->getApellido();
+                  array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, $operacion, $dataRequest->idUsuario));
                   $hayEdicion = true;
                 }
                 $hayCamposActualizados = true;
@@ -482,7 +491,8 @@ class EncuentroController extends AbstractFOSRestController
             // mandamos la notif de la resolucion del encuentro
             $this->notificationResolucion($competencia, $encuentro, $dataRequest->rdo_comp1, $dataRequest->rdo_comp2);
             $hayCamposActualizados = true;
-            array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, Constant::EDIT_RESULTADO, $dataRequest->idUsuario));
+            $operacion = "Se asigna un RESULTADO: (".$dataRequest->rdo_comp1." - ".$dataRequest->rdo_comp2.")";
+            array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, $operacion, $dataRequest->idUsuario));
             $hayEdicion = true;
           }
   
@@ -1306,7 +1316,7 @@ class EncuentroController extends AbstractFOSRestController
   }
 
   // crea un registro de edicioin y lo devuelve
-  private function crearEdicion($idEncuentro, $tipoEdicion, $idEditor){
+  private function crearEdicion($idEncuentro, $operacion, $idEditor){
     $repository = $this->getDoctrine()->getRepository(Usuario::class);
     $usuarioEditor = $repository->find($idEditor);
 
@@ -1322,7 +1332,7 @@ class EncuentroController extends AbstractFOSRestController
 
     $newEdicion = new Edicion();
     $newEdicion->setEncuentro($encuentro);
-    $newEdicion->setTipo($tipoEdicion);
+    $newEdicion->setOperacion($operacion);
     $newEdicion->setEditor($usuarioEditor->getNombreUsuario());
     $newEdicion->setFecha($fechaActual);
 

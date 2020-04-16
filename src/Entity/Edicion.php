@@ -21,9 +21,9 @@ class Edicion
     private $id;
     
     /**
-     * @ORM\Column(type="string", length=25, columnDefinition="ENUM('RESULTADO', 'JUEZ', 'TURNO', 'CAMPO')")
+     * @ORM\Column(type="string", length=50)
      */
-    private $tipo;
+    private $operacion;
 
     /**
      * @ORM\Column(type="string", length=60)
@@ -44,21 +44,6 @@ class Edicion
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getTipo(): ?string
-    {
-        return $this->tipo;
-    }
-
-    public function setTipo(string $tipo): self
-    {
-        if (!in_array($tipo, array(Constant::EDIT_RESULTADO, Constant::EDIT_JUEZ, Constant::EDIT_TURNO, Constant::EDIT_CAMPO))) {
-            throw new \InvalidArgumentException("Tipo de edicion invalida");
-        }
-        $this->tipo = $tipo;
-
-        return $this;     
     }
 
     public function getEditor(): ?string
@@ -93,6 +78,18 @@ class Edicion
     public function setFecha(?\DateTimeInterface $fecha): self
     {
         $this->fecha = $fecha;
+
+        return $this;
+    }
+
+    public function getOperacion(): ?string
+    {
+        return $this->operacion;
+    }
+
+    public function setOperacion(string $operacion): self
+    {
+        $this->operacion = $operacion;
 
         return $this;
     }

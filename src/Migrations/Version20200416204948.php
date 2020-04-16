@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20200414222123 extends AbstractMigration
+final class Version20200416204948 extends AbstractMigration
 {
     public function getDescription() : string
     {
@@ -22,7 +22,7 @@ final class Version20200414222123 extends AbstractMigration
         // this up() migration is auto-generated, please modify it to your needs
         $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
 
-        $this->addSql('CREATE TABLE edicion (id INT AUTO_INCREMENT NOT NULL, encuentro_id INT DEFAULT NULL, tipo ENUM(\'RESULTADO\', \'JUEZ\', \'TURNO\', \'CAMPO\'), editor VARCHAR(60) NOT NULL, fecha DATE NOT NULL, INDEX IDX_655F7739E304C7C8 (encuentro_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE edicion (id INT AUTO_INCREMENT NOT NULL, encuentro_id INT DEFAULT NULL, operacion VARCHAR(50) NOT NULL, editor VARCHAR(60) NOT NULL, fecha DATE NOT NULL, INDEX IDX_655F7739E304C7C8 (encuentro_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE tipo_organizacion (id INT AUTO_INCREMENT NOT NULL, codigo VARCHAR(10) NOT NULL, nombre VARCHAR(127) NOT NULL, descripcion VARCHAR(255) NOT NULL, minimo VARCHAR(127) NOT NULL, UNIQUE INDEX UNIQ_BF73525A20332D99 (codigo), UNIQUE INDEX UNIQ_BF73525A3A909126 (nombre), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE resultado (id INT AUTO_INCREMENT NOT NULL, competidor_id INT DEFAULT NULL, jugados INT DEFAULT NULL, ganados INT DEFAULT NULL, empatados INT DEFAULT NULL, perdidos INT DEFAULT NULL, INDEX IDX_B2ED91C7B73D69E (competidor_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('CREATE TABLE categoria (id INT AUTO_INCREMENT NOT NULL, deporte_id INT DEFAULT NULL, nombre VARCHAR(127) NOT NULL, descripcion VARCHAR(255) NOT NULL, min_integrantes INT NOT NULL, duracion_default INT NOT NULL, UNIQUE INDEX UNIQ_4E10122D3A909126 (nombre), INDEX IDX_4E10122D239C54DD (deporte_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');

@@ -52,7 +52,7 @@ class EdicionRepository extends ServiceEntityRepository
     public function getEditionsByConfrontation($idEncuentro){
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            '   SELECT ed.tipo, ed.editor, ed.fecha
+            '   SELECT ed.operacion, ed.editor, ed.fecha
                 FROM App\Entity\Edicion ed
                 INNER JOIN App\Entity\Encuentro en
                 WITH ed.encuentro = en.id

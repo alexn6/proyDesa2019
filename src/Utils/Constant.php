@@ -84,13 +84,6 @@ class Constant{
     const ESTADO_INV_NO_DEFINIDO = 'N/D';
 
     // #############################################################################
-    // ############################# TIPO_EDICION ############################
-    const EDIT_RESULTADO = 'RESULTADO';
-    const EDIT_JUEZ = 'JUEZ';
-    const EDIT_TURNO = 'TURNO';
-    const EDIT_CAMPO = 'CAMPO';
-
-    // #############################################################################
     // ########################## Config DbCloudFirestore ###########################
 
     const PROJECT_FIREBASE = 'proyectotorneosfcm';
