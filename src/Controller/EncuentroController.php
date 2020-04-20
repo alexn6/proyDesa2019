@@ -11,6 +11,7 @@ use \Datetime;
 
 use App\Entity\Encuentro;
 use App\Entity\Usuario;
+use App\Entity\Deporte;
 use App\Entity\UsuarioCompetencia;
 use App\Entity\Competencia;
 use App\Entity\Jornada;
@@ -245,28 +246,34 @@ class EncuentroController extends AbstractFOSRestController
           }
   
           if($reciboResultados){
-            $this->updateDataConfrontation($encuentro, $dataRequest->rdo_comp1, $dataRequest->rdo_comp2);
-            // mandamos la notif de la resolucion del encuentro
-            $this->notificationResolucion($competencia, $encuentro, $dataRequest->rdo_comp1, $dataRequest->rdo_comp2);
-            $hayCamposActualizados = true;
-            $operacion = "Se asigna un RESULTADO: (".$dataRequest->rdo_comp1." - ".$dataRequest->rdo_comp2.")";
-            array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, $operacion, $dataRequest->idUsuario));
-            $hayEdicion = true;
-          }
-  
-          if($hayCamposActualizados){
-            $respJson->msg = "Campos actualizados correctamente";
-            $statusCode = Response::HTTP_OK;
-            $em = $this->getDoctrine()->getManager();
-            $em->flush();
-          }
-          if($hayEdicion){
-            $em = $this->getDoctrine()->getManager();
-            for ($i=0; $i < count($listEdicion); $i++) { 
-              $edicion = $listEdicion[$i];
-              $em->persist($edicion);
+            if($this->resultadoPosible($dataRequest->rdo_comp1, $dataRequest->rdo_comp2, $encuentro->getCompetencia())){
+              $this->updateDataConfrontation($encuentro, $dataRequest->rdo_comp1, $dataRequest->rdo_comp2);
+              // mandamos la notif de la resolucion del encuentro
+              $this->notificationResolucion($competencia, $encuentro, $dataRequest->rdo_comp1, $dataRequest->rdo_comp2);
+              $hayCamposActualizados = true;
+              $operacion = "Se asigna un RESULTADO: (".$dataRequest->rdo_comp1." - ".$dataRequest->rdo_comp2.")";
+              array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, $operacion, $dataRequest->idUsuario));
+              $hayEdicion = true;
+
+              if($hayCamposActualizados){
+                $respJson->msg = "Campos actualizados correctamente";
+                $statusCode = Response::HTTP_OK;
+                $em = $this->getDoctrine()->getManager();
+                $em->flush();
+              }
+              if($hayEdicion){
+                $em = $this->getDoctrine()->getManager();
+                for ($i=0; $i < count($listEdicion); $i++) { 
+                  $edicion = $listEdicion[$i];
+                  $em->persist($edicion);
+                }
+                $em->flush();
+              }
             }
-            $em->flush();
+            else{
+              $respJson->msg = "El deporte no admite el resultado recibido.";
+              $statusCode = Response::HTTP_BAD_REQUEST;
+            }
           }
         }
         else{
@@ -1082,6 +1089,17 @@ class EncuentroController extends AbstractFOSRestController
       return false;
     }
     return true;
+  }
+
+  // vemos si el resultado recibido es posible para el deporte de la competencia
+  private function resultadoPosible($rdo1, $rdo2, $competencia){
+    // vemos si el deporte admite empates
+    if($rdo1 != $rdo2){
+      return true;
+    }
+    if($competencia->getCategoria()->getDeporte()->getPuntosPempetado() != null)
+      return true;
+    return false;
   }
 
   // crea un registro de edicioin y lo devuelve

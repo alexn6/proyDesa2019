@@ -56,7 +56,7 @@ class EncuentroRepository extends ServiceEntityRepository
     }
     */
 
-    // recuperamos los encuentros de una competencia
+    // recupera todos los encuentros de una competencia
     public function findEncuentrosByCompetencia($idCompetencia)
     {
         $entityManager = $this->getEntityManager();
