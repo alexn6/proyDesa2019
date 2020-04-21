@@ -79,14 +79,13 @@ class ResultadoController extends AbstractFOSRestController
                         $resultados = json_decode($resultados, true);
                         // buscamos los puntos por resultado segun deporte
                         $ptsByResult = $this->getPointsBySport($competencia);
-                        // calculamos la tabla de posiciones de la competencia
-                        // $resultResp = $this->getTablePosition($resultados, $ptsByResult);
-                        // // vamos en busca de la diferencia TEST..........................
-                        // $repository->getDiffCompetitors($idCompetencia, $nroGrupo);
-
-                        // vamos en busca de la diferencia TEST..........................
+                        // recuperamos la tabla de posiciones de la competencia
                         $diferenciaPts = $repository->getDiffCompetitors($idCompetencia, $nroGrupo);
                         $resultResp = $this->getTablePosition($resultados, $ptsByResult, $diferenciaPts);
+                        // ordenamos los resultados segun puntos mas altos
+                        usort($resultResp, function($a, $b ) {
+                            return ($b['Pts'] - $a['Pts']);
+                        });
                         
                         $statusCode = Response::HTTP_OK;
                     }
@@ -114,6 +113,7 @@ class ResultadoController extends AbstractFOSRestController
     // ######################################################################################
     // ############################ funciones auxiliares ####################################
 
+    // Pre: se controla que el deporte admita empates
     private function getTablePosition($resultCompetitors, $ptsByResult, $diffCompetitors){
         // recuperamos los puntos segun el deporte
         $ptsGanado = $ptsByResult["ganado"];
@@ -125,13 +125,14 @@ class ResultadoController extends AbstractFOSRestController
             $pg = $resultCompetitors[$i]['PG'];
             $pe = $resultCompetitors[$i]['PE'];
             $pp = $resultCompetitors[$i]['PP'];
-            if($pe != null){
-                $ptsTotal = $pg*$ptsGanado + $pe*$ptsEmpatado + $pp*$ptsPerdido;
+            // con esto hariamos un control mas si lo necesitaramos
+            if($ptsEmpatado != null){
+                if($pe == null){
+                    $pe = 0;
+                }
             }
-            else{
-                $ptsTotal = $pg*$ptsGanado + $pp*$ptsPerdido;
-                $resultCompetitors[$i]['PE'] = null;
-            }
+            $ptsTotal = $pg*$ptsGanado + $pe*$ptsEmpatado + $pp*$ptsPerdido;
+            
             $resultCompetitors[$i]['Pts'] = $ptsTotal;
             // asignamos la diferencia de anotaciones
             for ($j=0; $j < count($diffCompetitors); $j++) { 
