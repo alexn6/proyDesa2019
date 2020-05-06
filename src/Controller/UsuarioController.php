@@ -933,12 +933,10 @@ class UsuarioController extends AbstractFOSRestController
     }
 
     private function sendCodVerification($codVerification, $mailDestino){
-      // $asunto = 'Proyecto Torneos';
-      // $mail_desde = 'alex6tc90@gmail.com';
-      $msg = 'su codigo de verificacion es '.$codVerification.'. No lo compartas.';
+      $msg = 'Tu codigo de verificacion es '.$codVerification.'. No lo compartas.';
 
-      // MailManager::getInstance()->sendMail($asunto, $mail_desde, Constant::SWFMAILER_SERVER_SMTP_USER, $msg);
-      MailManager::getInstance()->sendMail(Constant::APP_MOVIL_NAME, Constant::SWFMAILER_SERVER_SMTP_USER, $mailDestino, $msg);
+      // MailManager::getInstance()->sendMail(Constant::APP_MOVIL_NAME, Constant::SWFMAILER_SERVER_SMTP_USER, $mailDestino, $msg);
+      MailManager::getInstance()->sendMail(Constant::APP_MOVIL_NAME, $mailDestino, $msg);
     }
 
     // mantenemos las subscripciones del token anterior
