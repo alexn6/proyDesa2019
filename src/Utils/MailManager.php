@@ -22,13 +22,6 @@ class MailManager
     {
         $this->loadParamServer();
 
-        // $transport = (new \Swift_SmtpTransport(Constant::SWFMAILER_SERVER_SMTP,
-        //                                 Constant::SWFMAILER_SERVER_SMTP_PORT, 
-        //                                 Constant::SWFMAILER_SERVER_SMTP_SECURE))
-        //     ->setUsername(Constant::SWFMAILER_SERVER_SMTP_USER)
-        //     ->setPassword(Constant::SWFMAILER_SERVER_SMTP_USER_PASS)
-        //     ;
-
         $transport = (new \Swift_SmtpTransport(
                                 self::$swfMailerServer,
                                 self::$swfMailerServerPort, 

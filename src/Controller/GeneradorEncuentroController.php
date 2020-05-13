@@ -299,7 +299,7 @@ class GeneradorEncuentroController extends AbstractFOSRestController
                     if($cantCorrecta !== true){
                         $respJson->matches = NULL;
                         $statusCode = Response::HTTP_BAD_REQUEST;
-                        $respJson->msg = "Verifique la cantidad de comopetidores. Cantidad minima: ".$cantCorrecta;
+                        $respJson->msg = "Verifique la cantidad de competidores. Cantidad minima: ".$cantCorrecta;
                     }
                     else{
                         // recuperamos la lista de los nombres de los participantes

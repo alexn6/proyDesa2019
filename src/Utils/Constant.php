@@ -97,18 +97,6 @@ class Constant{
     const API_KEY_EMAIL_VERIFICATION = "at_mxqfktROoumpgCzRktSeRjBBtzxaU";
 
     // #############################################################################
-    // ############################ PARAMETROS SWIFMAIL ############################
-
-    // IMPORTANTE: para terminar de configurar el envio de los mails se debe permitir el envio
-    // de mjes desde la cuenta de gmail y permitir el acceso de app de poca confianza a la cuenta
-
-    // const SWFMAILER_SERVER_SMTP = 'smtp.gmail.com';
-    // const SWFMAILER_SERVER_SMTP_PORT = 587;
-    // const SWFMAILER_SERVER_SMTP_SECURE = 'tls';
-    // const SWFMAILER_SERVER_SMTP_USER = 'torneosycompetenciasapp@gmail.com';
-    // const SWFMAILER_SERVER_SMTP_USER_PASS = 'desarrollo2020';
-
-    // #############################################################################
     // ################################# SERVICIOS #################################
 
     // servicios propios
