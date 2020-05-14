@@ -480,20 +480,21 @@ class CompetenciaController extends AbstractFOSRestController
           $statusCode = Response::HTTP_OK;
         }
         else{
-          $repositoryJornada = $this->getDoctrine()->getRepository(Jornada::class);
-          $repositoryCompetencia = $this->getDoctrine()->getRepository(Competencia::class);
-          $fasesDb = $repositoryCompetencia->phasesCreated($idCompetencia);
-          $arrayFases = array();
+          $repositoryEncuentro = $this->getDoctrine()->getRepository(Encuentro::class);
 
-          foreach($fasesDb as $fase){
-            array_push($arrayFases, $fase["fase"]);
-          }
-          
-          if((count($arrayFases) == 0) && ($competition->getCantGrupos() == null) && ((int)($repositoryJornada->nJornadaCompetetion($idCompetencia)[0][1]) == 0)){
-            $respJson->messaging = "La competencia aun no cuenta con encuentros.";
+          if(count($repositoryEncuentro->findEncuentrosByCompetencia($idCompetencia)) <= 0){
             $statusCode = Response::HTTP_NO_CONTENT;
           }
           else{
+            $repositoryJornada = $this->getDoctrine()->getRepository(Jornada::class);
+            $repositoryCompetencia = $this->getDoctrine()->getRepository(Competencia::class);
+            $fasesDb = $repositoryCompetencia->phasesCreated($idCompetencia);
+            $arrayFases = array();
+
+            foreach($fasesDb as $fase){
+              array_push($arrayFases, $fase["fase"]);
+            }
+            
             $respJson->cant_grupo = $competition->getCantGrupos();
             $stringCantJornada = $repositoryJornada->nJornadaCompetetion($idCompetencia)[0][1];
             $respJson->cant_jornada = (int)$stringCantJornada;
