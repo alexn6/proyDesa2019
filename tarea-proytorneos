@@ -1,0 +1,4 @@
+############# Sistema de control de ProyectoTorneos #######################
+# Verifica la fecha de inicio de cada competencia del sistema
+
+20 08 * * * alex6 php /var/www/html/proyDesa2019/bin/console app:updatadb
