@@ -299,10 +299,11 @@ class UsuarioCompetenciaController extends AbstractFOSRestController
                 $respJson->messaging = "Borrado con exito";
                 $msg = "Su solicitud de inscripcion fue rechazada";
                 // enviamos la notificacion al usuario
-                $this->notifySolInscription($user->getToken(), $competition->getNombre(), $msg);
-              } else{
+                $this->notifySolInscription($user->getToken(), $competition->getNombre(), $msg);;
+              }
+              else{
                 $statusCode = Response::HTTP_BAD_REQUEST;
-                $respJson->messaging = "No existe usuario";
+                $respJson->messaging = "La solicitud no existe o fue eliminada";
               }
           }
           else{
