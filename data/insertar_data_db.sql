@@ -4116,37 +4116,6 @@ INSERT INTO `categoria` (`id`, `deporte_id`, `nombre`, `descripcion`, `min_integ
 -- --------------------------------------------------------
 
 --
--- Volcado de datos para la tabla `pais` (solo America Latina)
---
-
-INSERT INTO `pais` (`id`, `nombre`) VALUES
-(1, 'Argentina'),
-(2, 'Brasil'),
-(3, 'Peru'),
-(4, 'Colombia'),
-(5, 'EE UU'),
-(6, 'Mexico'),
-(7, 'Canada'),
-(8, 'Panama'),
-(9, 'Republica Dominicana'),
-(10, 'Puerto Rico'),
-(11, 'Bahamas'),
-(12, 'Venezuela'),
-(13, 'Chile'),
-(14, 'Ecuador'),
-(15, 'Bolivia'),
-(16, 'Costa Rica'),
-(17, 'Jamaica'),
-(18, 'Guatemala'),
-(19, 'Paraguay'),
-(20, 'El Salvador'),
-(21, 'Honduras'),
-(22, 'Uruguay'),
-(23, 'Cuba');
-
--- --------------------------------------------------------
-
---
 -- Volcado de datos para la tabla `tipo_organizacion`
 --
 
@@ -4155,7 +4124,7 @@ INSERT INTO `tipo_organizacion` (`id`, `codigo`, `nombre`, `descripcion`, `minim
 (2, 'LIGSING', 'Liga Single', 'Competencia en la que se enfrentan todos los competidores contra todos donde el que se encuentra 1ro en la tabla es el ganador.', 'validarCompetidoresLiga'),
 (3, 'LIGDOUB', 'Liga Double', 'Competencia en la que se enfrentan todos los competidores contra todos, dos rondas donde el que se encuentra 1ro en la tabla es el ganador.', 'validarCompetidoresLiga'),
 (4, 'ELIMDOUB', 'Eliminatorias Double', 'Encuentros eliminatorios de 2 enfrentamientos.', 'validarCompetidoresEliminitorias'),
-(5, 'FASEGRUP', 'Fase de grupo', 'Fase de n grupos con eliminatorias', 'validarCompetidoresGrupos');
+(5, 'FASEGRUP', 'Fase de grupo', 'Fase de grupos con eliminatorias', 'validarCompetidoresGrupos');
 
 -- --------------------------------------------------------
 

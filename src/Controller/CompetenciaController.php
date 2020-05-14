@@ -489,11 +489,18 @@ class CompetenciaController extends AbstractFOSRestController
             array_push($arrayFases, $fase["fase"]);
           }
           
-          $respJson->cant_grupo = $competition->getCantGrupos();
-          $stringCantJornada = $repositoryJornada->nJornadaCompetetion($idCompetencia)[0][1];
-          $respJson->cant_jornada = (int)$stringCantJornada;
-          $respJson->fases = $arrayFases;
-          $respJson->messaging = "Operacion realizada con exito";
+          if((count($arrayFases) == 0) && ($competition->getCantGrupos() == null) && ((int)($repositoryJornada->nJornadaCompetetion($idCompetencia)[0][1]) == 0)){
+            $respJson->messaging = "La competencia aun no cuenta con encuentros.";
+            $statusCode = Response::HTTP_NO_CONTENT;
+          }
+          else{
+            $respJson->cant_grupo = $competition->getCantGrupos();
+            $stringCantJornada = $repositoryJornada->nJornadaCompetetion($idCompetencia)[0][1];
+            $respJson->cant_jornada = (int)$stringCantJornada;
+            $respJson->fases = $arrayFases;
+            $respJson->messaging = "Operacion realizada con exito";
+            $statusCode = Response::HTTP_OK;
+          }
         }
       }
       else{
@@ -505,7 +512,7 @@ class CompetenciaController extends AbstractFOSRestController
       $respJson = json_encode($respJson);
 
       $response = new Response($respJson);
-      $response->setStatusCode(Response::HTTP_OK);
+      $response->setStatusCode($statusCode);
       $response->headers->set('Content-Type', 'application/json');
 
       return $response;
