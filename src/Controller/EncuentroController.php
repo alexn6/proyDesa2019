@@ -517,11 +517,13 @@ class EncuentroController extends AbstractFOSRestController
                 }
                 // var_dump($aliasCompetitorsEnc);
                 $libre = null;
-                if((strpos($competition->getOrganizacion()->getNombre(), 'Liga') !== false) || ((strpos($competition->getOrganizacion()->getNombre(), 'grupo') !== false))){
-                  $compLibre = array_diff($aliasCompetitorsDb, $aliasCompetitorsEnc);
-                
-                  foreach ($compLibre as $valor){
-                    $libre = $valor;
+                if(count($encuentros) > 0){
+                  if((strpos($competition->getOrganizacion()->getNombre(), 'Liga') !== false) || ((strpos($competition->getOrganizacion()->getNombre(), 'grupo') !== false))){
+                    $compLibre = array_diff($aliasCompetitorsDb, $aliasCompetitorsEnc);
+                  
+                    foreach ($compLibre as $valor){
+                      $libre = $valor;
+                    }
                   }
                 }
                 //var_dump($compLibre);
