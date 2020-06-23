@@ -70,23 +70,23 @@ class JuezRepository extends ServiceEntityRepository
         $queryBase = ' SELECT j
                         FROM App\Entity\Juez j';
 
-        if(($name != null) && ($apellido != null)){
-            $queryBase = $queryBase.' WHERE (j.nombre LIKE :nameJudge AND j.apellido LIKE :apellido)';
-        }
-        else{
-            if($name == null){
+        // si nos mandan algun dato
+        if(($name != null) || ($apellido != null)){
+            if(($name != null) && ($apellido != null)){
+                $queryBase = $queryBase.' WHERE (j.nombre LIKE :nameJudge AND j.apellido LIKE :apellido)';
+            }
+            else{
                 if($apellido != null){
                     $queryBase = $queryBase.' WHERE j.apellido LIKE :apellido';
                 }
-            }
-            else{
-                if($name != null){
+                else{
                     $queryBase = $queryBase.' WHERE j.nombre LIKE :nameJudge';
                 }
             }
         }
 
         $query = $entityManager->createQuery($queryBase);
+        
         if($name != null){
             $query->setParameter('nameJudge','%'.$name.'%');
         }
