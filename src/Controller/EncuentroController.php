@@ -60,7 +60,7 @@ class EncuentroController extends AbstractFOSRestController
         $statusCode = Response::HTTP_BAD_REQUEST;
       }
       else{
-        // vemos is se puede editar el encuentro
+        // vemos si se puesde editar el encuentro
         if($this->isEditable($dataRequest->idEncuentro, $dataRequest->idCompetencia)){
           $repositoryComp = $this->getDoctrine()->getRepository(Competencia::class);
           $competencia = $repositoryComp->find($dataRequest->idCompetencia);
@@ -89,6 +89,7 @@ class EncuentroController extends AbstractFOSRestController
               $encuentro->setJuez($juez);
               $operacion = "Se asigna un JUEZ: ".$juez->getNombre()." ".$juez->getApellido();
               array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, $operacion, $dataRequest->idUsuario));
+              $hayCamposActualizados = true;
               $hayEdicion = true;
             }
             // si existe agregamos el campo
@@ -98,6 +99,7 @@ class EncuentroController extends AbstractFOSRestController
               $encuentro->setCampo($campo);
               $operacion = "Se asigna un CAMPO: ".$campo->getNombre();
               array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, $operacion, $dataRequest->idUsuario));
+              $hayCamposActualizados = true;
               $hayEdicion = true;
             }
           }
@@ -247,33 +249,36 @@ class EncuentroController extends AbstractFOSRestController
   
           if($reciboResultados){
             if($this->resultadoPosible($dataRequest->rdo_comp1, $dataRequest->rdo_comp2, $encuentro->getCompetencia())){
-              $this->updateDataConfrontation($encuentro, $dataRequest->rdo_comp1, $dataRequest->rdo_comp2);
+              $rdoCambiaron = $this->updateDataConfrontation($encuentro, $dataRequest->rdo_comp1, $dataRequest->rdo_comp2);
               // mandamos la notif de la resolucion del encuentro
               $this->notificationResolucion($competencia, $encuentro, $dataRequest->rdo_comp1, $dataRequest->rdo_comp2);
-              $hayCamposActualizados = true;
-              $operacion = "Se asigna un RESULTADO: (".$dataRequest->rdo_comp1." - ".$dataRequest->rdo_comp2.")";
-              array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, $operacion, $dataRequest->idUsuario));
-              $hayEdicion = true;
-
-              if($hayCamposActualizados){
-                $respJson->msg = "Campos actualizados correctamente";
-                $statusCode = Response::HTTP_OK;
-                $em = $this->getDoctrine()->getManager();
-                $em->flush();
-              }
-              if($hayEdicion){
-                $em = $this->getDoctrine()->getManager();
-                for ($i=0; $i < count($listEdicion); $i++) { 
-                  $edicion = $listEdicion[$i];
-                  $em->persist($edicion);
-                }
-                $em->flush();
+              if($rdoCambiaron){
+                $hayCamposActualizados = true;
+                $operacion = "Se asigna un RESULTADO: (".$dataRequest->rdo_comp1." - ".$dataRequest->rdo_comp2.")";
+                array_push($listEdicion, $this->crearEdicion($dataRequest->idEncuentro, $operacion, $dataRequest->idUsuario));
+                $hayEdicion = true;
               }
             }
             else{
               $respJson->msg = "El deporte no admite el resultado recibido.";
               $statusCode = Response::HTTP_BAD_REQUEST;
             }
+          }
+
+          // vemos si se realizaron ediciones
+          if($hayCamposActualizados){
+            $respJson->msg = "Campos actualizados correctamente";
+            $statusCode = Response::HTTP_OK;
+            $em = $this->getDoctrine()->getManager();
+            $em->flush();
+          }
+          if($hayEdicion){
+            $em = $this->getDoctrine()->getManager();
+            for ($i=0; $i < count($listEdicion); $i++) { 
+              $edicion = $listEdicion[$i];
+              $em->persist($edicion);
+            }
+            $em->flush();
           }
         }
         else{
@@ -908,24 +913,32 @@ class EncuentroController extends AbstractFOSRestController
 
 
   // actualizamos el resultado de un encuntro y las estadisticas de cada competidor
+  // Post: devuelve TRUE si se actualizaron los datos, FALSE en caso contrario
   private function updateDataConfrontation($encuentro, $rdoComp1, $rdoComp2){
-    $rdoDBEncuentroComp1 = $encuentro->getRdoComp1();
-    $rdoDBEncuentroComp2 = $encuentro->getRdoComp2();
-    // vemos si el encuentro ya contenia resultados
-    if(($rdoDBEncuentroComp1 != NULL) || ($rdoDBEncuentroComp2 != NULL)){
-      // TODO: actualizar(-) con encuentro DB
-      $this->reverseUpdateResult($encuentro, $encuentro->getRdoComp1(), $encuentro->getRdoComp2());
-      // TODO: actualizar(+) con datos recibidos
-      $this->updateResult($encuentro, $rdoComp1, $rdoComp2);
+    // solo actualizo los datos si cambio alguno de los valores recibidos
+    if(($encuentro->getRdoComp1() != $rdoComp1) || ($encuentro->getRdoComp2() != $rdoComp2)){
+      $rdoDBEncuentroComp1 = $encuentro->getRdoComp1();
+      $rdoDBEncuentroComp2 = $encuentro->getRdoComp2();
+      // vemos si el encuentro ya contenia resultados
+      if(($rdoDBEncuentroComp1 != NULL) || ($rdoDBEncuentroComp2 != NULL)){
+        // TODO: actualizar(-) con encuentro DB
+        $this->reverseUpdateResult($encuentro, $encuentro->getRdoComp1(), $encuentro->getRdoComp2());
+        // TODO: actualizar(+) con datos recibidos
+        $this->updateResult($encuentro, $rdoComp1, $rdoComp2);
+      }
+      else{
+        // actualizamos los partidos jugados y los PG, PE, PP, con los datos recibidos
+        $this->updateResult($encuentro, $rdoComp1, $rdoComp2);
+        $this->updateJugadosCompetitors($encuentro);
+      }
+      // asigno los resultados al encuentro
+      $encuentro->setRdoComp1($rdoComp1);
+      $encuentro->setRdoComp2($rdoComp2);
+
+      return true;
     }
-    else{
-      // actualizamos los partidos jugados y los PG, PE, PP, con los datos recibidos
-      $this->updateResult($encuentro, $rdoComp1, $rdoComp2);
-      $this->updateJugadosCompetitors($encuentro);
-    }
-    // asigno los resultados al encuentro
-    $encuentro->setRdoComp1($rdoComp1);
-    $encuentro->setRdoComp2($rdoComp2);
+
+    return false;
   }
 
   // vamos a ver si se completo la jornada/fase del encuentro
